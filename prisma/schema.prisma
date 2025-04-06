@@ -1,0 +1,84 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            String   @id @default(uuid())
+  name          String
+  apiKey        String   @unique
+  environments  String[] @default(["production", "development"])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  errors        Error[]
+  
+  @@map("projects")
+}
+
+model Error {
+  id             String            @id @default(uuid())
+  message        String
+  stack          String?
+  source         String?
+  lineno         Int?
+  colno          Int?
+  type           String?
+  url            String?
+  componentStack String?
+  browserInfo    String?
+  userId         String?
+  sessionId      String?
+  count          Int               @default(1)
+  firstSeen      DateTime          @default(now())
+  lastSeen       DateTime          @default(now())
+  status         String            @default("ACTIVE") // ACTIVE, RESOLVED, IGNORED, INVESTIGATING
+  projectId      String
+  environment    String            @default("production")
+  occurrences    ErrorOccurrence[]
+  tags           ErrorTag[]
+  project        Project           @relation(fields: [projectId], references: [id])
+  
+  @@map("errors")
+}
+
+model ErrorOccurrence {
+  id         String   @id @default(uuid())
+  errorId    String
+  timestamp  DateTime @default(now())
+  sessionId  String?
+  userId     String?
+  metadata   Json?    @default("{}")
+  error      Error    @relation(fields: [errorId], references: [id], onDelete: Cascade)
+  
+  @@map("error_occurrences")
+}
+
+model ErrorTag {
+  id      String @id @default(uuid())
+  key     String
+  value   String
+  errorId String
+  error   Error  @relation(fields: [errorId], references: [id], onDelete: Cascade)
+  
+  @@unique([key, value])
+  @@map("error_tags")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String?
+  email         String   @unique
+  password      String?
+  image         String?
+  role          String   @default("USER") // USER, ADMIN
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("users")
+}

@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AppCross Architecture
 
-## Getting Started
+flowchart TB
+    subgraph "Client Applications"
+        ClientApp["Client App with AppGuard SDK"]
+    end
+    
+    subgraph "AppGuard Dashboard"
+        API["Next.js API Routes"]
+        ErrorCollector["Error Collector Service"]
+        SessionReplay["Session Replay Service"]
+        Prometheus["Prometheus"]
+        Grafana["Grafana"]
+        AlertManager["Alert Manager"]
+    end
+    
+    ClientApp -- "Errors, Metrics" --> API
+    ClientApp -- "Session Data" --> API
+    API --> ErrorCollector
+    API --> SessionReplay
+    ErrorCollector --> Prometheus
+    Prometheus --> Grafana
+    Prometheus --> AlertManager
+    SessionReplay -- "Session Recordings" --> Grafana
+    
+    subgraph "Notifications"
+        Email["Email"]
+        Slack["Slack"]
+    end
+    
+    AlertManager --> Email
+    AlertManager --> Slack
 
-First, run the development server:
+## Frontend (Next.js with TypeScript)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Core Components
+- **Authentication Module**
+  - Login/Register pages
+  - Session management
+  - Role-based access control
+  
+- **Dashboard UI**
+  - Error metrics & visualizations
+  - Session replay viewer
+  - Alerts management
+  - User management
+  
+- **Error Logging Interface**
+  - Filterable error logs
+  - Search functionality
+  - Pagination
+  - Error details view
+  
+- **Session Replay Component**
+  - rrweb integration
+  - Replay controls
+  - Session metadata
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Key Technologies
+- Next.js 14+ with App Router
+- TypeScript
+- Tailwind CSS for styling
+- Material-UI components
+- Recharts for data visualization
+- rrweb for session recording/replaying
+- Sentry SDK (customized) for error tracking
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Backend (Python)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### API Services
+- **Authentication Service**
+  - User registration/login
+  - JWT token management
+  - Permission handling
+  
+- **Error Tracking Service**
+  - Error collection endpoints
+  - Error processing and storage
+  - Error querying and filtering
+  
+- **Session Recording Service**
+  - Session data collection
+  - Session storage and retrieval
+  
+- **Alerting Service**
+  - Alert rules management
+  - Threshold configuration
+  - Notification dispatch
 
-## Learn More
+### Data Persistence
+- **PostgreSQL**
+  - User data
+  - Error logs
+  - Alert configurations
+  - Session metadata
+  
+- **Redis**
+  - Caching for frequent queries
+  - Queue for notification processing
+  - Rate limiting
 
-To learn more about Next.js, take a look at the following resources:
+### Additional Systems
+- **Notification Handler**
+  - Email integration
+  - Slack integration
+  - Notification templating
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
+interface ErrorTrackingSystem {
+  frontendLayer: {
+    primary: "Next.js",
+    features: [
+      "Custom dashboard for basic metrics",
+      "Error submission API",
+      "User management"
+    ]
+  },
+  observabilityLayer: {
+    collector: "OpenTelemetry Collector",
+    processors: [
+      "Batch processor",
+      "Resource processor",
+      "Filter processor"
+    ]
+  },
+  storageLayer: {
+    metrics: "Prometheus",
+    logs: "Loki", // Consider adding for log aggregation
+    traces: "Tempo" // Optional for distributed tracing
+  },
+  visualizationLayer: {
+    primary: "Custom Next.js Dashboard",
+    advanced: "Grafana (Optional)",
+    integration: "Grafana HTTP API"
+  }
+}
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+/
+├── instrumentation.ts               # Next.js instrumentation entry point
+├── src/
+│   ├── lib/
+│   │   └── telemetry/
+│   │       ├── opentelemetry.ts     # OpenTelemetry setup
+│   │       ├── client-error-tracking.ts # Frontend error tracking
+│   │       ├── logger.ts            # Logging module
+│   │       ├── collector.ts         # Telemetry collector
+│   │       └── metrics.ts           # Custom metrics
+│   ├── components/
+│   │   ├── ErrorBoundary.tsx        # React error boundary
+│   │   └── TelemetryProvider.tsx    # Telemetry context provider
+│   ├── middleware.ts                # API request tracking middleware
+│   └── app/
+│       └── api/
+│           └── telemetry/
+│               ├── error/
+│               │   └── route.ts     # Error reporting endpoint
+│               ├── pageview/
+│               │   └── route.ts     # Page view tracking endpoint
+│               ├── event/
+│               │   └── route.ts     # Custom event tracking endpoint
+│               └── performance/
+│                   └── route.ts     # Performance metrics endpoint
+└── docker/
+    ├── docker-compose.yml           # Docker services setup
+    ├── otel-collector-config.yaml   # OpenTelemetry collector config
+    ├── prometheus.yml               # Prometheus config
+    └── tempo.yaml                   # Tempo config
