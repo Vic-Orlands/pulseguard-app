@@ -1,9 +1,9 @@
 // src/lib/repositories/error-repository.ts
 
-import { PrismaClient, Error, ErrorOccurrence, Prisma } from "@prisma/client";
+import { prisma } from "../prisma";
+import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/telemetry/logger";
 
-const prisma = new PrismaClient();
 const logger = createLogger("error-repository");
 
 export interface ErrorFilters {
@@ -38,6 +38,7 @@ export class ErrorRepository {
             { source: errorData.source || null },
             { type: errorData.error?.name || null },
           ],
+          fingerprint,
         },
       });
 

@@ -1,0 +1,98 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  filelog:
+    include: [/app/logs/*.log]
+    start_at: beginning
+    include_file_name: false
+    operators:
+      - type: json_parser
+        id: parse_json
+        timestamp:
+          parse_from: attributes.timestamp
+          layout: '%Y-%m-%dT%H:%M:%S.%fZ'
+          layout_type: iso8601
+        severity:
+          parse_from: attributes.level
+        attributes:
+          trace_id:
+            from: attributes.traceId
+          span_id:
+            from: attributes.spanId
+        resource:
+          service.name: my-app
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1500
+    spike_limit_mib: 512
+
+  attributes:
+    actions:
+      - key: trace_id
+        from_attribute: trace_id
+        action: insert
+      - key: span_id
+        from_attribute: span_id
+        action: insert
+
+  resourcedetection:
+    detectors: [env, system]
+    timeout: 5s
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:9090"
+    namespace: "applog"
+
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 100
+    retry_on_failure:
+      enabled: true
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: true
+      job: true
+
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlp/tempo, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [prometheus, debug]
+
+    logs:
+      receivers: [otlp, filelog]
+      processors: [memory_limiter, attributes, batch, resourcedetection]
+      exporters: [loki, debug]
+
+  telemetry:
+    logs:
+      level: "info"
+    metrics:
+      address: 0.0.0.0:8888

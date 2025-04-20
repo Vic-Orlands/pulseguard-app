@@ -1,304 +1,445 @@
-import Image from "next/image";
+"use client";
+
+import { motion } from "motion/react";
+import {
+  ArrowRight,
+  Eye,
+  Activity,
+  Layers,
+  BarChart,
+  GitBranch,
+  Mail,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
 
-export default function Landing() {
+// Animated background with circular lines
+const AnimatedBackground = () => {
   return (
-    <div className="min-h-screen">
-      <Header />
+    <div className="fixed inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950"></div>
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-full h-full border border-blue-500/10 rounded-full"
+          initial={{
+            scale: 0.1 + i * 0.15,
+            opacity: 0.3 - i * 0.05,
+          }}
+          animate={{
+            scale: [0.1 + i * 0.15, 0.2 + i * 0.2, 0.1 + i * 0.15],
+            opacity: [0.3 - i * 0.05, 0.15 - i * 0.02, 0.3 - i * 0.05],
+            rotate: [0, 90, 180],
+          }}
+          transition={{
+            duration: 20 + i * 5,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          style={{
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      ))}
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={`dot-${i}`}
+          className="absolute w-1 h-1 bg-blue-400 rounded-full"
+          initial={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            opacity: 0.3 + Math.random() * 0.4,
+          }}
+          animate={{
+            opacity: [0.3, 0.7, 0.3],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
-      <section className="relative w-full h-screen bg-gradient-to-b from-white via-[#D8C1FF] to-[#A0C4FF] overflow-hidden">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_10%,transparent_50%)] opacity-30 pointer-events-none" />
+// Feature card component
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
 
-        {/* Semi-Circles */}
-        <div className="absolute inset-0 flex justify-center items-center">
-          <div className="relative w-[80%] h-[80%] flex justify-center items-center">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`absolute w-full h-full border border-white/20 rounded-full opacity-${
-                  10 + i * 5
-                }`}
-                style={{
-                  width: `${50 + i * 20}%`,
-                  height: `${50 + i * 20}%`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
+const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => (
+  <motion.div
+    className="p-6 bg-black/20 backdrop-blur-sm rounded-lg border border-blue-900/30"
+    whileHover={{ y: -5, boxShadow: "0 10px 30px -15px rgba(0, 0, 255, 0.2)" }}
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className="mb-4 p-3 bg-blue-600/20 inline-flex rounded-full">
+      <Icon className="h-6 w-6 text-blue-400" />
+    </div>
+    <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
+    <p className="text-gray-300">{description}</p>
+  </motion.div>
+);
 
-        {/* Hero Section */}
-        <div className="relative text-center mb-8 pt-20">
-          <Badge className="mb-4 bg-emerald-500 text-emerald-950">
-            Announcing our new product
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
-            Intelligent Error Tracking & Monitoring
-          </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto mb-4">
-            Track errors, session replays, and performance metrics of your
-            application easily – and move from answering tickets to building
-            better applications.
-          </p>
-          <div className="flex justify-center">
-            <Button className="h-10 bg-emerald-500 text-emerald-950 hover:bg-emerald-600">
-              See PauseGuard in action
-            </Button>
-          </div>
-        </div>
+// Navbar component
+const Navbar = () => (
+  <header className="w-full py-4 px-6 backdrop-blur-sm bg-transparent z-10">
+    <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="flex items-center">
+        <motion.div
+          className="mr-2 relative"
+          animate={{
+            rotate: [0, 360],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        >
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-80"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full"></div>
+        </motion.div>
+        <span className="text-xl font-bold text-white">PulseGuard</span>
+      </div>
+      <nav className="hidden md:flex space-x-8">
+        <a href="#features" className="text-gray-300 hover:text-white">
+          Features
+        </a>
+        <a href="#architecture" className="text-gray-300 hover:text-white">
+          Architecture
+        </a>
+        <a href="#docs" className="text-gray-300 hover:text-white">
+          Documentation
+        </a>
+      </nav>
+      <div>
+        <motion.button
+          className="bg-blue-600 text-white cursor-pointer px-4 py-2 rounded-md hover:bg-blue-700 transition mr-3"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => (window.location.href = "/signup")}
+        >
+          Login
+        </motion.button>
+        <motion.button
+          className="bg-transparent text-white cursor-pointer px-4 py-2 rounded-md border border-blue-600 hover:bg-blue-900/30 transition"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => (window.location.href = "/signup")}
+        >
+          Sign Up
+        </motion.button>
+      </div>
+    </div>
+  </header>
+);
 
-        {/* Dashboard Image */}
-        <div className="relative mx-auto max-w-5xl">
-          <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-purple-600/20 rounded-xl transform -rotate-1"></div>
-          <div className="relative bg-white p-2 rounded-xl shadow-2xl">
-            {/* This would be your actual dashboard image */}
-            <div className="aspect-[16/9] bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center">
-              <Image
-                src="/api/placeholder/1200/675"
-                alt="ErrorSense Dashboard"
-                className="w-full h-auto"
-                width={100}
-                height={100}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section
-        id="features"
-        className="bg-gradient-to-b from-[#A0C4FF] via-[#A0C4FF] to-[#e4d5ff] py-16 md:py-24"
+// Hero section
+const Hero = () => (
+  <section className="min-h-screen flex items-center justify-center relative px-6">
+    <div className="max-w-4xl mx-auto text-center z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
       >
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Core Features of PulseGuard
-          </h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-slate-50 p-6 rounded-xl">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">
-                Error Monitoring and Tracking
-              </h3>
-              <p className="text-slate-600">
-                Track errors in real-time with detailed stack traces and context
-                to quickly identify and fix issues.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-slate-50 p-6 rounded-xl">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Session Replays</h3>
-              <p className="text-slate-600">
-                Watch user sessions to understand exactly what happened before
-                an error occurred.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-slate-50 p-6 rounded-xl">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Alert Management</h3>
-              <p className="text-slate-600">
-                Set up custom alerts and get notified through your preferred
-                channels when issues arise.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-slate-50 p-6 rounded-xl">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">AI-driven Insights</h3>
-              <p className="text-slate-600">
-                Get intelligent recommendations and pattern analysis to prevent
-                recurring issues.
-              </p>
-            </div>
-          </div>
+        <Badge className="mb-4 bg-blue-800 text-white">
+          Announcing our new product
+        </Badge>
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+          Full-Stack Observability for Modern Cloud Apps
+        </h1>
+        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          {/* Unify your logs, traces, and metrics into a powerful observability
+          pipeline with PulseGuard */}
+          Track errors, session replays, and see performance metrics of your
+          application easily with PulseGuard
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <motion.button
+            className="bg-blue-600 text-white cursor-pointer px-6 py-3 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => (window.location.href = "/signup")}
+          >
+            Get Started <ArrowRight className="h-4 w-4" />
+          </motion.button>
+          <motion.button
+            className="bg-transparent text-white cursor-pointer px-6 py-3 rounded-md border border-blue-600 hover:bg-blue-900/30 flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => (window.location.href = "/dashboard")}
+          >
+            View Demo <Eye className="h-4 w-4" />
+          </motion.button>
         </div>
-      </section>
+      </motion.div>
+    </div>
+  </section>
+);
 
-      {/* How It Works */}
-      <section className="bg-gradient-to-b from-[#e4d5ff] to-white mx-auto px-4 py-16 md:py-24">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-          How PulseGuard Works
-        </h2>
+// Features section
+const Features = () => (
+  <section id="features" className="py-20 px-6 relative">
+    <div className="max-w-7xl mx-auto">
+      <div className="text-center mb-16">
+        <motion.h2
+          className="text-3xl font-bold mb-4 text-white"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Powerful Features
+        </motion.h2>
+        <motion.p
+          className="text-xl text-gray-300 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          Everything you need to monitor and troubleshoot your applications
+        </motion.p>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <FeatureCard
+          icon={Activity}
+          title="Real-time Monitoring"
+          description="Track application performance in real-time with customizable dashboards and alerts."
+        />
+        <FeatureCard
+          icon={Layers}
+          title="Distributed Tracing"
+          description="Follow requests across your distributed system to identify bottlenecks and errors."
+        />
+        <FeatureCard
+          icon={BarChart}
+          title="Advanced Analytics"
+          description="Gain insights from comprehensive metrics and powerful visualization tools."
+        />
+        <FeatureCard
+          icon={Eye}
+          title="Error Tracking"
+          description="Instantly detect and diagnose errors with detailed stack traces and context."
+        />
+        <FeatureCard
+          icon={GitBranch}
+          title="CI/CD Integration"
+          description="Seamlessly integrate with your development workflow and deployment pipeline."
+        />
+        <FeatureCard
+          icon={Mail}
+          title="Intelligent Alerts"
+          description="Receive notifications through your preferred channels when issues arise."
+        />
+      </div>
+    </div>
+  </section>
+);
 
-        <div className="px-36 mx-auto">
-          <div className="flex flex-col md:flex-row justify-between gap-8">
-            {/* Step 1 */}
-            <div className="flex-1 mt-8">
-              <div className="bg-slate-300 rounded-lg p-1 w-full mb-6">
-                <div className="aspect-video bg-white rounded overflow-hidden flex items-center justify-center">
-                  <Image
-                    src="/api/placeholder/400/400"
-                    alt="Integration"
-                    className="w-full h-auto"
-                    width={400}
-                    height={300}
-                  />
-                </div>
-              </div>
-              <div className="text-center">
-                <h3 className="text-2xl font-bold mb-4">1. Easy Integration</h3>
-                <p className="text-slate-500 mb-4">
-                  Add our lightweight SDK to your application with just a few
-                  lines of code. We support all major frameworks and languages.
-                </p>
-                <div className="bg-emerald-600  rounded-lg p-4">
-                  <code className="text-sm font-mono text-emerald-950">
-                    npm install @errorsense/sdk
-                  </code>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex-1 mt-8">
-              <div className="bg-slate-300 rounded-lg p-1 w-full mb-6">
-                <div className="aspect-video bg-white rounded overflow-hidden flex items-center justify-center">
-                  <Image
-                    src="/api/placeholder/400/400"
-                    alt="Dashboard"
-                    className="w-full h-auto"
-                    width={400}
-                    height={300}
-                  />
-                </div>
-              </div>
-              <div className="text-center">
-                <h3 className="text-2xl font-bold mb-4">
-                  2. Monitor Performance
-                </h3>
-                <p className="text-slate-500">
-                  Gain immediate visibility into your application&apos;s
-                  performance and error rates through our intuitive dashboard.
-                </p>
-                <ul className="list-disc list-inside text-slate-500 mt-4">
-                  <li>Real-time error tracking</li>
-                  <li>Performance metrics</li>
-                  <li>User session data</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex-1 mt-8">
-              <div className="bg-slate-300 rounded-lg p-1 w-full mb-6">
-                <div className="aspect-video bg-white rounded overflow-hidden flex items-center justify-center">
-                  <Image
-                    src="/api/placeholder/400/400"
-                    alt="AI Insights"
-                    className="w-full h-auto"
-                    width={400}
-                    height={300}
-                  />
-                </div>
-              </div>
-              <div className="text-center">
-                <h3 className="text-2xl font-bold mb-4">
-                  3. Get AI-Powered Insights
-                </h3>
-                <p className="text-slate-500 mb-4">
-                  Our AI analyzes error patterns, identifies root causes, and
-                  suggests optimizations to improve your application.
-                </p>
-                <Button className="bg-emerald-500 hover:bg-emerald-600 text-emerald-950">
-                  Learn More
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-b from-white via-[#D8C1FF] to-[#A0C4FF] mx-auto px-4 py-16 md:py-24">
-        <div className="bg-gradient-to-br from-emerald-800 to-emerald-950 rounded-2xl p-8 md:p-12 text-center text-white max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to build better applications?
-          </h2>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Join thousands of developers who are spending less time debugging
-            and more time building.
+// Architecture diagram
+const Architecture = () => (
+  <section id="architecture" className="py-20 px-6 relative">
+    <div className="max-w-7xl mx-auto">
+      <div className="text-center mb-16">
+        <motion.h2
+          className="text-3xl font-bold mb-4 text-white"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          How It Works
+        </motion.h2>
+        <motion.p
+          className="text-xl text-gray-300 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          A modern observability pipeline built for scale
+        </motion.p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8">
+        <motion.div
+          className="bg-black/30 p-6 rounded-lg border border-blue-900/30 backdrop-blur-sm"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h3 className="text-xl font-bold text-blue-400 mb-4">
+            1. Data Collection
+          </h3>
+          <p className="text-gray-300">
+            Your application sends telemetry data through our lightweight SDK,
+            capturing errors, performance metrics, and user interactions in
+            real-time.
           </p>
-          <div className="flex justify-center gap-4">
-            <Button className="h-10 bg-emerald-500 text-emerald-950 hover:bg-emerald-600">
-              See PauseGuard in action
-            </Button>
+        </motion.div>
+
+        <motion.div
+          className="bg-black/30 p-6 rounded-lg border border-blue-900/30 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h3 className="text-xl font-bold text-blue-400 mb-4">
+            2. Processing Pipeline
+          </h3>
+          <p className="text-gray-300">
+            Our distributed processing pipeline aggregates and analyzes your
+            data using advanced algorithms to detect anomalies and patterns.
+          </p>
+        </motion.div>
+
+        <motion.div
+          className="bg-black/30 p-6 rounded-lg border border-blue-900/30 backdrop-blur-sm"
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h3 className="text-xl font-bold text-blue-400 mb-4">
+            3. Visualization
+          </h3>
+          <p className="text-gray-300">
+            Access powerful dashboards and insights through our intuitive
+            interface, with real-time alerts and detailed analytics.
+          </p>
+        </motion.div>
+      </div>
+
+      <motion.div
+        className="mt-12 space-y-8"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
+        <div className="bg-black/30 p-8 rounded-lg border border-blue-900/30 backdrop-blur-sm">
+          <h3 className="text-xl font-bold text-blue-400 mb-4 text-center">
+            Observability Stack
+          </h3>
+          <div className="flex justify-center items-center gap-4 flex-wrap">
+            <Badge className="bg-blue-900/50 text-blue-300">
+              OpenTelemetry
+            </Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Prometheus</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Grafana</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Loki</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Tempo</Badge>
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
+        <div className="bg-black/30 p-8 rounded-lg border border-blue-900/30 backdrop-blur-sm">
+          <h3 className="text-xl font-bold text-blue-400 mb-4 text-center">
+            Built with Modern Tech
+          </h3>
+          <div className="flex justify-center items-center gap-4 flex-wrap">
+            <Badge className="bg-blue-900/50 text-blue-300">Next.js 13</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">TypeScript</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Tailwind CSS</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Neon DB</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">Prisma ORM</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">tRPC</Badge>
+            <Badge className="bg-blue-900/50 text-blue-300">React Query</Badge>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  </section>
+);
+
+// Call to action section
+const CTA = () => (
+  <section className="pb-20 px-6 relative">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="max-w-7xl mx-auto bg-gradient-to-br from-blue-900/50 to-purple-900/50 backdrop-blur-sm rounded-2xl p-8 md:p-12 text-center border border-blue-500/20"
+    >
+      <motion.h2
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400"
+      >
+        Ready to build better applications?
+      </motion.h2>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="text-xl md:text-2xl mb-8 text-gray-300"
+      >
+        Join thousands of developers who are spending less time debugging and
+        more time building.
+      </motion.p>
+      <motion.div
+        className="flex justify-center gap-4"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white">
+            See PulseGuard in action
+          </Button>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  </section>
+);
+
+// Footer
+const Footer = () => (
+  <footer className="py-12 px-6 border-t border-blue-900/30 bg-black/20 backdrop-blur-sm">
+    <div className="max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-center">
+        <div className="mb-6 md:mb-0">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mr-2"></div>
+            <span className="text-xl font-bold text-white">PulseGuard</span>
+          </div>
+          <p className="text-gray-400 mt-2">
+            Full-stack observability platform
+          </p>
+        </div>
+        <div className="flex gap-8">
+          <a href="#" className="text-gray-400 hover:text-white">
+            Documentation
+          </a>
+          <a href="#" className="text-gray-400 hover:text-white">
+            GitHub
+          </a>
+          <a href="#" className="text-gray-400 hover:text-white">
+            Contact
+          </a>
+        </div>
+      </div>
+      <div className="mt-8 pt-8 border-t border-blue-900/30 text-center text-gray-400">
+        <p>© {new Date().getFullYear()} PulseGuard. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+);
+
+// Main homepage
+export default function Homepage() {
+  return (
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <AnimatedBackground />
+      <Navbar />
+      <Hero />
+      <Features />
+      <Architecture />
+      <CTA />
       <Footer />
+
+      {/* External Footer */}
+      {/* <Footer /> */}
     </div>
   );
 }

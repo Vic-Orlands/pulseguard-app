@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Add this at the beginning of your script
+echo "Cleaning up old containers..."
+docker-compose down --remove-orphans --timeout 1 2>/dev/null || true
+docker stop grafana loki prometheus 2>/dev/null || true
+docker rm -f grafana loki prometheus 2>/dev/null || true
+
 # Ensure all necessary directories exist
 mkdir -p grafana/provisioning/datasources
 mkdir -p grafana/provisioning/dashboards
@@ -52,9 +58,9 @@ cat > grafana/provisioning/dashboards/dashboards.yaml << EOF
 apiVersion: 1
 
 providers:
-  - name: 'PulseGuard'
+  - name: 'applog'
     orgId: 1
-    folder: 'PulseGuard'
+    folder: 'applog'
     type: file
     disableDeletion: false
     editable: true

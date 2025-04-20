@@ -1,5 +1,3 @@
-// src/lib/telemetry/metrics.ts
-
 import { metrics } from "@opentelemetry/api";
 import { createLogger } from "./logger";
 
