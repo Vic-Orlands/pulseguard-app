@@ -142,3 +142,9 @@
 {"level":30,"time":"2025-04-20T00:52:14.771Z","pid":552660,"hostname":"mezieiv","name":"error-api","traceId":"c0a4d24127de151a3d6ffbb4e8cdcfe4","spanId":"4b70fe499994ee11","msg":"Processing pageview: /"}
 {"level":30,"time":"2025-04-20T00:54:18.736Z","pid":552660,"hostname":"mezieiv","name":"error-api","traceId":"a56cfdc8d6fdbcec4f6082790140cb31","spanId":"f188f283f3d06306","msg":"Processing pageview: /dashboard"}
 {"level":30,"time":"2025-04-20T00:54:37.928Z","pid":552660,"hostname":"mezieiv","name":"error-api","traceId":"71a7a31982d607b54513e76cee018853","spanId":"7b409ed3bcb99545","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-20T00:58:40.529Z","pid":552660,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-20T00:58:40.529Z","pid":552660,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-20T00:58:40.534Z","pid":552660,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-20T00:58:47.858Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-20T00:58:47.881Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-20T00:58:47.882Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9465/metrics"}
