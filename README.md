@@ -7,7 +7,7 @@ PulseGuard(AppLog) is a full-stack observability and telemetry platform for mode
 
 ## Architecture Diagram
 
-```mermaid
+```bash
 graph TD
     A[Application (Next.js)] -->|Logs| B[OpenTelemetry Collector]
     A -->|Traces| B
@@ -127,7 +127,7 @@ services:
 
 ### 1. Clone and Boot the Stack
 ```bash
-git clone https://github.com/your-org/pulseguard
+git clone https://github.com/Vic-Orlands/pulseguard
 cd pulseguard
 docker-compose up -d
 ```
@@ -170,7 +170,7 @@ Import or build dashboards for:
 
 
 ## Codebase Architecture
-/
+```bash
 ├── instrumentation.ts               # Next.js instrumentation entry point
 ├── src/
 │   ├── lib/
