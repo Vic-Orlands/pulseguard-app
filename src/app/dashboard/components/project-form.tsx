@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -9,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
 
 type ProjectFormProps = {
   onSubmit: (data: {
@@ -88,7 +88,7 @@ export default function ProjectForm({
             <SelectTrigger className="bg-black/30 border border-blue-900/40">
               <SelectValue placeholder="Select platform" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-900 border border-blue-900/40">
+            <SelectContent className="border border-blue-900/40">
               <SelectItem value="Next.js">Next.js</SelectItem>
               <SelectItem value="React">React</SelectItem>
               <SelectItem value="Node.js">Node.js</SelectItem>

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import ProjectCard from "./components/ProjectCard";
-import ProjectForm from "./components/ProjectForm";
+import ProjectCard from "./components/project-card";
+import ProjectForm from "./components/project-form";
 
 type Project = {
   id: string;

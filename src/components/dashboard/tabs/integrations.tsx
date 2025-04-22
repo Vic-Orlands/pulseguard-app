@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -8,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import {
   AwsLogo,
-  AzureLogo,
   SlackLogo,
   GithubLogo,
   GoogleCloudLogo,
@@ -106,74 +106,99 @@ export default function IntegrationsTab({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <SlackLogo className="h-8 w-8" />
+              <SlackLogo className="h-15 w-15" />
               <span>Slack</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <GithubLogo className="h-8 w-8" />
+              <GithubLogo className="h-15 w-15" />
               <span>GitHub</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <MicrosoftTeamsLogo className="h-8 w-8" />
+              <MicrosoftTeamsLogo className="h-15 w-15" />
               <span>Teams</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <AwsLogo className="h-8 w-8" />
+              <AwsLogo className="h-15 w-15" />
               <span>AWS</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <GoogleCloudLogo className="h-8 w-8" />
+              <GoogleCloudLogo className="h-15 w-15" />
               <span>GCP</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <AzureLogo className="h-8 w-8" />
+              <Image
+                src="/azurelogo.svg"
+                alt="Azure Logo"
+                width={90}
+                height={90}
+                className="h-15 w-15"
+              />
               <span>Azure</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <DatadogLogo className="h-8 w-8" />
+              <Image
+                src="/datadog.svg"
+                alt="Datadog Logo"
+                width={90}
+                height={90}
+                className="h-15 w-15"
+              />
               <span>Datadog</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-32 gap-2 bg-gray-900/50 border border-blue-900/40"
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {}}
+              className="flex flex-col items-center justify-center h-48 gap-2 bg-gray-900/50 border border-blue-900/40 rounded-lg p-4 cursor-pointer hover:bg-gray-900/70 transition-colors"
             >
-              <NewRelicLogo className="h-8 w-8" />
+              <Image
+                src="/new-relic.svg"
+                alt="Datadog Logo"
+                width={90}
+                height={90}
+                className="h-15 w-15"
+              />
               <span>New Relic</span>
-            </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-}
-
-// Placeholder components for logos
-function DatadogLogo({ className }: { className?: string }) {
-  return <div className={className}>Datadog</div>;
-}
-
-function NewRelicLogo({ className }: { className?: string }) {
-  return <div className={className}>New Relic</div>;
 }

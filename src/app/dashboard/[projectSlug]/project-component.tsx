@@ -29,7 +29,7 @@ import ErrorPreview from "@/components/dashboard/error-preview";
 import AlertPreview from "@/components/dashboard/alert-preview";
 import { OverviewProvider } from "@/context/overview-context";
 
-export default function Dashboard({ project }: { project: Project }) {
+export default function ProjectDashboard({ project }: { project: Project }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const defaultTab = (searchParams.get("tab") as NavItem) || "overview";
@@ -298,6 +298,7 @@ export default function Dashboard({ project }: { project: Project }) {
         {renderActiveTab()}
       </main>
 
+      {/* floating button */}
       <HelpButton />
     </div>
   );

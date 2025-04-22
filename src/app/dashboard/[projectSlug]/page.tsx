@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import DashboardComponent from "./DashboardComponent";
+import DashboardComponent from "./project-component";
 
 export type Project = {
   id: string;

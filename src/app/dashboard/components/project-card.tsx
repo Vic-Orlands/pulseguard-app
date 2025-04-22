@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -20,7 +20,7 @@ type ProjectCardProps = {
 export default function ProjectCard({ project, href }: ProjectCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -5 }}
+      whileHover={{ scale: 1.02 }}
       className="bg-black/30 border border-blue-900/40 rounded-lg overflow-hidden"
     >
       <div className="p-6">

@@ -9,6 +9,17 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Search,
   Bell,
   Menu,
@@ -23,8 +34,9 @@ import {
   GitMerge,
   AlertTriangle,
   Server,
+  ChevronLeft,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Tabs, TabsList } from "@/components/ui/tabs";
 import { Alert, NavItem } from "@/types/dashboard";
 
@@ -129,7 +141,7 @@ export default function Header({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="bg-gray-900 border border-blue-900/40"
+              className="border border-blue-900/40"
             >
               <DropdownMenuItem className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -152,21 +164,53 @@ export default function Header({
       <nav className="flex px-6 border-t border-blue-900/40 overflow-x-auto">
         <Tabs value={activeTab} className="w-full">
           <TabsList className="bg-transparent p-0 h-auto w-full space-x-2 justify-start">
-            {navItems.map((item) => (
-              <Button
-                key={item.id}
-                variant="ghost"
-                className={`rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === item.id
-                    ? "border-blue-500 text-white"
-                    : "border-transparent text-gray-400 hover:text-white"
-                }`}
-                onClick={() => setActiveTab(item.id as NavItem)}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Button>
-            ))}
+            <>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white mr-4"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Back to Projects</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-gray-900 text-white border border-blue-900/40">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Leaving Already?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will take you back to your project dashboard.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-blue-900/40">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => (window.location.href = "/dashboard")}
+                    >
+                      Continue
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              {navItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  className={`rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === item.id
+                      ? "border-blue-500 text-white"
+                      : "border-transparent text-gray-400 hover:text-white"
+                  }`}
+                  onClick={() => setActiveTab(item.id as NavItem)}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Button>
+              ))}
+            </>
           </TabsList>
         </Tabs>
       </nav>
