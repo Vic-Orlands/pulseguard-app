@@ -12,10 +12,6 @@ import {
   BatchSpanProcessor,
   SimpleSpanProcessor,
 } from "@opentelemetry/sdk-trace-base";
-import {
-  MeterProvider,
-  PeriodicExportingMetricReader,
-} from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import {
   getNodeAutoInstrumentations,
@@ -26,9 +22,9 @@ import {
   hostDetector,
   resourceFromAttributes,
 } from "@opentelemetry/resources";
+import { MeterProvider } from "@opentelemetry/sdk-metrics";
 import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 
 import os from "os";
 import { createLogger } from "./logger";
@@ -106,17 +102,12 @@ export async function startTelemetryCollector() {
       url: `${OTLP_ENDPOINT}/v1/traces`,
     });
 
-    // Configure metric exporter
-    const metricExporter = new OTLPMetricExporter({
-      url: `${OTLP_ENDPOINT}/v1/metrics`,
-      concurrencyLimit: 10,
-    });
-
     // Configure Prometheus exporter
     const promPort = parseInt(process.env.PROMETHEUS_PORT || "9464", 10);
     const prometheusExporter = new PrometheusExporter({
       port: promPort,
       endpoint: "/metrics",
+      host: "0.0.0.0",
       preventServerStart: false, // We'll start it manually after SDK initialization
     });
 
@@ -129,12 +120,7 @@ export async function startTelemetryCollector() {
     // Create meter provider
     const meterProvider = new MeterProvider({
       resource,
-      readers: [
-        new PeriodicExportingMetricReader({
-          exporter: metricExporter,
-          exportIntervalMillis: 15000,
-        }),
-      ],
+      readers: [prometheusExporter],
     });
 
     // Register meter provider if not already registered
@@ -163,7 +149,6 @@ export async function startTelemetryCollector() {
 
     // Start Prometheus server separately
     try {
-      prometheusServer = await prometheusExporter.startServer();
       logger.info(
         `Prometheus metrics server started on http://localhost:${promPort}/metrics`
       );

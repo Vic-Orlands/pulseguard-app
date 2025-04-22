@@ -14,8 +14,7 @@ receivers:
         id: parse_json
         timestamp:
           parse_from: attributes.timestamp
-          layout: '%Y-%m-%dT%H:%M:%S.%fZ'
-          # layout_type: iso8601
+          layout: "%Y-%m-%dT%H:%M:%S.%fZ"
         severity:
           parse_from: attributes.level
         attributes:
@@ -51,8 +50,10 @@ processors:
 
 exporters:
   prometheus:
-    endpoint: "0.0.0.0:9090"
+    endpoint: "0.0.0.0:8889"
     namespace: "applog"
+    const_labels:
+      service: "pulseguard"
 
   otlp/tempo:
     endpoint: "tempo:4317"

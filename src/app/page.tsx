@@ -111,7 +111,7 @@ const Navbar = () => (
           Features
         </a>
         <a href="#architecture" className="text-gray-300 hover:text-white">
-          Architecture
+          How it Works
         </a>
         <a href="#docs" className="text-gray-300 hover:text-white">
           Documentation

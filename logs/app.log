@@ -148,3 +148,112 @@
 {"level":20,"time":"2025-04-20T00:58:47.858Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
 {"level":30,"time":"2025-04-20T00:58:47.881Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
 {"level":30,"time":"2025-04-20T00:58:47.882Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9465/metrics"}
+{"level":30,"time":"2025-04-20T01:18:23.676Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-20T01:18:23.676Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-20T01:18:23.677Z","pid":585876,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-20T09:50:34.299Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-20T09:50:34.332Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-20T09:50:34.332Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-20T10:28:11.482Z","pid":704483,"hostname":"mezieiv","name":"error-api","traceId":"b3fbd4b50c851df465169fb48aefa1c6","spanId":"6f9e542306b44b7e","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-20T10:32:38.117Z","pid":704483,"hostname":"mezieiv","name":"error-api","traceId":"fd04ab8750ba8dd62c3c1b032afcfeac","spanId":"7d5385a66506c473","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-20T10:32:38.325Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-20T10:32:38.325Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-20T10:32:38.327Z","pid":704483,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-20T11:01:51.928Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-20T11:01:51.957Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-20T11:01:51.957Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-20T11:04:39.094Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-20T11:04:39.094Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-20T11:04:39.095Z","pid":786320,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-20T11:14:22.611Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-20T11:14:22.638Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-20T11:14:22.639Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-20T11:42:59.789Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-20T11:42:59.790Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-20T11:42:59.792Z","pid":811644,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-20T11:43:12.447Z","pid":850564,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-20T11:43:12.501Z","pid":850564,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-20T11:43:12.502Z","pid":850564,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":20,"time":"2025-04-21T10:19:18.315Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-21T10:19:18.343Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-21T10:19:18.343Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-21T10:19:25.976Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"539e7cb30564fecb1b71f29bd4431594","spanId":"7250756857804b9c","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T10:19:47.177Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"f0e7c788e7f2618207ba4421eb326a16","spanId":"85c08ee04ca4fa00","msg":"Processing pageview: /signup"}
+{"level":30,"time":"2025-04-21T10:19:53.154Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"3eef47ef47a7305a730c3c14411216eb","spanId":"c12f24ec553e329d","msg":"Processing pageview: /signup"}
+{"level":30,"time":"2025-04-21T10:38:50.830Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"ff7a40282a7b35d090df9c8b85ff227e","spanId":"4188d9065e14771f","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T11:20:27.948Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"db68d29e3f20ed2d659875032d39f6ef","spanId":"618ad58ada13379f","msg":"Processing event: test_error_triggered"}
+{"level":30,"time":"2025-04-21T11:20:43.233Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"164b31c2e46b66e558347b546cc3cfa1","spanId":"75805d64276fedd1","msg":"Processing pageview: test-errors"}
+{"level":30,"time":"2025-04-21T11:20:43.253Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"ff7ff84e92a18e6d6c741003411fab7f","spanId":"144e57fa6e054310","msg":"Processing pageview: /test-errors"}
+{"level":30,"time":"2025-04-21T11:20:45.092Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"a3324330469d2b10586aa57bf2a47fd8","spanId":"6c8d11c0eb36cacc","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:45.404Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"fc010d5d98de93936303c20f07e32bf8","spanId":"4c1232f3c274d265","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:45.704Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"eeba690b978235006e2c282ea440b8bb","spanId":"e6c6230e26a8e6fa","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:45.897Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"dc35d8b2b2907fa368b7fc0c09ea97a7","spanId":"78536b974f273ef9","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:46.017Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"ff4cd63be1160cd2f5e0c1ce7d57ccd3","spanId":"76b330d75c4afdb4","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:46.149Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"7a60bc56464aeee1e62269b4e3a9f687","spanId":"ee5a7b84f6b5c1de","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:46.309Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"9e16465839a9620eea73d09b720da943","spanId":"487991561312b7fe","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:47.570Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"715ce8400b4d8d96f3f9f713730a3117","spanId":"c16099e4dfde4a80","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:48.009Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"659d3b9e61ed2243edb6ddd3999c2c2b","spanId":"f4257ca3688ee141","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:48.779Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"83a697a5c438d4a9d498092619125213","spanId":"2ad5ace60633298f","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:48.892Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"830d939cc23469bc65d3d8497dd525b4","spanId":"79c8575a8679fe41","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:48.963Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"67e37f39874754f9e0b82e00d30b6f69","spanId":"77fdb000c3ad4b37","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:20:49.018Z","pid":374789,"hostname":"mezieiv","name":"error-api","traceId":"49ae60b4c8706c81a3df4a44b91727a5","spanId":"9ad045fae699df46","msg":"Processing event: user_interaction"}
+{"level":30,"time":"2025-04-21T11:26:14.346Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-21T11:26:14.346Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-21T11:26:14.349Z","pid":374789,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-21T11:26:51.470Z","pid":418705,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-21T11:26:51.494Z","pid":418705,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-21T11:26:51.495Z","pid":418705,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-21T12:15:10.016Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"d877785b93ff689bee53f54b111d06d9","spanId":"48a6748aa96bf1a8","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T12:15:37.651Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"024a5e4f2affa9d325ceca1afe0fc5e2","spanId":"5a3d042ef1619e64","msg":"Processing pageview: /signup"}
+{"level":30,"time":"2025-04-21T12:16:48.196Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"f471156684a11f8f376ed28ff7f11e88","spanId":"abf18a4649263b3a","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T12:17:21.000Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"c35c341ccdd07723f65b4ff1fd17ed8d","spanId":"40ea01fb426e5dfe","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T12:17:28.493Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"9c920142d6f2c78b2d4f56ce23a30db0","spanId":"599a224b36f61d3a","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T12:24:03.839Z","pid":418705,"hostname":"mezieiv","name":"error-api","traceId":"e39417fdcae731013ec0e22ff57fa802","spanId":"d87d268bf5b1813e","msg":"Processing pageview: /dashboard"}
+{"level":20,"time":"2025-04-21T16:36:35.477Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-21T16:36:35.516Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-21T16:36:35.516Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-21T16:36:46.619Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"73ed009823ac853d821085a40bff5b54","spanId":"b0063d4012c5653d","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T16:36:52.373Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"13035d5c52ce008f305f16e3aa5e8391","spanId":"986db385ea9da656","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T16:36:53.909Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"d27aa3fc218860f3ecb8c03eaecbd8c7","spanId":"7a70a90fa241258a","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T16:36:59.671Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"f3b5b70e951c8ad3457a9447d75a820e","spanId":"a4dec56c7ede0602","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T16:37:15.118Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"17e1c60fe9f6b9c0dd8dca473b28621e","spanId":"5eaa93187e4bf08c","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T16:37:22.416Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"83ed0175867664dddad8b1be388040c8","spanId":"dfab83d699e98d0f","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T16:38:04.015Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"a83c70e759a1ff0c61699121d4e7b1d8","spanId":"adf060cce4cd55fb","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T17:14:22.422Z","pid":38098,"hostname":"mezieiv","name":"error-api","traceId":"98b23259d0f9ca54bb4425e680ffefd6","spanId":"d94fec2fa8714722","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:14:55.164Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-21T17:14:55.165Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-21T17:14:55.166Z","pid":38098,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-21T17:17:49.148Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-21T17:17:49.174Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-21T17:17:49.174Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-21T17:18:04.745Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"98534e7c07421d3ad341b298a06744e8","spanId":"b515a606fb85de53","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:27:06.187Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"4cd450ee46bb74d05a76eaa013d3b61e","spanId":"3e5708185daaeca6","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:27:07.357Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"8879eea46a2071bbbbbfe4b38c9898ba","spanId":"9aa9ea1cbf805377","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:27:08.655Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"107578d9d4cfcd6c41235d0b11cf2708","spanId":"88cf632ec7900c38","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:27:09.756Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"7e5a1d7dcc9b69701b66b1537c262757","spanId":"a3ef9be4313065ca","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:29:01.919Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"0fa620dc9fc446bb545f7188b7a1e0f8","spanId":"b5074b5b2ee1fc52","msg":"Processing pageview: /"}
+{"level":30,"time":"2025-04-21T17:29:07.811Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"7cb3e10fe5ee5eb08fc1aa2db07fbbb4","spanId":"bab56ac53b955394","msg":"Processing pageview: /signup"}
+{"level":30,"time":"2025-04-21T17:29:12.167Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"db78b00a2473021e46db6d738411bfcd","spanId":"caa09ae650a15b35","msg":"Processing pageview: /login"}
+{"level":30,"time":"2025-04-21T17:29:31.066Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"dde9207afa373b5f086c785f817516e6","spanId":"8ed8756e3d211297","msg":"Processing pageview: /signup"}
+{"level":30,"time":"2025-04-21T17:29:37.057Z","pid":63469,"hostname":"mezieiv","name":"error-api","traceId":"0a33d1f853d45144ef2ef96d9e215a45","spanId":"186da0610310ffa5","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:35:27.775Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
+{"level":30,"time":"2025-04-21T17:35:27.776Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
+{"level":30,"time":"2025-04-21T17:35:27.777Z","pid":63469,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-21T17:57:00.219Z","pid":86361,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-21T17:57:00.248Z","pid":86361,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-21T17:57:00.248Z","pid":86361,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}
+{"level":30,"time":"2025-04-21T17:57:15.751Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"39e2433b95fc91eb288f2909f3f011fd","spanId":"54997d2afb48e51b","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T17:57:15.769Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"3ece2ec004b216b13e5938089d5e6b4f","spanId":"6aff0d158743b7be","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:03:22.204Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"194f78ca5accc639cd19051d477ab9a1","spanId":"1f3b829cdbbd1fe2","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:23:15.717Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"33a660cedda50131e947660eef812fb6","spanId":"fc0cf4958de9e36a","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:23:15.733Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"171e60c2874292e234b537499d20e25d","spanId":"b4f0a2f1d7635662","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:25:04.509Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"146c912bd5973f8e33c8e9e493293aea","spanId":"7be40991fa1808f0","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:25:04.536Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"febf575a380070e6194e47bfda9697f7","spanId":"43726a11a0ddcda9","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:29:32.425Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"60e03feb13cb3a13274a2ea826dddc24","spanId":"3abbee9504f699ce","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:29:32.443Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"4d859a4355e0ecbb292794621681ccd4","spanId":"78eb0cd5a3907c7e","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:40:35.094Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"4cb8f1173a61bfa25c2cb6550623fac0","spanId":"4c7ba67dac872dc4","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:40:35.110Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"e4cc2782d150c71817bdb84485293a87","spanId":"025f48c1732d437e","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:41:14.652Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"23d363fbc9eeb42a32467db0fecfde0a","spanId":"1e5bc9e87c673c88","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:41:14.680Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"021714820241b440d6a0d3adccd07830","spanId":"62f2a67e538ceb51","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:48:25.566Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"444acf1da303e879de077872c767bf74","spanId":"54a3d84c77d5ab64","msg":"Processing pageview: /dashboard"}
+{"level":30,"time":"2025-04-21T22:48:25.586Z","pid":86361,"hostname":"mezieiv","name":"error-api","traceId":"ef56eda2226b2f145578cd305266164a","spanId":"1c4c4b9fb29fb727","msg":"Processing pageview: /dashboard"}

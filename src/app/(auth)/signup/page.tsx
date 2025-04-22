@@ -79,7 +79,7 @@ const AnimatedBackground = () => {
 
 // Logo component
 const Logo = () => (
-  <div className="flex items-center justify-center mb-6">
+  <div className="flex items-center justify-center mb-6 bg-black/30 border border-blue-900/40 rounded-full p-2 backdrop-blur-sm">
     <motion.div
       className="relative"
       animate={{
@@ -593,7 +593,7 @@ const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
 
               {i < 3 && (
                 <div
-                  className={`absolute top-4 left-full w-full h-0.5 -translate-x-5/12 ${
+                  className={`absolute top-4 left-full w-full h-0.5 -translate-x-5/12 -z-10 ${
                     step > i ? "bg-green-500" : "bg-gray-700"
                   }`}
                 />
@@ -739,14 +739,14 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-black text-white relative">
       <AnimatedBackground />
 
+      <Logo />
+
       <motion.div
         className="w-full max-w-md p-6 rounded-xl backdrop-blur-sm bg-black/30 border border-blue-900/40 z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Logo />
-
         <AnimatePresence mode="wait">
           {mode === "login" ? (
             <LoginForm key="login" onToggleMode={toggleMode} />

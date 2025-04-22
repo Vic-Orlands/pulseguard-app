@@ -26,18 +26,18 @@ function Navbar() {
       <header className="bg-background text-foreground">
         <div className="container mx-auto flex items-center justify-between h-14">
           <h1 className="flex items-center space-x-1 font-semibold">
-            <span className="w-5 h-5 flex items-center justify-center mr-1">
-              <HeartPulse />
-            </span>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-80 relative mr-2">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full"></div>
+            </div>
             PulseGuard
           </h1>
 
           <div className="flex items-center space-x-2">
             <button
               className="rounded-md p-1.5 text-text-secondary hover:text-text-primary hover:bg-sidebar-hover transition-colors"
-              //   aria-label={
-              //     isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              //   }
+              // aria-label={
+              //   isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+              // }
             >
               {/* {isDarkMode ? <Sun size={20} /> :*/}
               <Moon size={20} />
