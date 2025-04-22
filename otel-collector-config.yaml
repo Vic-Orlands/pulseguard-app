@@ -12,18 +12,29 @@ receivers:
     operators:
       - type: json_parser
         id: parse_json
+        parse_from: body
         timestamp:
-          parse_from: attributes.timestamp
+          parse_from: body.time
           layout: "%Y-%m-%dT%H:%M:%S.%fZ"
         severity:
-          parse_from: attributes.level
+          parse_from: body.level
         attributes:
           trace_id:
-            from: attributes.traceId
+            from: body.traceId
           span_id:
-            from: attributes.spanId
+            from: body.spanId
         resource:
           service.name: my-app
+
+      - type: severity_parser
+        parse_from: body.level
+        mapping:
+          10: trace
+          20: debug
+          30: info
+          40: warn
+          50: error
+          60: fatal
 
 processors:
   batch:

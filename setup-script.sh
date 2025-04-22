@@ -58,9 +58,9 @@ cat > grafana/provisioning/dashboards/dashboards.yaml << EOF
 apiVersion: 1
 
 providers:
-  - name: 'applog'
+  - name: 'pulseguard'
     orgId: 1
-    folder: 'applog'
+    folder: 'pulseguard'
     type: file
     disableDeletion: false
     editable: true
