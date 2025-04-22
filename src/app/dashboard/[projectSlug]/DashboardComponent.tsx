@@ -25,6 +25,9 @@ import {
   Integration,
 } from "@/types/dashboard";
 import { Project } from "./page";
+import ErrorPreview from "@/components/dashboard/error-preview";
+import AlertPreview from "@/components/dashboard/alert-preview";
+import { OverviewProvider } from "@/context/overview-context";
 
 export default function Dashboard({ project }: { project: Project }) {
   const searchParams = useSearchParams();
@@ -211,7 +214,17 @@ export default function Dashboard({ project }: { project: Project }) {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewTab {...{ platforms, errors, alerts }} />;
+        return (
+          <OverviewProvider {...{ alerts, errors, setActiveTab }}>
+            <OverviewTab platforms={platforms}>
+              {/* Recent Errors */}
+              <ErrorPreview />
+
+              {/* Recent Alerts */}
+              <AlertPreview />
+            </OverviewTab>
+          </OverviewProvider>
+        );
       case "sessions":
         return <SessionsTab platforms={platforms} />;
       case "errors":

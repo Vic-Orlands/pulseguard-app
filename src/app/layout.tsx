@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { TelemetryProvider } from "@/components/TelemetryProvider";
+import { TelemetryProvider } from "@/components/telemetry-provider";
 
 const geistSans = Inter({
   variable: "--font-inter",

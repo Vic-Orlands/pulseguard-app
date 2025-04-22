@@ -9,13 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
-import { Error } from "@/types/dashboard";
+import { useOverviewContext } from "@/context/overview-context";
 
-interface ErrorPreviewProps {
-  errors: Error[];
-}
+export default function ErrorPreview() {
+  const { errors, setActiveTab } = useOverviewContext();
 
-export default function ErrorPreview({ errors }: ErrorPreviewProps) {
   return (
     <Card className="bg-black/30 border border-blue-900/40">
       <CardHeader>
@@ -26,7 +24,7 @@ export default function ErrorPreview({ errors }: ErrorPreviewProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {errors.map((error) => (
+          {errors.slice(0, 3).map((error) => (
             <div
               key={error.id}
               className="flex items-start gap-4 p-4 rounded-lg bg-gray-900/50"
@@ -60,7 +58,7 @@ export default function ErrorPreview({ errors }: ErrorPreviewProps) {
         <Button
           variant="ghost"
           className="text-blue-400"
-          onClick={() => setActiveTab("errors")}
+          onClick={() => setActiveTab?.("errors")}
         >
           View all errors
         </Button>

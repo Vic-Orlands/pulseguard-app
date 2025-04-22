@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useTelemetry } from "@/hooks/useTelemetry";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // Component that will throw an error
 const BuggyComponent = () => {

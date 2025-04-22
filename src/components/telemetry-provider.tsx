@@ -1,9 +1,8 @@
-// src/components/TelemetryProvider.tsx
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { setupClientErrorTracking } from "@/lib/telemetry/client-error-tracking";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // Define the context
 interface TelemetryContextType {

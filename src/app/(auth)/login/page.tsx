@@ -2,7 +2,7 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import FuturisticBg from "@/components/FuturisticBg";
+import FuturisticBg from "@/components/background-color";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 

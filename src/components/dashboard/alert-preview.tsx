@@ -8,14 +8,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Alert } from "@/types/dashboard";
 import { AlertTriangle } from "lucide-react";
+import { useOverviewContext } from "@/context/overview-context";
 
-interface AlertPreviewProps {
-  alerts: Alert[];
-}
+export default function AlertPreview() {
+  const { alerts, setActiveTab } = useOverviewContext();
 
-export default function AlertPreview({ alerts }: AlertPreviewProps) {
   return (
     <Card className="bg-black/30 border border-blue-900/40">
       <CardHeader>
@@ -67,7 +65,7 @@ export default function AlertPreview({ alerts }: AlertPreviewProps) {
         <Button
           variant="ghost"
           className="text-blue-400"
-          onClick={() => setActiveTab("alerts")}
+          onClick={() => setActiveTab?.("alerts")}
         >
           View all alerts
         </Button>

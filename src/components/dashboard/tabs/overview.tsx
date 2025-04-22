@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import {
   Card,
   CardHeader,
@@ -17,21 +18,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Code, Cpu } from "lucide-react";
-import { Platform, Error, Alert } from "@/types/dashboard";
-import ErrorPreview from "../error-preview";
-import AlertPreview from "../alert-preview";
+import { Platform } from "@/types/dashboard";
+import { useOverviewContext } from "@/context/overview-context";
 
 interface OverviewTabProps {
   platforms: Platform[];
-  errors: Error[];
-  alerts: Alert[];
+  children?: ReactNode;
 }
 
-export default function OverviewTab({
-  platforms,
-  errors,
-  alerts,
-}: OverviewTabProps) {
+export default function OverviewTab({ platforms, children }: OverviewTabProps) {
+  const { errors, alerts } = useOverviewContext();
+
   const criticalErrors = errors.filter((e) => e.status === "active").length;
   const totalSessions = platforms.reduce(
     (sum, platform) => sum + platform.sessions,
@@ -170,13 +167,7 @@ export default function OverviewTab({
       </Card>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Errors */}
-        <ErrorPreview errors={errors.slice(0, 3)} />
-
-        {/* Recent Alerts */}
-        <AlertPreview alerts={alerts.slice(0, 3)} />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{children}</div>
     </div>
   );
 }
