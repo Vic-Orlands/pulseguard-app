@@ -1,3 +1,22 @@
+// config for error tracking props
+// props is passed as userConfig which is an object containing userId and issueTrackerUrl
+// userId and issueTrackerUrl are optional
+type ErrorTrackingConfig = {
+  userId?: string;
+  issueTrackerUrl?: string;
+};
+
+let config: ErrorTrackingConfig = {};
+
+export function initClientErrorTracking(userConfig: ErrorTrackingConfig) {
+  config = { ...userConfig };
+}
+
+export function getClientErrorTrackingConfig() {
+  return config;
+}
+
+// main configuration
 export interface ErrorEvent {
   message: string;
   source?: string;
@@ -25,9 +44,17 @@ const generateSessionId = (): string => {
 };
 
 // Set up global error tracking
-export function setupClientErrorTracking(userId?: string) {
+export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
   if (typeof window === "undefined") return;
 
+  if (configOverride) {
+    initClientErrorTracking(configOverride);
+  }
+
+  // Get the user ID from the config
+  const { userId } = getClientErrorTrackingConfig();
+
+  // Generate a session ID for the current user
   const sessionId = generateSessionId();
 
   // Handle uncaught errors
@@ -74,7 +101,6 @@ export function setupClientErrorTracking(userId?: string) {
         body: JSON.stringify(errorEvent),
       });
     } catch (error) {
-      // If error reporting fails, log to console as a fallback
       console.error("Failed to report error to server:", error);
     }
   }

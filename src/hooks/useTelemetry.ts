@@ -20,7 +20,7 @@ export function useTelemetry({
 
   useEffect(() => {
     // Setup error tracking on client-side
-    errorReporter.current = setupClientErrorTracking(userId);
+    errorReporter.current = setupClientErrorTracking({ userId });
 
     // Track page view
     const currentPage = pageId || window.location.pathname;

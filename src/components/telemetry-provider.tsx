@@ -30,8 +30,27 @@ export function TelemetryProvider({
 
   useEffect(() => {
     // Setup error tracking on client-side
-    const reporter = setupClientErrorTracking(userId);
+    const reporter = setupClientErrorTracking({
+      userId,
+      issueTrackerUrl: "https://github.com/Vic-Orlands/pulseguard/issues",
+    });
     setErrorReporter(reporter);
+
+    function reportPageView(page: string) {
+      fetch("/api/telemetry/pageview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page,
+          timestamp: Date.now(),
+          userId: userId || "anonymous",
+          referrer: document.referrer,
+          userAgent: navigator.userAgent,
+        }),
+      }).catch(console.error);
+    }
 
     // Track page view
     const currentPage = window.location.pathname;
@@ -42,22 +61,6 @@ export function TelemetryProvider({
       // Any cleanup needed
     };
   }, [userId]);
-
-  function reportPageView(page: string) {
-    fetch("/api/telemetry/pageview", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        page,
-        timestamp: Date.now(),
-        userId: userId || "anonymous",
-        referrer: document.referrer,
-        userAgent: navigator.userAgent,
-      }),
-    }).catch(console.error);
-  }
 
   // Context value
   const contextValue: TelemetryContextType = {

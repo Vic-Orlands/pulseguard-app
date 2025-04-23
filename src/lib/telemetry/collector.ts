@@ -47,7 +47,7 @@ const SERVICE_NAME = process.env.SERVICE_NAME || "pulse-guard";
 const OTLP_ENDPOINT = process.env.OTLP_ENDPOINT || "http://otel-collector:4318";
 
 // Initialize resources with async attributes
-async function initializeResources() {
+async function initializeResources() {                                                            
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: SERVICE_NAME,
   });

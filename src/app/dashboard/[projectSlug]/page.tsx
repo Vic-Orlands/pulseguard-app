@@ -44,9 +44,10 @@ async function getProject(slug: string): Promise<Project | null> {
 export default async function ProjectDashboardPage({
   params,
 }: {
-  params: { projectSlug: string };
+  params: Promise<{ projectSlug: string }>;
 }) {
-  const project = await getProject(params.projectSlug);
+  const { projectSlug } = await params;
+  const project = await getProject(projectSlug);
 
   if (!project) {
     notFound();

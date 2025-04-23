@@ -1,5 +1,3 @@
-// src/lib/repositories/error-repository.ts
-
 import { prisma } from "../prisma";
 import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/telemetry/logger";
