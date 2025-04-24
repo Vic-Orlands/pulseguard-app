@@ -9,62 +9,14 @@ import {
   BarChart,
   GitBranch,
   Mail,
+  X,
+  Github,
+  Linkedin,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-// Animated background with circular lines
-const AnimatedBackground = () => {
-  return (
-    <div className="fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950"></div>
-      {[...Array(5)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-full h-full border border-blue-500/10 rounded-full"
-          initial={{
-            scale: 0.1 + i * 0.15,
-            opacity: 0.3 - i * 0.05,
-          }}
-          animate={{
-            scale: [0.1 + i * 0.15, 0.2 + i * 0.2, 0.1 + i * 0.15],
-            opacity: [0.3 - i * 0.05, 0.15 - i * 0.02, 0.3 - i * 0.05],
-            rotate: [0, 90, 180],
-          }}
-          transition={{
-            duration: 20 + i * 5,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-      ))}
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={`dot-${i}`}
-          className="absolute w-1 h-1 bg-blue-400 rounded-full"
-          initial={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            opacity: 0.3 + Math.random() * 0.4,
-          }}
-          animate={{
-            opacity: [0.3, 0.7, 0.3],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+import { PulseGuardLogo } from "@/components/Icons";
+import AnimatedBackground from "@/components/background-color";
 
 // Feature card component
 interface FeatureCardProps {
@@ -94,16 +46,7 @@ const Navbar = () => (
   <header className="w-full py-4 px-6 backdrop-blur-sm bg-transparent z-10">
     <div className="max-w-7xl mx-auto flex justify-between items-center">
       <div className="flex items-center">
-        <motion.div
-          className="mr-2 relative"
-          animate={{
-            rotate: [0, 360],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-80"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full"></div>
-        </motion.div>
+        <PulseGuardLogo />
         <span className="text-xl font-bold text-white">PulseGuard</span>
       </div>
       <nav className="hidden md:flex space-x-8">
@@ -122,7 +65,7 @@ const Navbar = () => (
           className="bg-blue-600 text-white cursor-pointer px-4 py-2 rounded-md hover:bg-blue-700 transition mr-3"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => (window.location.href = "/signup")}
+          onClick={() => (window.location.href = "/signin")}
         >
           Login
         </motion.button>
@@ -130,7 +73,7 @@ const Navbar = () => (
           className="bg-transparent text-white cursor-pointer px-4 py-2 rounded-md border border-blue-600 hover:bg-blue-900/30 transition"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => (window.location.href = "/signup")}
+          onClick={() => (window.location.href = "/signin")}
         >
           Sign Up
         </motion.button>
@@ -165,7 +108,7 @@ const Hero = () => (
             className="bg-blue-600 text-white cursor-pointer px-6 py-3 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => (window.location.href = "/signup")}
+            onClick={() => (window.location.href = "/signin")}
           >
             Get Started <ArrowRight className="h-4 w-4" />
           </motion.button>
@@ -394,33 +337,101 @@ const CTA = () => (
 );
 
 // Footer
+const footerLink: {
+  title: string;
+  links: string[];
+}[] = [
+  {
+    title: "Product",
+    links: ["Features", "Pricing", "Integrations", "Documentation"],
+  },
+  {
+    title: "Company",
+    links: ["About", "Blog", "Contact"],
+  },
+  {
+    title: "Legal",
+    links: ["Privacy Policy", "Terms of Service", "Security"],
+  },
+];
+
+const svgIcons: {
+  href: string;
+  label: string;
+  icon: React.JSX.Element;
+}[] = [
+  {
+    href: "https://x.com/MezieIV",
+    label: "Twitter",
+    icon: <X />,
+  },
+  {
+    href: "https://www.linkedin.com/in/victor-innocent/",
+    label: "LinkedIn",
+    icon: <Linkedin />,
+  },
+  {
+    href: "https://github.com/Vic-Orlands/pulseguard",
+    label: "GitHub",
+    icon: <Github />,
+  },
+];
+
 const Footer = () => (
   <footer className="py-12 px-6 border-t border-blue-900/30 bg-black/20 backdrop-blur-sm">
     <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between">
         <div className="mb-6 md:mb-0">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mr-2"></div>
+            <PulseGuardLogo />
             <span className="text-xl font-bold text-white">PulseGuard</span>
           </div>
           <p className="text-gray-400 mt-2">
             Full-stack observability platform
           </p>
         </div>
-        <div className="flex gap-8">
-          <a href="#" className="text-gray-400 hover:text-white">
-            Documentation
-          </a>
-          <a href="#" className="text-gray-400 hover:text-white">
-            GitHub
-          </a>
-          <a href="#" className="text-gray-400 hover:text-white">
-            Contact
-          </a>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          {footerLink.map((section) => (
+            <div key={section.title}>
+              <h4 className="font-semibold mb-4">{section.title}</h4>
+              <ul className="space-y-2 text-slate-400">
+                {section.links.map((link, idx) => (
+                  <li key={idx}>
+                    <a
+                      href={link.toLowerCase().replace(/\s+/g, "-")}
+                      aria-label={link}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="mt-8 pt-8 border-t border-blue-900/30 text-center text-gray-400">
-        <p>© {new Date().getFullYear()} PulseGuard. All rights reserved.</p>
+
+      <div className="mt-12 pt-8 border-t border-blue-900/30 flex flex-col md:flex-row justify-between items-center">
+        <p className="text-slate-400 mb-4 md:mb-0">
+          © {new Date().getFullYear()} PulseGuard. All rights reserved.
+        </p>
+        <div className="flex items-center space-x-4">
+          {svgIcons.map((social) => (
+            <a
+              key={social.href}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={social.label}
+              className="text-gray-400 hover:text-white transition-colors flex items-center justify-center"
+            >
+              <span className="sr-only">{social.label}</span>
+              {social.icon}
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   </footer>
@@ -437,9 +448,6 @@ export default function Homepage() {
       <Architecture />
       <CTA />
       <Footer />
-
-      {/* External Footer */}
-      {/* <Footer /> */}
     </div>
   );
 }

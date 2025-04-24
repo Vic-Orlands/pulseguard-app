@@ -51,11 +51,8 @@ export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
     initClientErrorTracking(configOverride);
   }
 
-  // Get the user ID from the config
-  const { userId } = getClientErrorTrackingConfig();
-
-  // Generate a session ID for the current user
-  const sessionId = generateSessionId();
+  const { userId } = getClientErrorTrackingConfig(); // Get the user ID from the config
+  const sessionId = generateSessionId(); // Generate a session ID for the current user
 
   // Handle uncaught errors
   window.addEventListener("error", (event) => {
@@ -76,8 +73,8 @@ export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
   });
 
   // Handle unhandled promise rejections
-  window.addEventListener("unhandledrejection", (event) => {
-    const errorEvent: ErrorEvent = {
+  const rejectionListener = (event: PromiseRejectionEvent) => {
+    const errorEvent = {
       message: event.reason?.message || "Unhandled Promise Rejection",
       error: event.reason,
       timestamp: Date.now(),
@@ -86,9 +83,9 @@ export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
       url: window.location.href,
       userAgent: navigator.userAgent,
     };
-
     reportErrorToServer(errorEvent);
-  });
+  };
+  window.addEventListener("unhandledrejection", rejectionListener);
 
   // Report errors to the server
   async function reportErrorToServer(errorEvent: ErrorEvent) {
@@ -138,6 +135,25 @@ export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
           userAgent: navigator.userAgent,
         }),
       }).catch(console.error);
+    },
+    cleanup: () => {
+      window.removeEventListener("error", (event) => {
+        const errorEvent: ErrorEvent = {
+          message: event.message,
+          source: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          error: event.error,
+          timestamp: Date.now(),
+          sessionId,
+          userId,
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+        };
+
+        reportErrorToServer(errorEvent);
+      });
+      window.removeEventListener("unhandledrejection", rejectionListener);
     },
   };
 }

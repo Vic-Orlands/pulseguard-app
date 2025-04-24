@@ -32,7 +32,7 @@ export function TelemetryProvider({
     // Setup error tracking on client-side
     const reporter = setupClientErrorTracking({
       userId,
-      issueTrackerUrl: "https://github.com/Vic-Orlands/pulseguard/issues",
+      // issueTrackerUrl: "https://github.com/Vic-Orlands/pulseguard/issues",
     });
     setErrorReporter(reporter);
 
@@ -58,7 +58,11 @@ export function TelemetryProvider({
 
     // Return cleanup function
     return () => {
-      // Any cleanup needed
+      if (reporter?.cleanup) {
+        reporter.cleanup();
+      }
+
+      reportPageView(currentPage);
     };
   }, [userId]);
 

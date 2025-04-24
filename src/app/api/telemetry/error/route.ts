@@ -1,9 +1,7 @@
-// src/app/api/telemetry/error/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { trace, metrics, SpanStatusCode } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
-import { ErrorRepository } from "@/lib/repositories/error-repository";
+// import { ErrorRepository } from "@/lib/repositories/error-repository";
 
 const logger = createLogger("error-api");
 const tracer = trace.getTracer("error-api");
@@ -57,10 +55,11 @@ export async function POST(request: NextRequest) {
       });
 
       // Store the error through the repository
-      const error = await ErrorRepository.trackError(enhancedErrorData);
+      // const error = await ErrorRepository.trackError(enhancedErrorData);
 
       span.setStatus({ code: SpanStatusCode.OK });
-      return NextResponse.json({ success: true, errorId: error.id });
+      // return NextResponse.json({ success: true, errorId: error.id });
+      return NextResponse.json({ success: true, errorId: errorEvent.id });
     } catch (error: unknown) {
       span.setStatus({
         code: SpanStatusCode.ERROR,

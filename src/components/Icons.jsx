@@ -1,3 +1,12 @@
+import React from "react";
+
+export const PulseGuardLogo = () => (
+  <div className="mr-2 relative">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-80"></div>
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full"></div>
+  </div>
+);
+
 export const SlackLogo = (props) => (
   <svg
     {...props}
