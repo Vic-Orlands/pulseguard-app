@@ -732,3 +732,6 @@
 {"level":30,"time":"2025-04-24T00:51:10.205Z","pid":137699,"hostname":"mezieiv","name":"telemetry-collector","msg":"SIGINT received, shutting down telemetry"}
 {"level":30,"time":"2025-04-24T00:51:10.206Z","pid":137699,"hostname":"mezieiv","name":"telemetry-collector","msg":"Shutting down telemetry collector"}
 {"level":30,"time":"2025-04-24T00:51:10.207Z","pid":137699,"hostname":"mezieiv","name":"telemetry-collector","msg":"Telemetry collector shut down successfully"}
+{"level":20,"time":"2025-04-24T12:31:07.737Z","pid":417530,"hostname":"mezieiv","name":"telemetry-collector","msg":"Final resource attributes"}
+{"level":30,"time":"2025-04-24T12:31:07.761Z","pid":417530,"hostname":"mezieiv","name":"telemetry-collector","msg":"OpenTelemetry SDK initialized successfully"}
+{"level":30,"time":"2025-04-24T12:31:07.761Z","pid":417530,"hostname":"mezieiv","name":"telemetry-collector","msg":"Prometheus metrics server started on http://localhost:9464/metrics"}

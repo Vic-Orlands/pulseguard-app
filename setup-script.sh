@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Gradient colors
+C_CYAN="\033[38;5;45m"
+C_RESET="\033[0m"
+
 # Add this at the beginning of your script
 echo "Cleaning up old containers..."
 docker-compose down --remove-orphans --timeout 1 2>/dev/null || true
@@ -69,14 +73,18 @@ providers:
 EOF
 
 # Start the monitoring stack
+echo ""
+echo -e "${C_CYAN}Initializing PulseGuard environment...${C_RESET}"
+echo ""
+
 docker-compose up -d
 
-echo "Telemetry stack is being started..."
-echo "Grafana will be available at http://localhost:3100"
-echo "Prometheus will be available at http://localhost:9090"
-echo "Tempo will be available at http://localhost:3200"
-echo "Loki will be available at http://localhost:3101"
+echo ""
+echo -e "${C_CYAN}Grafana is ready!${C_RESET}"
+echo -e "${C_CYAN}Prometheus is ready!${C_RESET}"
+echo -e "${C_CYAN}Tempo is ready!${C_RESET}"
+echo -e "${C_CYAN}Loki is ready!${C_RESET}"
+echo ""
 
-echo "Default Grafana credentials:"
-echo "Username: admin"
-echo "Password: admin"
+# Call the terminal banner script
+bash ./start-terminal.sh

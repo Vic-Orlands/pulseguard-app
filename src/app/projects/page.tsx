@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Plus } from "lucide-react";
+import { Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProjectCard from "./components/project-card";
@@ -94,16 +94,16 @@ export default function ProjectSelectionPage() {
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Your Projects</h1>
+            <h1 className="text-3xl font-bold mb-1">Your Projects</h1>
             <p className="text-gray-400 text-sm">
-              Select a project to view its dashboard
+              Select a project to go to dashboard
             </p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
               <Input
                 placeholder="Search projects..."
-                className="pl-10 w-full bg-black/30 border border-blue-900/40"
+                className="pl-2 pt-0 w-full bg-black/30 border border-blue-900/40 focus:ring-blue-500 focus:ring-1"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -137,16 +137,17 @@ export default function ProjectSelectionPage() {
               <ProjectCard
                 key={project.id}
                 project={project}
-                href={`/dashboard/${project.slug}`}
+                href={`/projects/${project.slug}`}
               />
             ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-24 h-24 rounded-full bg-blue-900/20 flex items-center justify-center mb-6">
-              <Plus className="h-12 w-12 text-blue-400" />
+              <Layers className="h-12 w-12 text-blue-400" />
             </div>
-            <h3 className="text-xl font-medium mb-2">No projects found</h3>
+
+            <h3 className="text-lg font-medium">No projects found</h3>
             <p className="text-gray-400 mb-6">
               {searchQuery
                 ? "Try a different search term"

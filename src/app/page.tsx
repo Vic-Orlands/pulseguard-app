@@ -116,7 +116,7 @@ const Hero = () => (
             className="bg-transparent text-white cursor-pointer px-6 py-3 rounded-md border border-blue-600 hover:bg-blue-900/30 flex items-center justify-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => (window.location.href = "/dashboard")}
+            onClick={() => (window.location.href = "/projects")}
           >
             View Demo <Eye className="h-4 w-4" />
           </motion.button>

@@ -1,6 +1,8 @@
 import pino, { Logger } from "pino";
 import { trace } from "@opentelemetry/api";
 
+export const runtime = "nodejs";
+
 declare const EdgeRuntime: string | undefined;
 
 type LogMethod = (obj: unknown, msg?: string, ...args: any[]) => void;
