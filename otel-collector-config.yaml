@@ -5,36 +5,43 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "http://*"
+            - "https://*"
+
+  # filelog:
+  #   include: ["/app/logs/*.log"]
+  #   start_at: beginning
+  #   operators:
+  #     - type: json_parser
+  #       parse_from: body
+  #       parse_to: attributes
+
   filelog:
-    include: [/app/logs/*.log]
+    include: ["/app/logs/*.log"]
     start_at: beginning
     include_file_name: false
     operators:
       - type: json_parser
-        id: parse_json
         parse_from: body
         timestamp:
-          parse_from: body.time
+          parse_from: attributes.time
           layout: "%Y-%m-%dT%H:%M:%S.%fZ"
+          timezone: UTC
         severity:
-          parse_from: body.level
-        attributes:
-          trace_id:
-            from: body.traceId
-          span_id:
-            from: body.spanId
-        resource:
-          service.name: my-app
-
-      - type: severity_parser
-        parse_from: body.level
-        mapping:
-          10: trace
-          20: debug
-          30: info
-          40: warn
-          50: error
-          60: fatal
+          parse_from: attributes.level
+          mapping:
+            10: trace
+            20: debug
+            30: info
+            40: warn
+            50: error
+            60: fatal
+        trace_id:
+          parse_from: attributes.traceId
+        span_id:
+          parse_from: attributes.spanId
 
 processors:
   batch:
@@ -48,12 +55,26 @@ processors:
 
   attributes:
     actions:
-      - key: trace_id
-        from_attribute: trace_id
-        action: insert
-      - key: span_id
-        from_attribute: span_id
-        action: insert
+      - action: insert
+        key: trace_id
+        from_attribute: traceId
+      - action: insert
+        key: span_id
+        from_attribute: spanId
+
+  # transform:
+  #   log_statements:
+  #     - context: log
+  #       statements:
+  #         - set(trace_id, attributes["traceId"])
+  #         - set(span_id, attributes["spanId"])
+
+  # Updated filter to only accept recent logs
+  # filter/recent_logs:
+  #   logs:
+  #     log_record:
+  #       - IsMatch(attributes["time"], "^2025-04-2[6-9]T\\d{2}:\\d{2}:\\d{2}Z$")
+  #       - IsMatch(attributes["time"], "^2025-04-3[0-1]T\\d{2}:\\d{2}:\\d{2}Z$")
 
   resourcedetection:
     detectors: [env, system]
@@ -62,7 +83,7 @@ processors:
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: "applog"
+    namespace: "pulseguard"
     const_labels:
       service: "pulseguard"
 
@@ -70,21 +91,27 @@ exporters:
     endpoint: "tempo:4317"
     tls:
       insecure: true
-    sending_queue:
-      enabled: true
-      num_consumers: 4
-      queue_size: 100
-    retry_on_failure:
-      enabled: true
+    # sending_queue:
+    #   enabled: true
+    #   num_consumers: 4
+    #   queue_size: 100
+    # retry_on_failure:
+    #   enabled: true
 
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
     default_labels_enabled:
       exporter: true
       job: true
+    # Allow old logs to be ingested (adjust as needed)
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 5m
 
   debug:
-    verbosity: basic
+    verbosity: detailed
 
 service:
   pipelines:
@@ -100,7 +127,8 @@ service:
 
     logs:
       receivers: [otlp, filelog]
-      processors: [memory_limiter, attributes, batch, resourcedetection]
+      processors:
+        [memory_limiter, attributes, batch, resourcedetection]
       exporters: [loki, debug]
 
   telemetry:

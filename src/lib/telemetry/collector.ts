@@ -28,7 +28,11 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 
 import os from "os";
 import { createLogger } from "./logger";
-import { ATTR_DEPLOYMENT_ENVIRONMENT, ATTR_SERVICE_ID } from "./semconv";
+import {
+  ATTR_DEPLOYMENT_ENVIRONMENT,
+  ATTR_SERVICE_ID,
+  ATTR_SERVICE_NAMESPACE,
+} from "./semconv";
 
 // create logger for telemetry collector
 const logger = createLogger("telemetry-collector");
@@ -43,19 +47,20 @@ if (process.env.NODE_ENV === "development") {
   diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 }
 
-const SERVICE_NAME = process.env.SERVICE_NAME || "pulse-guard";
+const SERVICE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "pulseguard";
 const OTLP_ENDPOINT = process.env.OTLP_ENDPOINT || "http://otel-collector:4318";
 
 // Initialize resources with async attributes
-async function initializeResources() {                                                            
+async function initializeResources() {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: SERVICE_NAME,
   });
 
   const otherResources = resourceFromAttributes({
+    [ATTR_SERVICE_ID]: process.env.HOSTNAME || os.hostname(),
     [ATTR_SERVICE_VERSION]: process.env.SERVICE_VERSION || "1.0.0",
     [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || "development",
-    [ATTR_SERVICE_ID]: process.env.HOSTNAME || os.hostname(),
+    [ATTR_SERVICE_NAMESPACE]: process.env.SERVICE_NAMESPACE || "default",
   });
 
   // Wait for async attributes to settle
@@ -100,6 +105,7 @@ export async function startTelemetryCollector() {
     // Configure trace exporter
     const traceExporter = new OTLPTraceExporter({
       url: `${OTLP_ENDPOINT}/v1/traces`,
+      // url: "grpsc://otel-collector:4317",
     });
 
     // Configure Prometheus exporter

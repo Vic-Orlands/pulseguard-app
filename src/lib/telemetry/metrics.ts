@@ -1,61 +1,63 @@
-import { metrics } from "@opentelemetry/api";
+import { metrics, Counter, Histogram, UpDownCounter } from "@opentelemetry/api";
 import { createLogger } from "./logger";
 
 const logger = createLogger("metrics");
-const meter = metrics.getMeter("pulseGuard");
+const meter = metrics.getMeter("pulseguard");
 
-// Create and export common metrics
-export const errorCounter = meter.createCounter("application.errors", {
-  description: "Count of application errors",
-});
-
-export const pageViewCounter = meter.createCounter("application.page_views", {
-  description: "Count of page views",
-});
-
-export const apiRequestCounter = meter.createCounter(
-  "application.api_requests",
+// HTTP Metrics
+export const httpRequestsTotal: Counter = meter.createCounter(
+  "http.requests.total",
   {
-    description: "Count of API requests",
+    description: "Total count of HTTP requests",
   }
 );
 
-export const apiRequestDuration = meter.createHistogram(
-  "application.api_duration",
+export const httpRequestDurationMs: Histogram = meter.createHistogram(
+  "http.request.duration.ms",
   {
-    description: "Duration of API requests",
+    description: "Duration of HTTP requests in milliseconds",
     unit: "ms",
   }
 );
 
-export const userActivityCounter = meter.createCounter(
-  "application.user_activity",
+export const httpErrorsTotal: Counter = meter.createCounter(
+  "http.errors.total",
   {
-    description: "Count of user activities",
+    description: "Total count of HTTP error responses (4xx and 5xx)",
   }
 );
 
-export const activeSessions = meter.createUpDownCounter(
-  "application.active_sessions",
+// Application Metrics
+export const appErrorsTotal: Counter = meter.createCounter("app.errors.total", {
+  description: "Total count of application errors",
+});
+
+// User Metrics
+export const userActivityTotal: Counter = meter.createCounter(
+  "user.activity.total",
   {
-    description: "Number of active user sessions",
+    description: "Total count of user activities",
   }
 );
 
-// Track HTTP status codes
-export const httpStatusCounter = meter.createCounter(
-  "application.http_status",
+export const activeSessions: UpDownCounter = meter.createUpDownCounter(
+  "user.sessions.active",
   {
-    description: "Count of HTTP status codes",
+    description: "Number of currently active user sessions",
   }
 );
+
+// Page Metrics
+export const pageViewsTotal: Counter = meter.createCounter("page.views.total", {
+  description: "Total count of page views",
+});
 
 // Convenience functions to use the metrics
 export const Metrics = {
   // Track an error with optional attributes
   trackError: (errorType: string, attributes: Record<string, string> = {}) => {
-    errorCounter.add(1, {
-      errorType,
+    appErrorsTotal.add(1, {
+      error_type: errorType,
       ...attributes,
     });
     logger.debug("Error metric recorded", { errorType, ...attributes });
@@ -63,9 +65,9 @@ export const Metrics = {
 
   // Track a page view
   trackPageView: (page: string, userId?: string) => {
-    pageViewCounter.add(1, {
+    pageViewsTotal.add(1, {
       page,
-      userId: userId || "anonymous",
+      user_id: userId || "anonymous",
     });
   },
 
@@ -76,43 +78,40 @@ export const Metrics = {
     statusCode: number,
     durationMs: number
   ) => {
-    apiRequestCounter.add(1, {
+    const attributes = {
       path,
-      method,
-      status: statusCode.toString(),
-    });
+      http_method: method,
+      status_code: statusCode.toString(),
+    };
 
-    apiRequestDuration.record(durationMs, {
-      path,
-      method,
-      status: statusCode.toString(),
-    });
+    httpRequestsTotal.add(1, attributes);
+    httpRequestDurationMs.record(durationMs, attributes);
 
-    httpStatusCounter.add(1, {
-      status: statusCode.toString(),
-    });
+    if (statusCode >= 400) {
+      httpErrorsTotal.add(1, attributes);
+    }
   },
 
   // Track user activity
   trackUserActivity: (activityType: string, userId?: string) => {
-    userActivityCounter.add(1, {
-      activityType,
-      userId: userId || "anonymous",
+    userActivityTotal.add(1, {
+      activity_type: activityType,
+      user_id: userId || "anonymous",
     });
   },
 
   // Session management
   startSession: (sessionId: string, userId?: string) => {
     activeSessions.add(1, {
-      sessionId,
-      userId: userId || "anonymous",
+      session_id: sessionId,
+      user_id: userId || "anonymous",
     });
   },
 
   endSession: (sessionId: string, userId?: string) => {
     activeSessions.add(-1, {
-      sessionId,
-      userId: userId || "anonymous",
+      session_id: sessionId,
+      user_id: userId || "anonymous",
     });
   },
 };

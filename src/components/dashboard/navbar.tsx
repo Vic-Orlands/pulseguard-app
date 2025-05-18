@@ -77,7 +77,7 @@ export default function Header({
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   const handleBackToProjects = () => {
-    window.location.href = "/dashboard";
+    window.location.href = "/projects";
   };
 
   return (

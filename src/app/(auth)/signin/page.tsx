@@ -260,6 +260,10 @@ const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
     setFormData((prev: FormDataType) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectChange = (value: string): void => {
+    setFormData((prev: FormDataType) => ({ ...prev, role: value }));
+  };
+
   const validateStep1 = () => {
     if (!formData.name || !formData.email) {
       setError("Please fill in all fields");
@@ -436,11 +440,7 @@ const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
               >
                 Role (Optional)
               </label>
-              <Select
-                onValueChange={(value) =>
-                  handleChange({ target: { name: "role", value } } as any)
-                }
-              >
+              <Select onValueChange={(value) => handleSelectChange(value)}>
                 <SelectTrigger className="w-full rounded-md bg-black/30 border border-blue-900/40 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trace, metrics, SpanStatusCode } from "@opentelemetry/api";
+import { trace, metrics, SpanStatusCode, Counter } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
 // import { ErrorRepository } from "@/lib/repositories/error-repository";
 
@@ -8,8 +8,8 @@ const tracer = trace.getTracer("error-api");
 const meter = metrics.getMeter("error-api");
 
 // Create counters for errors
-const errorCounter = meter.createCounter("application.errors", {
-  description: "Count of application errors",
+const errorCounter: Counter = meter.createCounter("app.errors.total", {
+  description: "Total count of application errors",
 });
 
 export async function POST(request: NextRequest) {

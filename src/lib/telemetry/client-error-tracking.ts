@@ -33,13 +33,13 @@ export interface ErrorEvent {
 
 // Generate a session ID for the current user
 const generateSessionId = (): string => {
-  const sessionId = localStorage.getItem("pulse_guard_session_id");
+  const sessionId = localStorage.getItem("pulseguard_session_id");
   if (sessionId) return sessionId;
 
   const newSessionId = `session_${Date.now()}_${Math.random()
     .toString(36)
     .substring(2, 9)}`;
-  localStorage.setItem("pulse_guard_session_id", newSessionId);
+  localStorage.setItem("pulseguard_session_id", newSessionId);
   return newSessionId;
 };
 

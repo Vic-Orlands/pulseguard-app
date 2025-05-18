@@ -84,6 +84,10 @@ echo -e "${C_CYAN}Grafana is ready!${C_RESET}"
 echo -e "${C_CYAN}Prometheus is ready!${C_RESET}"
 echo -e "${C_CYAN}Tempo is ready!${C_RESET}"
 echo -e "${C_CYAN}Loki is ready!${C_RESET}"
+echo -e "${C_CYAN}Loki is ready!${C_RESET}"
+echo -e "${C_CYAN}Postgres is ready!${C_RESET}"
+echo -e "${C_CYAN}Go-backend is ready!${C_RESET}"
+echo -e "${C_CYAN}PgAdmin is ready!${C_RESET}"
 echo ""
 
 # Call the terminal banner script

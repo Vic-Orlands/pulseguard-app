@@ -68,8 +68,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* <TelemetryProvider>{children}</TelemetryProvider> */}
-        {children}
+        <TelemetryProvider>{children}</TelemetryProvider>
       </body>
     </html>
   );

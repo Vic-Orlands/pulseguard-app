@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PulseGuardLogo } from "@/components/Icons";
 import AnimatedBackground from "@/components/background-color";
+import Link from "next/link";
 
 // Feature card component
 interface FeatureCardProps {
@@ -42,13 +43,15 @@ const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => (
 );
 
 // Navbar component
-const Navbar = () => (
+export const Navbar = () => (
   <header className="w-full py-4 px-6 backdrop-blur-sm bg-transparent z-10">
     <div className="max-w-7xl mx-auto flex justify-between items-center">
-      <div className="flex items-center">
-        <PulseGuardLogo />
-        <span className="text-xl font-bold text-white">PulseGuard</span>
-      </div>
+      <Link href="/">
+        <div className="flex items-center">
+          <PulseGuardLogo />
+          <span className="text-xl font-bold text-white">PulseGuard</span>
+        </div>
+      </Link>
       <nav className="hidden md:flex space-x-8">
         <a href="#features" className="text-gray-300 hover:text-white">
           Features
@@ -377,8 +380,8 @@ const svgIcons: {
   },
 ];
 
-const Footer = () => (
-  <footer className="py-12 px-6 border-t border-blue-900/30 bg-black/20 backdrop-blur-sm">
+export const Footer = () => (
+  <footer className="py-12 px-6 border-t border-blue-900/30 text-white bg-black/20 backdrop-blur-sm">
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between">
         <div className="mb-6 md:mb-0">
