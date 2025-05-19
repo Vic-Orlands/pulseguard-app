@@ -10,14 +10,6 @@ receivers:
             - "http://*"
             - "https://*"
 
-  # filelog:
-  #   include: ["/app/logs/*.log"]
-  #   start_at: beginning
-  #   operators:
-  #     - type: json_parser
-  #       parse_from: body
-  #       parse_to: attributes
-
   filelog:
     include: ["/app/logs/*.log"]
     start_at: beginning
@@ -48,6 +40,10 @@ processors:
     timeout: 1s
     send_batch_size: 1024
 
+  resourcedetection:
+    detectors: [env, system, docker]
+    timeout: 5s
+
   memory_limiter:
     check_interval: 1s
     limit_mib: 1500
@@ -61,24 +57,27 @@ processors:
       - action: insert
         key: span_id
         from_attribute: spanId
+      - action: insert
+        key: service_name
+        value: "pulseguard"
 
-  # transform:
-  #   log_statements:
-  #     - context: log
-  #       statements:
-  #         - set(trace_id, attributes["traceId"])
-  #         - set(span_id, attributes["spanId"])
+      - action: delete
+        key: traceId
+      - action: delete
+        key: spanId
 
-  # Updated filter to only accept recent logs
-  # filter/recent_logs:
-  #   logs:
-  #     log_record:
-  #       - IsMatch(attributes["time"], "^2025-04-2[6-9]T\\d{2}:\\d{2}:\\d{2}Z$")
-  #       - IsMatch(attributes["time"], "^2025-04-3[0-1]T\\d{2}:\\d{2}:\\d{2}Z$")
+  resource/add_service:
+    attributes:
+      - action: insert
+        key: service.name
+        value: pulseguard
 
-  resourcedetection:
-    detectors: [env, system]
-    timeout: 5s
+    # Updated filter to only accept recent logs
+    # filter/recent_logs:
+    #   logs:
+    #     log_record:
+    #       - IsMatch(attributes["time"], "^2025-04-2[6-9]T\\d{2}:\\d{2}:\\d{2}Z$")
+    #       - IsMatch(attributes["time"], "^2025-04-3[0-1]T\\d{2}:\\d{2}:\\d{2}Z$")
 
 exporters:
   prometheus:
@@ -91,15 +90,17 @@ exporters:
     endpoint: "tempo:4317"
     tls:
       insecure: true
-    # sending_queue:
-    #   enabled: true
-    #   num_consumers: 4
-    #   queue_size: 100
-    # retry_on_failure:
-    #   enabled: true
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 100
+    retry_on_failure:
+      enabled: true
 
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
+    tls:
+      insecure: true
     default_labels_enabled:
       exporter: true
       job: true
@@ -128,7 +129,13 @@ service:
     logs:
       receivers: [otlp, filelog]
       processors:
-        [memory_limiter, attributes, batch, resourcedetection]
+        [
+          memory_limiter,
+          resource/add_service,
+          attributes,
+          batch,
+          resourcedetection,
+        ]
       exporters: [loki, debug]
 
   telemetry:

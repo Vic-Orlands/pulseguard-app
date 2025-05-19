@@ -9,7 +9,7 @@ datasources:
     isDefault: true
     version: 1
     editable: false
-
+  
   - name: Loki
     type: loki
     access: proxy
@@ -17,7 +17,7 @@ datasources:
     url: http://loki:3100
     version: 1
     editable: false
-
+  
   - name: Tempo
     type: tempo
     access: proxy
@@ -29,10 +29,10 @@ datasources:
     jsonData:
       httpMethod: GET
       tracesToLogs:
-        datasourceUid: "loki"
-        tags: ["job", "instance", "service.name", "service.namespace"]
-        mappedTags: [{ key: "service.name", value: "service" }]
-        spanStartTimeShift: "-1h"
-        spanEndTimeShift: "1h"
+        datasourceUid: 'loki'
+        tags: ['job', 'instance', 'service.name', 'service.namespace']
+        mappedTags: [{ key: 'service.name', value: 'service' }]
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
         filterByTraceID: true
         filterBySpanID: false

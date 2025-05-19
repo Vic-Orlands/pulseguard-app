@@ -47,13 +47,12 @@ if (process.env.NODE_ENV === "development") {
   diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 }
 
-const SERVICE_NAME = process.env.NEXT_PUBLIC_APP_NAME || "pulseguard";
 const OTLP_ENDPOINT = process.env.OTLP_ENDPOINT || "http://otel-collector:4318";
 
 // Initialize resources with async attributes
 async function initializeResources() {
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: SERVICE_NAME,
+    [ATTR_SERVICE_NAME]: process.env.NEXT_PUBLIC_APP_NAME || "pulseguard",
   });
 
   const otherResources = resourceFromAttributes({
@@ -69,7 +68,6 @@ async function initializeResources() {
 
   const mergedResource = resource.merge(otherResources);
 
-  // Now you can safely access the attributes
   return mergedResource;
 }
 
@@ -105,7 +103,6 @@ export async function startTelemetryCollector() {
     // Configure trace exporter
     const traceExporter = new OTLPTraceExporter({
       url: `${OTLP_ENDPOINT}/v1/traces`,
-      // url: "grpsc://otel-collector:4317",
     });
 
     // Configure Prometheus exporter

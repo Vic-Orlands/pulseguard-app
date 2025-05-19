@@ -22,7 +22,8 @@ services:
     image: grafana/loki:latest
     container_name: loki
     ports:
-      - "3101:3100"
+      - "3100:3100"
+      - "9096:9096"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
       - loki_data:/tmp/loki
@@ -76,7 +77,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3100:3000"
+      - "3101:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning

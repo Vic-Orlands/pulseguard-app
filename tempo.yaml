@@ -31,11 +31,6 @@ storage:
     wal:
       path: /var/tempo/wal
 
-# query_frontend:
-#   search:
-#     concurrent_jobs: 200
-#     max_duration: 30s
-
 query_frontend:
   search:
     duration_slo: 5s
@@ -50,7 +45,6 @@ querier:
 metrics_generator:
   storage:
     path: /var/tempo/generator/wal
-    # path: /tmp/tempo/generator/wal
   processor:
     span_metrics:
       dimensions:
@@ -63,5 +57,5 @@ metrics_generator:
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks] # enables metrics generator
+      processors: [service-graphs, span-metrics, local-blocks]
       generate_native_histograms: both
