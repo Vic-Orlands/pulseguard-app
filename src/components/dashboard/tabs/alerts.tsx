@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HardDrive, Clock, AlertCircle, Plus } from "lucide-react";
-import { Alert } from "@/types/dashboard";
+import type { Alert } from "@/types/dashboard";
 import { Progress } from "@/components/ui/progress";
 
 interface AlertsTabProps {

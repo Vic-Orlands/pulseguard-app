@@ -15,7 +15,7 @@ import AlertsTab from "@/components/dashboard/tabs/alerts";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
 import SettingsTab from "@/components/dashboard/tabs/settings";
 import HelpButton from "@/components/dashboard/help-button";
-import {
+import type {
   Log,
   Trace,
   Alert,

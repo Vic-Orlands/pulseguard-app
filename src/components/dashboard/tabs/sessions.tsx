@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Code } from "lucide-react";
-import { Platform } from "@/types/dashboard";
+import type { Platform } from "@/types/dashboard";
 import { Progress } from "@/components/ui/progress";
 
 interface SessionsTabProps {

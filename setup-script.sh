@@ -4,7 +4,6 @@
 C_CYAN="\033[38;5;45m"
 C_RESET="\033[0m"
 
-# Add this at the beginning of your script
 echo "Cleaning up old containers..."
 docker-compose down --remove-orphans --timeout 1 2>/dev/null || true
 docker stop grafana loki prometheus 2>/dev/null || true

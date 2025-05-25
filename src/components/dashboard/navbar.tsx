@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList } from "@/components/ui/tabs";
-import { Alert, NavItem } from "@/types/dashboard";
+import type { Alert, NavItem } from "@/types/dashboard";
 import { PulseGuardLogo } from "../Icons";
 
 interface HeaderProps {

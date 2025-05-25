@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { Trace } from "@/types/dashboard";
+import type { Trace } from "@/types/dashboard";
 import { Input } from "@/components/ui/input";
 
 interface TracesTabProps {

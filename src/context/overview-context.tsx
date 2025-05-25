@@ -1,4 +1,4 @@
-import { Alert, Error as ErrorType, NavItem } from "@/types/dashboard";
+import type { Alert, Error as ErrorType, NavItem } from "@/types/dashboard";
 import { createContext, useContext } from "react";
 
 interface OverviewContextProps {

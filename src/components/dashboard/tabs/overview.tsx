@@ -18,7 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Code, Cpu } from "lucide-react";
-import { Platform } from "@/types/dashboard";
+import type { Platform } from "@/types/dashboard";
 import { useOverviewContext } from "@/context/overview-context";
 
 interface OverviewTabProps {

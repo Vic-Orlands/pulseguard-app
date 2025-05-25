@@ -99,7 +99,7 @@ services:
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: newpass123
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -124,18 +124,19 @@ services:
     # volumes:
     # - ./backend:/app # Mount code for live reload (dev only)
     environment:
-      - DB_URL=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      - DB_URL=postgres://postgres:newpass123@localhost:5432/postgres?sslmode=disable
       # - POSTGRES_URL=postgresql://neondb_owner:npg_UP7rwnCW8Rly@ep-dry-silence-a4fqwlt8-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
-      # - PROMETHEUS_URL=http://prometheus:9090
-      # - LOKI_URL=http://loki:3100
-      # - TEMPO_URL=http://tempo:3200
+      - JWT_SECRET=your-secret-key
+      - PROMETHEUS_ENDPOINT=http://prometheus:9090
+      - LOKI_ENDPOINT=http://loki:3100
+      - TEMPO_ENDPOINT=http://tempo:3200
+      - OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      postgres:
-        condition: service_healthy
-      # - postgres
-      # - prometheus
-      # - loki
-      # - tempo
+      - otel-collector
+      - postgres
+      - prometheus
+      - loki
+      - tempo
     networks:
       - monitoring
     restart: unless-stopped

@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Search } from "lucide-react";
-import { Error } from "@/types/dashboard";
+import type { Error } from "@/types/dashboard";
 import { Input } from "@/components/ui/input";
 
 interface ErrorsTabProps {
