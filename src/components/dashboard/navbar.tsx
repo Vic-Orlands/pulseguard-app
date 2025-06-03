@@ -32,6 +32,7 @@ import { motion } from "framer-motion";
 import { Tabs, TabsList } from "@/components/ui/tabs";
 import type { Alert, NavItem } from "@/types/dashboard";
 import { PulseGuardLogo } from "../Icons";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   alerts: Alert[];
@@ -64,6 +65,19 @@ const navItems = [
   { id: "settings", icon: <Settings className="h-4 w-4" />, label: "Settings" },
 ];
 
+const logoutFunction = async () => {
+  const res = await fetch("http://localhost:8081/api/users/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error logging out");
+  }
+
+  return res;
+};
+
 export default function Header({
   alerts,
   activeTab,
@@ -71,13 +85,19 @@ export default function Header({
   setActiveTab,
   setSearchQuery,
 }: HeaderProps) {
+  const router = useRouter();
   const activeAlerts = alerts.filter((a) => a.status === "active").length;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
+  const handleLogout = async () => {
+    await logoutFunction();
+    router.push("/signin");
+  };
+
   const handleBackToProjects = () => {
-    window.location.href = "/projects";
+    router.push("/projects");
   };
 
   return (
@@ -131,10 +151,20 @@ export default function Header({
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-blue-900/40" />
-              <DropdownMenuItem className="flex items-center gap-2">
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
+              <CustomAlertDialog
+                trigger={
+                  <Button
+                    variant="ghost"
+                    className="w-full flex items-center gap-2 justify-start px-2 py-2 text-sm"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </Button>
+                }
+                title="Leaving Already?"
+                description="Are you sure you want to leave? This will log you out of your project dashboard."
+                onConfirm={handleLogout}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -247,8 +277,8 @@ function BackToProjectButton({
   return (
     <CustomAlertDialog
       trigger={trigger}
-      title="Leaving Already?"
-      description="Are you sure you want to leave? This will log you out and take you back to your project dashboard."
+      title="Done monitoring this project?"
+      description="Are you sure? This will take you to your project dashboard."
       onConfirm={onClick}
     />
   );
@@ -272,7 +302,13 @@ function MobileMenu({
   onTabChange: (tab: NavItem) => void;
   onBackToProjects: () => void;
 }) {
+  const router = useRouter();
   if (!isOpen) return null;
+
+  const handleLogout = async () => {
+    await logoutFunction();
+    router.push("/signin");
+  };
 
   return (
     <div className="md:hidden fixed inset-0 z-50 flex flex-col">
@@ -359,15 +395,22 @@ function MobileMenu({
             </div>
           </Button>
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-lg py-4 mb-2 text-gray-300 hover:bg-gray-800/70"
-          >
-            <div className="flex items-center gap-4">
-              <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
-            </div>
-          </Button>
+          <CustomAlertDialog
+            trigger={
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-lg py-4 mb-2 text-gray-300 hover:bg-gray-800/70"
+              >
+                <div className="flex items-center gap-4">
+                  <LogOut className="h-5 w-5" />
+                  <span>Sign Out</span>
+                </div>
+              </Button>
+            }
+            title="Leaving Already?"
+            description="Are you sure you want to leave? This will log you out of your project dashboard."
+            onConfirm={handleLogout}
+          />
         </motion.div>
       </div>
 

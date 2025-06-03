@@ -1,0 +1,306 @@
+{
+  "document": "doc.report.command",
+  "version": "ov/command/slim/1.1",
+  "engine": "linux/amd64|ALP|x.1.42.2|29e62e7836de7b1004607c51c502537ffe1969f0|2025-01-16_07:48:54AM|x",
+  "containerized": false,
+  "host_distro": {
+    "name": "Ubuntu",
+    "version": "24.04",
+    "display_name": "Ubuntu 24.04.2 LTS"
+  },
+  "type": "slim",
+  "state": "error",
+  "target_reference": "pulseguard:latest",
+  "system": {
+    "type": "",
+    "release": "",
+    "distro": {
+      "name": "",
+      "version": "",
+      "display_name": ""
+    }
+  },
+  "source_image": {
+    "identity": {
+      "id": ""
+    },
+    "size": 0,
+    "size_human": "",
+    "create_time": "",
+    "architecture": "",
+    "container_entry": {
+      "exe_path": ""
+    }
+  },
+  "minified_image_size": 0,
+  "minified_image_size_human": "",
+  "minified_image": "",
+  "minified_image_id": "",
+  "minified_image_digest": "",
+  "minified_image_has_data": false,
+  "minified_by": 0,
+  "artifact_location": "",
+  "container_report_name": "",
+  "seccomp_profile_name": "",
+  "apparmor_profile_name": "",
+  "image_stack": [
+    {
+      "is_top_image": false,
+      "id": "sha256:c0c54331d5595880c63d7b0968956adb0e354d524d80ed78528241567ae8be68",
+      "full_name": "gcr.io/distroless/static:latest",
+      "repo_name": "gcr.io/distroless/static",
+      "version_tag": "latest",
+      "raw_tags": [
+        "gcr.io/distroless/static:latest"
+      ],
+      "create_time": "0001-01-01T00:00:00Z",
+      "new_size": 1994383,
+      "new_size_human": "2.0 MB",
+      "instructions": [
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 270728,
+          "size_human": "271 kB",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 22888,
+          "size_human": "23 kB",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 1466994,
+          "size_human": "1.5 MB",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 149,
+          "size_human": "149 B",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 64,
+          "size_human": "64 B",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 497,
+          "size_human": "497 B",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 346,
+          "size_human": "346 B",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        },
+        {
+          "type": "NONE",
+          "time": "0001-01-01T00:00:00Z",
+          "is_last_instruction": true,
+          "is_nop": false,
+          "local_image_exists": true,
+          "layer_index": 0,
+          "size": 232717,
+          "size_human": "233 kB",
+          "command_snippet": "# no instruction info",
+          "command_all": "# no instruction info",
+          "raw_tags": [
+            "gcr.io/distroless/static:latest"
+          ],
+          "inst_set_time_bucket": "0001-01-01T00:13:35+00:13",
+          "inst_set_time_index": 0,
+          "inst_set_time_reverse_index": 1
+        }
+      ]
+    },
+    {
+      "is_top_image": true,
+      "id": "sha256:39dc2bb358b117b8f5ba1d79f320db3290f464a6a798e1b61d4a9a533cf2cd87",
+      "full_name": "pulseguard:latest",
+      "repo_name": "pulseguard",
+      "version_tag": "latest",
+      "raw_tags": [
+        "pulseguard:latest"
+      ],
+      "create_time": "2025-06-01T17:40:12Z",
+      "new_size": 25582820,
+      "new_size_human": "26 MB",
+      "base_image_id": "sha256:c0c54331d5595880c63d7b0968956adb0e354d524d80ed78528241567ae8be68",
+      "instructions": [
+        {
+          "type": "WORKDIR",
+          "time": "2025-06-01T17:40:12Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:b161469dfdcbbcd3eeb7df828c95ff9549648a73001f773739694c8974ca14c3",
+          "layer_index": 0,
+          "size": 0,
+          "params": "/app",
+          "command_snippet": "WORKDIR /app",
+          "command_all": "WORKDIR /app",
+          "system_commands": [
+            "mkdir -p /app"
+          ],
+          "inst_set_time_bucket": "2025-06-01T18:30:00+01:00",
+          "inst_set_time_index": 1,
+          "inst_set_time_reverse_index": 0
+        },
+        {
+          "type": "COPY",
+          "time": "2025-06-01T17:40:12Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:b367fda0aa60b20fec1690cb19c3e88fc5cda6c184ec90bc99a0dd6a5f18a2f2",
+          "layer_index": 0,
+          "size": 25582820,
+          "size_human": "26 MB",
+          "params": "file:4fb05950e90e98e21c2e16a523f13cb0ae1c5c21a587bb2eaadd173fff8b3c04 in .",
+          "command_snippet": "COPY file:4fb05950e90e98e21c2e16a523f13cb0ae...",
+          "command_all": "COPY file:4fb05950e90e98e21c2e16a523f13cb0ae1c5c21a587bb2eaadd173fff8b3c04 .",
+          "target": ".",
+          "source_type": "file",
+          "inst_set_time_bucket": "2025-06-01T18:30:00+01:00",
+          "inst_set_time_index": 1,
+          "inst_set_time_reverse_index": 0
+        },
+        {
+          "type": "EXPOSE",
+          "time": "2025-06-01T17:40:12Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:3504f2d1f054a193345278289d4db1f36903ecb37a57e7354a8110411f98bad0",
+          "layer_index": 0,
+          "size": 0,
+          "params": "8080",
+          "command_snippet": "EXPOSE 8080",
+          "command_all": "EXPOSE 8080",
+          "inst_set_time_bucket": "2025-06-01T18:30:00+01:00",
+          "inst_set_time_index": 1,
+          "inst_set_time_reverse_index": 0
+        },
+        {
+          "type": "CMD",
+          "time": "2025-06-01T17:40:12Z",
+          "is_last_instruction": true,
+          "is_nop": true,
+          "is_exec_form": true,
+          "local_image_exists": true,
+          "layer_index": 0,
+          "size": 0,
+          "params": "[\"./pulseguard\"]\n",
+          "command_snippet": "CMD [\"./pulseguard\"]\n",
+          "command_all": "CMD [\"./pulseguard\"]\n",
+          "raw_tags": [
+            "pulseguard:latest"
+          ],
+          "inst_set_time_bucket": "2025-06-01T18:30:00+01:00",
+          "inst_set_time_index": 1,
+          "inst_set_time_reverse_index": 0
+        }
+      ]
+    }
+  ],
+  "image_created": false,
+  "image_build_engine": ""
+}

@@ -3,40 +3,96 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"pulseguard/internal/models"
+	"strings"
 )
 
 type ProjectRepository struct {
-    db *sql.DB
+	db *sql.DB
 }
 
 func NewProjectRepository(db *sql.DB) *ProjectRepository {
-    return &ProjectRepository{db: db}
+	return &ProjectRepository{db: db}
 }
 
+// Create inserts a new project into the database.
 func (repo *ProjectRepository) Create(ctx context.Context, project *models.Project) error {
-    query := `
-        INSERT INTO projects (id, name, slug, owner_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6)
+	query := `
+        INSERT INTO projects (id, name, slug, description, owner_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
     `
-    _, err := repo.db.ExecContext(ctx, query,
-        project.ID, project.Name, project.Slug, project.OwnerID,
-        project.CreatedAt, project.UpdatedAt,
-    )
-    return err
+	_, err := repo.db.ExecContext(ctx, query,
+		project.ID,
+		project.Name,
+		project.Slug,
+		project.Description,
+		project.OwnerID,
+		project.CreatedAt,
+		project.UpdatedAt,
+	)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "idx_unique_project_name") {
+			return fmt.Errorf("project name already exists: %w", err)
+		}
+		return err
+	}
+
+	return err
 }
 
-func (repo *ProjectRepository) GetByID(ctx context.Context, id string) (*models.Project, error) {
-    var project models.Project
+// ListByOwner retrieves all projects owned by the specified owner ID.
+func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
+	query := `
+		SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		FROM projects p
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.owner_id = $1
+		GROUP BY p.id
+		ORDER BY p.created_at DESC;
+	`
 
-    query := `SELECT id, name, slug, owner_id, created_at, updated_at FROM projects WHERE id = $1`
+	rows, err := repo.db.QueryContext(ctx, query, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    row := repo.db.QueryRowContext(ctx, query, id)
+	var projects []*models.Project
+	for rows.Next() {
+		var p models.Project
+		if err := rows.Scan(&p.ID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
+			return nil, err
+		}
+		projects = append(projects, &p)
+	}
 
-    err := row.Scan(&project.ID, &project.Name, &project.Slug, &project.OwnerID, &project.CreatedAt, &project.UpdatedAt)
-    if err != nil {
-        return nil, err
-    }
+	return projects, nil
+}
 
-    return &project, nil
+// GetBySlug retrieves a project by its slug from the database.
+func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*models.Project, error) {
+	query := `
+		SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
+		FROM projects p
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.slug = $1
+		GROUP BY p.id
+	`
+	var p models.Project
+	err := repo.db.QueryRowContext(ctx, query, slug).Scan(
+		&p.ID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.ErrorCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
 }

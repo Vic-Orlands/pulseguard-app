@@ -103,7 +103,7 @@ const Hero = () => (
         <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
           {/* Unify your logs, traces, and metrics into a powerful observability
           pipeline with PulseGuard */}
-          Track errors, session replays, and see performance metrics of your
+          Track and monitor errors logs, traces, and performance metrics of your
           application easily with PulseGuard
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -111,7 +111,7 @@ const Hero = () => (
             className="bg-blue-600 text-white cursor-pointer px-6 py-3 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => (window.location.href = "/signin")}
+            onClick={() => (window.location.href = "/projects")}
           >
             Get Started <ArrowRight className="h-4 w-4" />
           </motion.button>
@@ -119,7 +119,7 @@ const Hero = () => (
             className="bg-transparent text-white cursor-pointer px-6 py-3 rounded-md border border-blue-600 hover:bg-blue-900/30 flex items-center justify-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => (window.location.href = "/projects")}
+            onClick={() => (window.location.href = "/demo")}
           >
             View Demo <Eye className="h-4 w-4" />
           </motion.button>

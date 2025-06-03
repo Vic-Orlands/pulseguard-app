@@ -32,7 +32,7 @@ func (s *ErrorService) Track(ctx context.Context, projectID, message, stackTrace
 
     err := s.errorRepo.Create(ctx, e)
     if err != nil {
-        fmt.Printf("❌ DB insert error: %v\n", err)
+        fmt.Printf("❌ DB insert error tracking: %v\n", err)
         return nil, err
     }
 

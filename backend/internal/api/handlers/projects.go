@@ -1,103 +1,122 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"pulseguard/internal/service"
+	"pulseguard/internal/util"
 	"pulseguard/pkg/otel"
 
+	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
 
 type ProjectHandler struct {
-    metrics       *otel.Metrics
-    projectService *service.ProjectService
+	metrics        *otel.Metrics
+	projectService *service.ProjectService
 }
 
 func NewProjectHandler(projectService *service.ProjectService, metrics *otel.Metrics) *ProjectHandler {
-    return &ProjectHandler{
-        projectService: projectService,
-        metrics:       metrics,
-    }
+	return &ProjectHandler{
+		metrics:        metrics,
+		projectService: projectService,
+	}
 }
 
 type createProjectRequest struct {
-    Name    string `json:"name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 // Create handles the creation of a new project
 func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
-    var req createProjectRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "invalid_body")))
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-        }
+	ctx := r.Context()
 
-        if req.Name == "" {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "missing_name")))
-        http.Error(w, "Missing project name", http.StatusBadRequest)
-        return
-    }
+	var req createProjectRequest
 
-    userID := "anonymous" // Placeholder until auth is implemented
-    project, err := h.projectService.Create(r.Context(), req.Name, userID)
-    if err != nil {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "create_project_failed")))
-        http.Error(w, "Failed to create project", http.StatusInternalServerError)
-        return
-    }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "invalid_body")))
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
 
-    h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(  
-            attribute.String("activity_type", "create_project"),
-            attribute.String("user_id", userID),
-            attribute.String("project_id", project.ID),
-    ))
+	if req.Name == "" {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_name")))
+		util.WriteError(w, http.StatusBadRequest, "Missing project name")
+		return
+	}
+	if req.Description == "" {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_description")))
+		util.WriteError(w, http.StatusBadRequest, "Missing project description")
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(project)
+	// Get user_id from context (set by authMiddleware)
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "unauthorized")))
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	project, err := h.projectService.Create(ctx, req.Name, req.Description, userID)
+	if err != nil {
+		if err.Error() == "duplicate_slug" {
+			util.WriteErrorFields(w, "Slug already exists", []string{"name"})
+			return
+		}
+
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "create_project_failed")))
+		util.WriteError(w, http.StatusInternalServerError, "Failed to create project")
+		return
+	}
+
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("activity_type", "create_project"),
+		attribute.String("user_id", userID),
+		attribute.String("project_id", project.ID),
+	))
+
+	util.WriteJSON(w, http.StatusCreated, project)
 }
 
-// GetByID handles fetching a project by its ID
-func (h *ProjectHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-    projectID := r.URL.Query().Get("project_id")
-    if projectID == "" {
-        http.Error(w, "Missing project ID", http.StatusBadRequest)
-        return
-    }
+// ListByOwner handles fetches all projects owned by a specific user
+func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "unauthorized")))
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized: user_id not found in context")
+		return
+	}
 
-    project, err := h.projectService.GetByID(r.Context(), projectID)
-    if err != nil {
-        http.Error(w, fmt.Sprintf("Failed to fetch project: %v", err), http.StatusInternalServerError)
-        return
-    }
+	projects, err := h.projectService.ListByOwner(ctx, userID)
+	if err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "list_projects_failed")))
+		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch projects")
+		return
+	}
 
-    if project == nil {
-        http.Error(w, "Project not found", http.StatusNotFound)
-        return
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(project)
+	util.WriteJSON(w, http.StatusOK, projects)
 }
 
-// ListByOwner handles fetching all projects owned by a specific user
-// func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
-//     ownerID := r.URL.Query().Get("owner_id")
-//     if ownerID == "" {
-//         http.Error(w, "Missing owner ID", http.StatusBadRequest)
-//         return
-//     }
+// GetBySlug fetches a project by its slug
+func (h *ProjectHandler) GetBySlug(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := chi.URLParam(r, "slug")
 
-//     projects, err := h.projectService.ListByOwner(r.Context(), ownerID)
-//     if err != nil {
-//         http.Error(w, fmt.Sprintf("Failed to fetch projects: %v", err), http.StatusInternalServerError)
-//         return
-//     }
+	project, err := h.projectService.GetBySlug(ctx, slug)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "Project not found")
+			return
+		}
+		util.WriteError(w, http.StatusInternalServerError, "Failed to retrieve project")
+		return
+	}
 
-//     w.Header().Set("Content-Type", "application/json")
-//     json.NewEncoder(w).Encode(projects)
-// }
+	util.WriteJSON(w, http.StatusOK, project)
+}

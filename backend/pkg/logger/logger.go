@@ -35,3 +35,12 @@ func (l *Logger) Error(ctx context.Context, msg string, err error, fields ...int
     }
     evt.Msg(msg)
 }
+
+// Error logs with fields
+func (l *Logger) ErrorWithFields(ctx context.Context, msg string, fields map[string]interface{}) {
+    evt := l.zlog.Error()
+    for k, v := range fields {
+        evt = evt.Interface(k, v)
+    }
+    evt.Msg(msg)
+}

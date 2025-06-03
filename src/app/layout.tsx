@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 import { TelemetryProvider } from "@/components/telemetry-provider";
 
 const geistSans = Inter({
@@ -69,6 +70,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TelemetryProvider>{children}</TelemetryProvider>
+        <Toaster />
       </body>
     </html>
   );

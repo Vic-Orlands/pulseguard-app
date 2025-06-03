@@ -1,17 +1,18 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
-	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
-func Logging(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        start := time.Now()
-        next.ServeHTTP(w, r)
-        duration := time.Since(start)
-
-        log.Printf("[%s] %s %s (%s)", r.Method, r.RequestURI, r.RemoteAddr, duration)
-    })
+// function to request logging
+func Logging(r *chi.Mux) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		r.Use(middleware.RequestID)
+		r.Use(middleware.Logger)
+		r.Use(middleware.Recoverer)
+		return next
+	}
 }

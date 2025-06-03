@@ -1,4 +1,25 @@
 services:
+  # Next.js Frontend
+  # nextjs:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.frontend # Path to your Next.js Dockerfile
+  #   container_name: nextjs
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://go-backend:8080
+  #     - OTLP_ENDPOINT=http://otel-collector:4318 # For frontend OTLP HTTP
+  #   depends_on:
+  #     - go-backend
+  #     - otel-collector
+  #     - prometheus
+  #     - loki
+  #     - tempo
+  #   networks:
+  #     - monitoring
+  #   restart: unless-stopped
+
   # OpenTelemetry Collector
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -100,7 +121,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: newpass123
-      POSTGRES_DB: postgres
+      POSTGRES_DB: pulseguard
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -109,31 +130,31 @@ services:
       - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pulseguard"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # Go backend service
   go-backend:
+    # image: pulseguard.slim
     build:
       context: ./backend # Path to your Go project (with Dockerfile)
       dockerfile: Dockerfile
     container_name: go-backend
-    ports:
-      - "8080:8080" # Expose your Go HTTP server
-    # volumes:
-    # - ./backend:/app # Mount code for live reload (dev only)
+    # ports:
+    #   - "8080:8080" # Expose your Go HTTP server
     environment:
-      - DB_URL=postgres://postgres:newpass123@localhost:5432/postgres?sslmode=disable
       # - POSTGRES_URL=postgresql://neondb_owner:npg_UP7rwnCW8Rly@ep-dry-silence-a4fqwlt8-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
-      - JWT_SECRET=your-secret-key
-      - PROMETHEUS_ENDPOINT=http://prometheus:9090
-      - LOKI_ENDPOINT=http://loki:3100
-      - TEMPO_ENDPOINT=http://tempo:3200
-      - OTLP_ENDPOINT=http://otel-collector:4317
+      - DB_URL=${DB_URL}
+      - PORT=${PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - PROMETHEUS_ENDPOINT=${PROMETHEUS_URL}
+      - LOKI_ENDPOINT=${LOKI_URL}
+      - TEMPO_ENDPOINT=${TEMPO_URL}
     depends_on:
-      - otel-collector
       - postgres
+      - otel-collector
       - prometheus
       - loki
       - tempo
@@ -143,25 +164,19 @@ services:
     # For debugging purposes
     tty: true
     stdin_open: true
-    command:
-      [
-        "/bin/sh",
-        "-c",
-        "echo 'Starting container...' && if [ -f /app/backend ]; then echo 'Executing backend binary...' && /app/backend; else echo 'Backend binary not found! Contents of /app:' && ls -la /app; fi",
-      ]
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    networks:
-      - monitoring
-    depends_on:
-      - postgres
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - monitoring
+  #   depends_on:
+  #     - postgres
 
 networks:
   monitoring:

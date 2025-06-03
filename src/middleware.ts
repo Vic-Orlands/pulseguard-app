@@ -13,11 +13,21 @@ const logger = createLogger("api-middleware");
 const tracer = trace.getTracer("nextjs-middleware");
 
 export async function middleware(request: NextRequest) {
-  // Only instrument API routes
-  if (!request.nextUrl.pathname.startsWith("/api/")) {
+  const { pathname } = request.nextUrl;
+
+  // FRONTEND AUTH CHECK
+  if (!pathname.startsWith("/api/")) {
+    const isAuthenticated = Boolean(request.cookies.get("auth_token"));
+
+    if (!isAuthenticated && pathname !== "/signin") {
+      const signinUrl = new URL("/signin", request.url);
+      return NextResponse.redirect(signinUrl);
+    }
+
     return NextResponse.next();
   }
 
+  // API TRACING BLOCK
   const requestStartTime = Date.now();
   // Extract trace context from headers if available
   const traceContext = propagation.extract(context.active(), request.headers);
@@ -152,5 +162,5 @@ function createErrorResponse(
 }
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/api/:path*", "/projects/:path*", "/settings/:path*"],
 };

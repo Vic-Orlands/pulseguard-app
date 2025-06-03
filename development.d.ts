@@ -11,6 +11,7 @@ declare global {
       SERVICE_NAMESPACE: string;
       ENABLE_OTEL_TRACING: string;
       NEXT_PUBLIC_APP_NAME: string;
+      NEXT_PUBLIC_API_URL:string;
     }
   }
 }

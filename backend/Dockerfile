@@ -1,20 +1,28 @@
-FROM golang:1.24 AS builder
+# Build stage
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
+# Install dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /cmd/server/main .
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o pulseguard ./cmd/server
 
-FROM alpine:latest
+# Final stage
+FROM gcr.io/distroless/static
 
-WORKDIR /root/
+WORKDIR /app
 
-COPY --from=builder /cmd/server/main .
+# Copy binary from builder
+COPY --from=builder /app/pulseguard .
 
-CMD ["./main"]
-
+# Expose port
 EXPOSE 8080
+
+# Run the application
+CMD ["./pulseguard"]

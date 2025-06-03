@@ -16,6 +16,13 @@ type Config struct {
     TempoURL     string
 }
 
+func getEnv(key, fallback string) string {
+    if value, exists := os.LookupEnv(key); exists {
+        return value
+    }
+    return fallback
+}
+
 func Load() (*Config, error) {
     // Load .env file if it exists
      if err := godotenv.Load(); err != nil {
@@ -36,11 +43,4 @@ func Load() (*Config, error) {
     }
 
     return cfg, nil
-}
-
-func getEnv(key, fallback string) string {
-    if value, exists := os.LookupEnv(key); exists {
-        return value
-    }
-    return fallback
 }
