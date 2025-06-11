@@ -3,14 +3,17 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/auth"
+	"pulseguard/pkg/logger"
 	"pulseguard/pkg/otel"
 	"pulseguard/pkg/validator"
 
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -19,6 +22,7 @@ type UserHandler struct {
 	metrics      *otel.Metrics
 	userService  *service.UserService
 	tokenService *auth.TokenService
+	logger       *logger.Logger
 }
 
 type registerRequest struct {
@@ -32,13 +36,18 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
+type updateUserRequest struct {
+	Name     string `json:"name,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
 func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 	cookie := &http.Cookie{
 		Name:     "auth_token",
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // Set to true in production over HTTPS
+		Secure:   os.Getenv("APP_ENV") == "production",
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   timer,
 	}
@@ -50,11 +59,12 @@ func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 	http.SetCookie(w, cookie)
 }
 
-func NewUserHandler(userService *service.UserService, metrics *otel.Metrics, tokenService *auth.TokenService) *UserHandler {
+func NewUserHandler(userService *service.UserService, metrics *otel.Metrics, tokenService *auth.TokenService, logger *logger.Logger) *UserHandler {
 	return &UserHandler{
 		metrics:      metrics,
 		userService:  userService,
 		tokenService: tokenService,
+		logger:       logger,
 	}
 }
 
@@ -100,6 +110,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("activity_type", "register"), attribute.String("user_id", user.ID.String())))
+	h.logger.Info(r.Context(), "User registered", "user_id", user.ID.String(), "email", user.Email, "name", user.Name)
 	util.WriteJSON(w, http.StatusCreated, user)
 }
 
@@ -171,4 +182,76 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusOK, map[string]string{
 		"message": "Logged out successfully",
 	})
+}
+
+// CheckCurrentUser returns the currently authenticated user
+func (h *UserHandler) CheckCurrentUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := util.GetUserIDFromContext(r.Context(), h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	user, err := h.userService.GetByID(r.Context(), userUUID)
+
+	if err != nil {
+		h.logger.Error(r.Context(), "Failed to fetch current user", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch user")
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, user)
+}
+
+// UpdateUser updates user details by namem and password
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := util.GetUserIDFromContext(r.Context(), h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req updateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error(r.Context(), "Invalid update request", err)
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Name == "" && req.Password == "" {
+		util.WriteError(w, http.StatusBadRequest, "No update fields provided")
+		return
+	}
+
+	var hashed string
+	var err error
+	if req.Password != "" {
+		hashed, err = auth.HashPassword(req.Password)
+		if err != nil {
+			util.WriteError(w, http.StatusInternalServerError, "Failed to hash password")
+			return
+		}
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	updated, err := h.userService.Update(r.Context(), userUUID, req.Name, hashed)
+	if err != nil {
+		h.logger.Error(r.Context(), "Failed to update user", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to update user")
+		return
+	}
+
+	h.logger.Info(r.Context(), "User updated", "user_id", userID)
+	util.WriteJSON(w, http.StatusOK, updated)
 }

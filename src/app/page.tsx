@@ -3,15 +3,15 @@
 import { motion } from "motion/react";
 import {
   ArrowRight,
-  Eye,
-  Activity,
-  Layers,
-  BarChart,
   GitBranch,
-  Mail,
-  X,
-  Github,
   Linkedin,
+  BarChart,
+  Activity,
+  Github,
+  Layers,
+  Mail,
+  Eye,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,8 @@ import Link from "next/link";
 // Feature card component
 interface FeatureCardProps {
   icon: React.ElementType;
-  title: string;
   description: string;
+  title: string;
 }
 
 const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => (
@@ -59,7 +59,7 @@ export const Navbar = () => (
         <a href="#architecture" className="text-gray-300 hover:text-white">
           How it Works
         </a>
-        <a href="#docs" className="text-gray-300 hover:text-white">
+        <a href="/documentation" className="text-gray-300 hover:text-white">
           Documentation
         </a>
       </nav>

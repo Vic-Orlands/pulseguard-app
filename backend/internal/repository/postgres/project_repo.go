@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"pulseguard/internal/models"
 	"strings"
@@ -95,4 +96,54 @@ func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*mod
 		return nil, err
 	}
 	return &p, nil
+}
+
+// DeleteBySlug deletes a project by its slug from the database.
+func (repo *ProjectRepository) DeleteBySlug(ctx context.Context, slug string) (*models.Project, error) {
+    // First, select the project to return it after deletion
+    query := `
+        SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
+        FROM projects p
+        LEFT JOIN errors e ON p.id = e.project_id
+        WHERE p.slug = $1
+        GROUP BY p.id
+    `
+    var p models.Project
+    err := repo.db.QueryRowContext(ctx, query, slug).Scan(
+        &p.ID,
+        &p.Name,
+        &p.Slug,
+        &p.Description,
+        &p.OwnerID,
+        &p.CreatedAt,
+        &p.UpdatedAt,
+        &p.ErrorCount,
+    )
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, fmt.Errorf("project with slug %s not found", slug)
+        }
+        return nil, err
+    }
+
+    // Now delete the project
+    deleteQuery := `
+        DELETE FROM projects
+        WHERE slug = $1
+    `
+    result, err := repo.db.ExecContext(ctx, deleteQuery, slug)
+    if err != nil {
+        return nil, err
+    }
+
+    // Optional: Check if any rows were affected
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return nil, err
+    }
+    if rowsAffected == 0 {
+        return nil, fmt.Errorf("no project deleted with slug %s", slug)
+    }
+
+    return &p, nil
 }

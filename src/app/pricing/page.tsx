@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Head from "next/head";
 import { Footer, Navbar } from "../page";
 import AnimatedBackground from "@/components/background-color";

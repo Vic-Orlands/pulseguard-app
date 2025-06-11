@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Layers,
@@ -10,6 +10,8 @@ import {
   RefreshCw,
   List,
   LayoutGrid,
+  CheckCircle,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +54,7 @@ type User = {
   avatar?: string;
 };
 
-// Mock API functions - replace with actual API calls
+// Mock API functions
 const api = {
   getCurrentUser: async (): Promise<User> => {
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -64,6 +66,275 @@ const api = {
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face",
     };
   },
+};
+
+const url = process.env.NEXT_PUBLIC_API_URL;
+
+// Create Project Dialog Component
+interface CreateProjectDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  projectName: string;
+}
+
+const CreateProjectDialog = ({
+  isOpen,
+  onClose,
+  projectName,
+}: CreateProjectDialogProps) => {
+  const [step, setStep] = useState<"creating" | "complete" | "error">(
+    "creating"
+  );
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep("creating");
+      setErrorMessage("");
+    }
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+          />
+
+          {/* Dialog Container */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <motion.div
+              layout
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+                y: 0,
+                width: 400,
+                height: step === "error" ? 280 : 300,
+              }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 300,
+                layout: { duration: 0.6, ease: "easeInOut" },
+              }}
+              className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <AnimatePresence mode="wait">
+                {step === "creating" && (
+                  <motion.div
+                    key="creating"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                    className="p-8 h-full flex flex-col items-center justify-center"
+                  >
+                    {/* Animated SVG */}
+                    <div className="mb-6 relative">
+                      <svg
+                        width="80"
+                        height="80"
+                        viewBox="0 0 80 80"
+                        className="mx-auto"
+                      >
+                        <motion.circle
+                          cx="40"
+                          cy="40"
+                          r="35"
+                          fill="none"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                          strokeDasharray="220"
+                          strokeDashoffset="220"
+                          animate={{
+                            strokeDashoffset: [220, 0, 220],
+                            rotate: [0, 360],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                        />
+                        <motion.circle
+                          cx="40"
+                          cy="40"
+                          r="20"
+                          fill="#1e293b"
+                          stroke="#3b82f6"
+                          strokeWidth="1"
+                          initial={{ scale: 1 }}
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                        <motion.g
+                          initial={{ opacity: 1 }}
+                          animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <rect
+                            x="32"
+                            y="30"
+                            width="16"
+                            height="20"
+                            rx="2"
+                            fill="#3b82f6"
+                          />
+                          <path d="M36 34H44V36H36V34Z" fill="white" />
+                          <path d="M36 38H44V40H36V38Z" fill="white" />
+                          <path d="M36 42H42V44H36V42Z" fill="white" />
+                        </motion.g>
+                        {[...Array(8)].map((_, i) => (
+                          <motion.circle
+                            key={i}
+                            cx="40"
+                            cy="40"
+                            r="1"
+                            fill="#3b82f6"
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{
+                              opacity: [0, 1, 0],
+                              scale: [0, 1, 0],
+                              x: [0, Math.cos((i * 45 * Math.PI) / 180) * 30],
+                              y: [0, Math.sin((i * 45 * Math.PI) / 180) * 30],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.1,
+                              ease: "easeOut",
+                            }}
+                          />
+                        ))}
+                      </svg>
+                    </div>
+
+                    <motion.h3
+                      className="text-xl font-semibold text-white mb-2"
+                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      Creating Project...
+                    </motion.h3>
+
+                    <p className="text-slate-400 text-sm">
+                      Setting up &quot;{projectName}&quot;
+                    </p>
+
+                    <div className="flex justify-center space-x-1 mt-4">
+                      {[...Array(3)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="w-2 h-2 bg-blue-500 rounded-full"
+                          animate={{
+                            opacity: [0.3, 1, 0.3],
+                            scale: [0.8, 1.2, 0.8],
+                          }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            delay: i * 0.2,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === "complete" && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                    className="p-8 h-full flex flex-col items-center justify-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        damping: 10,
+                        stiffness: 200,
+                        delay: 0.1,
+                      }}
+                      className="w-20 h-20 bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+                    >
+                      <CheckCircle className="w-10 h-10 text-green-400" />
+                    </motion.div>
+
+                    <motion.h3
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-xl font-semibold text-white mb-2"
+                    >
+                      Project Created
+                    </motion.h3>
+
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-slate-400 text-sm"
+                    >
+                      &quot;{projectName}&quot; is ready!
+                    </motion.p>
+                  </motion.div>
+                )}
+
+                {step === "error" && (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                    className="p-6 h-full flex flex-col items-center justify-center"
+                  >
+                    <div className="w-20 h-20 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-10 h-10 text-red-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      Creation Failed
+                    </h3>
+                    <p className="text-slate-400 text-sm text-center">
+                      {errorMessage ||
+                        "Failed to create project. Please try again."}
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-800"
+                      onClick={onClose}
+                    >
+                      Close
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
 };
 
 export default function ProjectSelectionPage() {
@@ -78,6 +349,8 @@ export default function ProjectSelectionPage() {
   const [error, setError] = useState<string>("");
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showCreateDialog, setShowCreateDialog] = useState<boolean>(false);
+  const [creatingProjectName, setCreatingProjectName] = useState<string>("");
 
   const toggleViewMode = () => {
     setViewMode((prev) => (prev === "grid" ? "list" : "grid"));
@@ -93,17 +366,17 @@ export default function ProjectSelectionPage() {
     }
   }, []);
 
-  // Fetch all projects using useCallback for memoization
+  // Fetch all projects
   const getAllProjects = async () => {
     try {
       setIsRefreshing(true);
       setError("");
 
-      const response = await fetch("http://localhost:8081/api/projects", {
+      const response = await fetch(`${url}/api/projects`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-      })
+      });
 
       if (!response.ok) {
         setError("Failed to fetch projects.");
@@ -112,11 +385,7 @@ export default function ProjectSelectionPage() {
       }
 
       const fetchedProjects: Project[] = await response.json();
-      if (fetchedProjects == null) {
-        setProjects([]);
-      } else {
-        setProjects(fetchedProjects);
-      }
+      setProjects(fetchedProjects ?? []);
     } catch (err) {
       setError("Failed to fetch projects. Please try again.");
       console.error("Error fetching projects:", err);
@@ -133,21 +402,22 @@ export default function ProjectSelectionPage() {
 
   // Filter projects based on search query
   const filteredProjects =
-    projects.length > 0 &&
-    projects.filter((project) => {
-      const name = project.name?.toLowerCase() || "";
-      const description = project.description?.toLowerCase() || "";
-      const platform = project.platform?.toLowerCase() || "";
-      const query = searchQuery.toLowerCase();
+    projects.length > 0
+      ? projects.filter((project) => {
+          const name = project.name?.toLowerCase() || "";
+          const description = project.description?.toLowerCase() || "";
+          const platform = project.platform?.toLowerCase() || "";
+          const query = searchQuery.toLowerCase();
 
-      return (
-        name.includes(query) ||
-        description.includes(query) ||
-        platform.includes(query)
-      );
-    });
+          return (
+            name.includes(query) ||
+            description.includes(query) ||
+            platform.includes(query)
+          );
+        })
+      : [];
 
-  // create new project
+  // Create new project
   const handleCreateProject = async (projectData: {
     name: string;
     description: string;
@@ -156,14 +426,16 @@ export default function ProjectSelectionPage() {
     try {
       setIsLoading(true);
       setError("");
+      setCreatingProjectName(projectData.name);
+      setShowForm(false);
+      setShowCreateDialog(true);
 
       const newProjectData = {
         name: projectData.name,
         description: projectData.description,
-        // platform: projectData.platform,
       };
 
-      const response = await fetch("http://localhost:8081/api/projects", {
+      const response = await fetch(`${url}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -171,26 +443,32 @@ export default function ProjectSelectionPage() {
       });
 
       if (!response.ok) {
-        toast("Failed to create project.");
+        throw new Error("Failed to create project.");
       }
 
       const newProject = await response.json();
 
       if (newProject.error === "Slug already exists") {
-        toast("Project name already exists, use a different name");
+        setShowCreateDialog(false);
+        toast.error("Project name already exists, use a different name");
         return;
       }
 
       if (newProject && !newProject.error) {
-        getAllProjects();
-        setShowForm(false);
+        setTimeout(() => {
+          setShowCreateDialog(false);
+          getAllProjects();
+        }, 2000);
 
         setTimeout(() => {
+          toast.success("Project created successfully!");
           router.push(`/projects/${newProject.slug}`);
-        }, 1000);
+        }, 3000);
       }
     } catch (err) {
       setError("Failed to create project. Please try again.");
+      setShowCreateDialog(false);
+      toast.error("Failed to create project.");
       console.error("Error creating project:", err);
     } finally {
       setIsLoading(false);
@@ -211,20 +489,19 @@ export default function ProjectSelectionPage() {
     try {
       setIsLoggingOut(true);
 
-      const res = await fetch("http://localhost:8081/api/users/logout", {
+      const res = await fetch(`${url}/api/users/logout`, {
         method: "POST",
         credentials: "include",
       });
 
       if (!res.ok) {
-        toast("Error logging out");
+        toast.error("Error logging out");
       }
 
       router.push("/signin");
     } catch (err) {
       console.error("Logout error:", err);
-      // Force redirect even if API call fails
-      window.location.href = "/signin";
+      router.push("/signin");
     } finally {
       setIsLoggingOut(false);
     }
@@ -239,7 +516,12 @@ export default function ProjectSelectionPage() {
         className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
       >
         {/* Header with user menu */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+        >
           <div>
             <h1 className="text-3xl font-bold mb-1">Your Projects</h1>
             <p className="text-gray-400 text-sm">
@@ -247,7 +529,12 @@ export default function ProjectSelectionPage() {
             </p>
           </div>
 
-          <div className="flex gap-3 w-full md:w-auto items-center">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="flex gap-3 w-full md:w-auto items-center"
+          >
             <div className="relative flex-1 md:w-64">
               <Input
                 placeholder="Search projects..."
@@ -257,17 +544,19 @@ export default function ProjectSelectionPage() {
               />
             </div>
 
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              disabled={isRefreshing}
-              className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+                disabled={isRefreshing}
+                className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </motion.div>
 
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
@@ -279,175 +568,279 @@ export default function ProjectSelectionPage() {
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold">
-                    Create New Project
-                  </DialogTitle>
-                </DialogHeader>
-                <ProjectForm
-                  onSubmit={handleCreateProject}
-                  onCancel={() => setShowForm(false)}
-                  isLoading={isLoading}
-                />
+              <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-white">
+                <AnimatePresence>
+                  {showForm && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.2 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        onClick={() => setShowForm(false)}
+                      />
+                      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                        <motion.div
+                          layout
+                          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                          animate={{
+                            scale: 1,
+                            opacity: 1,
+                            y: 0,
+                            width: 480,
+                            height: "fit-content",
+                          }}
+                          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                          transition={{
+                            type: "spring",
+                            damping: 25,
+                            stiffness: 300,
+                            layout: { duration: 0.6, ease: "easeInOut" },
+                          }}
+                          className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ProjectForm
+                            onSubmit={handleCreateProject}
+                            onCancel={() => setShowForm(false)}
+                            isLoading={isLoading}
+                          />
+                        </motion.div>
+                      </div>
+                    </>
+                  )}
+                </AnimatePresence>
               </DialogContent>
             </Dialog>
 
             {/* User dropdown menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
+                    {user?.avatar ? (
+                      <Image
+                        className="h-8 w-8 rounded-full object-cover absolute"
+                        src={user.avatar}
+                        alt={user.name}
+                        width={50}
+                        height={50}
+                      />
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-56 bg-gray-900 border-gray-700"
+                  align="end"
+                  forceMount
                 >
-                  {user?.avatar ? (
-                    <Image
-                      className="h-8 w-8 rounded-full object-cover absolute"
-                      src={user.avatar}
-                      alt={user.name}
-                      width={50}
-                      height={50}
-                    />
-                  ) : (
-                    <User className="h-4 w-4" />
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56 bg-gray-900 border-gray-700"
-                align="end"
-                forceMount
-              >
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none text-white">
-                      {user?.name || "Loading..."}
-                    </p>
-                    <p className="text-xs leading-none text-gray-400">
-                      {user?.email || ""}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-700" />
-                <CustomAlertDialog
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      disabled={isLoggingOut}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/20 cursor-pointer w-full rounded-none"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>
-                        {isLoggingOut ? "Signing out..." : "Sign out"}
-                      </span>
-                    </Button>
-                  }
-                  title="Leaving Already?"
-                  description="Are you sure you want to leave? This will log you out of your project dashboard."
-                  onConfirm={handleLogout}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none text-white">
+                        {user?.name || "Loading..."}
+                      </p>
+                      <p className="text-xs leading-none text-gray-400">
+                        {user?.email || ""}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-700" />
+                  <CustomAlertDialog
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        disabled={isLoggingOut}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20 cursor-pointer w-full rounded-none"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>
+                          {isLoggingOut ? "Signing out..." : "Sign out"}
+                        </span>
+                      </Button>
+                    }
+                    title="Leaving Already?"
+                    description="Are you sure you want to leave? This will log you out of your project dashboard."
+                    onConfirm={handleLogout}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
         {/* Error message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400"
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {filteredProjects && filteredProjects.length > 2 && (
-          <div className="flex justify-end mb-4">
-            <Button
-              size="icon"
-              onClick={toggleViewMode}
-              className="dark:bg-sidebar-accent dark:text-white hidden lg:flex"
-              title={
-                viewMode ? "Switch to Grid Layout" : "Switch to Row Layout"
-              }
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400"
             >
-              {viewMode === "grid" ? <LayoutGrid /> : <List />}
-            </Button>
-          </div>
-        )}
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* View Toggle Button */}
+        <AnimatePresence>
+          {filteredProjects.length > 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="flex justify-end mb-4"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  size="icon"
+                  onClick={toggleViewMode}
+                  className="dark:bg-sidebar-accent dark:text-white hidden lg:flex"
+                  title={
+                    viewMode === "grid"
+                      ? "Switch to List Layout"
+                      : "Switch to Grid Layout"
+                  }
+                >
+                  {viewMode === "grid" ? <LayoutGrid /> : <List />}
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Projects grid or empty state */}
-        {isRefreshing && projects.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
-            <span className="ml-2 text-gray-400">Loading projects...</span>
-          </div>
-        ) : filteredProjects ? (
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                : "grid grid-cols-1 md:grid-cols-2 gap-6"
-            }
-          >
-            {filteredProjects.map((project, index) => (
-              <ProjectCard
-                index={index}
-                key={project.id}
-                project={project}
-                href={`/projects/${project.slug}`}
-                viewMode={viewMode}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-24 h-24 rounded-full bg-blue-900/20 flex items-center justify-center mb-6">
-              <Layers className="h-12 w-12 text-blue-400" />
-            </div>
-
-            <h3 className="text-lg font-medium">
-              {searchQuery ? "No projects found" : "No projects yet"}
-            </h3>
-            <p className="text-gray-400 mb-6">
-              {searchQuery
-                ? "Try a different search term or clear your search"
-                : "Create your first project to get started"}
-            </p>
-            <div className="flex gap-3">
-              {searchQuery && (
-                <Button
-                  variant="outline"
-                  onClick={() => setSearchQuery("")}
-                  className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
+        <AnimatePresence mode="wait">
+          {isRefreshing && projects.length === 0 ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center py-16"
+            >
+              <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+              <span className="ml-2 text-gray-400">Loading projects...</span>
+            </motion.div>
+          ) : filteredProjects.length > 0 ? (
+            <motion.div
+              key="projects"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  : "grid grid-cols-1 md:grid-cols-2 gap-6"
+              }
+            >
+              {filteredProjects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  whileHover={{ scale: 1.02 }}
                 >
-                  Clear Search
-                </Button>
-              )}
-              <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogTrigger asChild>
-                  <Button onClick={handleNewProjectClick}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Project
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">
-                      Create New Project
-                    </DialogTitle>
-                  </DialogHeader>
-                  <ProjectForm
-                    onSubmit={handleCreateProject}
-                    onCancel={() => setShowForm(false)}
-                    isLoading={isLoading}
+                  <ProjectCard
+                    index={index}
+                    project={project}
+                    href={`/projects/${project.slug}`}
+                    viewMode={viewMode}
                   />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        )}
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="flex flex-col items-center justify-center py-16 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", damping: 15, stiffness: 200 }}
+                className="w-24 h-24 rounded-full bg-blue-900/20 flex items-center justify-center mb-6"
+              >
+                <Layers className="h-12 w-12 text-blue-400" />
+              </motion.div>
+
+              <h3 className="text-lg font-medium">
+                {searchQuery ? "No projects found" : "No projects yet"}
+              </h3>
+              <p className="text-gray-400 mb-6">
+                {searchQuery
+                  ? "Try a different search term or clear your search"
+                  : "Create your first project to get started"}
+              </p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+                className="flex gap-3"
+              >
+                {searchQuery && (
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="outline"
+                      onClick={() => setSearchQuery("")}
+                      className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
+                    >
+                      Clear Search
+                    </Button>
+                  </motion.div>
+                )}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Dialog open={showForm} onOpenChange={setShowForm}>
+                    <DialogTrigger asChild>
+                      <Button onClick={handleNewProjectClick}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Project
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">
+                          Create New Project
+                        </DialogTitle>
+                      </DialogHeader>
+                      <ProjectForm
+                        onSubmit={handleCreateProject}
+                        onCancel={() => setShowForm(false)}
+                        isLoading={isLoading}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Create Project Dialog */}
+        <CreateProjectDialog
+          isOpen={showCreateDialog}
+          onClose={() => setShowCreateDialog(false)}
+          projectName={creatingProjectName}
+        />
       </motion.div>
     </div>
   );

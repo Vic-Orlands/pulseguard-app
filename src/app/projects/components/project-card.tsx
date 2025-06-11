@@ -146,56 +146,58 @@ export default function ProjectCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
       transition={{ duration: 0.2 }}
-      className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-6 hover:bg-gray-800/70 hover:border-blue-500/30 transition-all duration-200 group cursor-pointer"
+      className="h-full bg-gray-800/50 border border-gray-700/50 rounded-lg p-6 hover:bg-gray-800/70 hover:border-blue-500/30 transition-all duration-200 group cursor-pointer"
       onClick={() => router.push(href)}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-white mb-1 truncate group-hover:text-blue-400 transition-colors">
-            {project.name}
-          </h3>
-          <p className="text-gray-400 text-sm line-clamp-2">
-            {project.description}
-          </p>
+      <div className="flex flex-col h-full">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-white mb-1 truncate group-hover:text-blue-400 transition-colors">
+              {project.name}
+            </h3>
+            <p className="text-gray-400 text-sm line-clamp-2">
+              {project.description}
+            </p>
+          </div>
+          <Badge
+            className={`${getPlatformColor(
+              project.platform
+            )} text-xs px-2 py-1 ml-2 flex-shrink-0`}
+          >
+            {project.platform || "Nextjs"}
+          </Badge>
         </div>
-        <Badge
-          className={`${getPlatformColor(
-            project.platform
-          )} text-xs px-2 py-1 ml-2 flex-shrink-0`}
-        >
-          {project.platform || "Nextjs"}
-        </Badge>
-      </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(project.createdAt)}</span>
-          </div>
+        <div className="space-y-3 mt-auto">
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{formatDate(project.createdAt)}</span>
+            </div>
 
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            <span>{project.memberCount}</span>
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>{project.memberCount}</span>
+            </div>
           </div>
-        </div>
-        <div
-          className={`flex items-center justify-between px-3 py-2 rounded border ${getErrorSeverity(
-            project.errorCount
-          )}`}
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {project.errorCount === 0
-                ? "No errors"
-                : `${project.errorCount} error${
-                    project.errorCount !== 1 ? "s" : ""
-                  }`}
-            </span>
-          </div>
+          <div
+            className={`flex items-center justify-between px-3 py-2 rounded border ${getErrorSeverity(
+              project.errorCount
+            )}`}
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {project.errorCount === 0
+                  ? "No errors"
+                  : `${project.errorCount} error${
+                      project.errorCount !== 1 ? "s" : ""
+                    }`}
+              </span>
+            </div>
 
-          <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          </div>
         </div>
       </div>
     </motion.div>

@@ -9,16 +9,21 @@ export async function POST(request: NextRequest) {
   return tracer.startActiveSpan("event-api.process", async (span) => {
     try {
       const eventData = await request.json();
+      const projectId = request.headers.get("x-project-id") || "";
 
       // Set span attributes for the event
       span.setAttributes({
+        "project.id": projectId,
         "event.name": eventData.eventName,
         "session.id": eventData.sessionId,
         "user.id": eventData.userId || "anonymous",
         url: eventData.url,
       });
 
-      logger.info(`Processing event: ${eventData.eventName}`, { eventData });
+      logger.info(`Processing event: ${eventData.eventName}`, {
+        projectId,
+        eventData,
+      });
 
       // Store the event (you could implement event tracking similar to error tracking)
       // For now, we'll just log it

@@ -20,25 +20,6 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-// API functions
-const apiLogin = async (data: LoginFormData) => {
-  const response = await fetch("http://localhost:8081/api/users/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Login failed");
-  }
-
-  console.log("response:", response);
-
-  return response.json();
-};
-
 export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -57,13 +38,26 @@ export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
     startTransition(async () => {
       try {
         setError("");
-        const res = await apiLogin(data);
-        console.log("res:", res);
+
+        const response = await fetch("http://localhost:8081/api/users/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          toast(error.message || "Login failed");
+        }
+
+        const user = await response.json();
+        console.log("user:", user);
 
         toast("Login successful!");
         setTimeout(() => {
           router.push("/projects");
-        }, 1000);
+        }, 1500);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Login failed");
       }

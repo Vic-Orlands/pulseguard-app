@@ -109,7 +109,7 @@ func main() {
 	metricsService := service.NewMetricsService(prometheusRepo)
 	logsService := service.NewLogsService(lokiRepo)
 	tracesService := service.NewTracesService(tempoRepo)
-	dashboardService := service.NewDashboardService(errorService, alertService, metricsService, logsService, tracesService)
+	dashboardService := service.NewDashboardService(alertService, metricsService, logsService, tracesService)
 
 	// Start HTTP server
 	server := api.NewServer(

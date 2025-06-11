@@ -19,7 +19,6 @@ import type {
   Log,
   Trace,
   Alert,
-  Error,
   NavItem,
   Platform,
   Integration,
@@ -28,6 +27,10 @@ import ErrorPreview from "@/components/dashboard/error-preview";
 import AlertPreview from "@/components/dashboard/alert-preview";
 import { OverviewProvider } from "@/context/overview-context";
 import { Project } from "../page";
+import { fetchErrors } from "@/lib/api/error-api";
+import type { ErrorListResponse, Error } from "@/types/error";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();
@@ -37,12 +40,46 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const [activeTab, setActiveTab] = useState<NavItem>(defaultTab);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [total, setTotal] = useState<number>(0);
+  const [errors, setErrors] = useState<Error[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [filters, setFilters] = useState({
+    project_id: project.id,
+    environment: "",
+    status: "",
+    search: "",
+    page: 1,
+    limit: 10,
+  });
+
   // Update URL when tab changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     params.set("tab", activeTab);
     router.push(`?${params.toString()}`, { scroll: false });
   }, [activeTab, router, searchParams]);
+
+  // fetch all errors for specific project
+  const fetchErrorData = async () => {
+    setLoading(true);
+    try {
+      const response: ErrorListResponse = await fetchErrors(filters);
+      setErrors(response.errors);
+      setTotal(response.total);
+    } catch (err) {
+      console.log("Error fetching all errors:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchErrorData();
+  }, [filters]);
+
+  const handleFilterChange = (key: string, value: string | number) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+  };
 
   // Dummy Data
   const platforms: Platform[] = [
@@ -74,67 +111,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
       errors: 143,
     },
   ];
-  const errors: Error[] = [
-    {
-      id: "ERR-2841",
-      type: "RuntimeError",
-      message: 'Cannot read properties of undefined (reading "map")',
-      timestamp: "2023-11-15T14:32:45Z",
-      status: "active",
-      occurrences: 142,
-      affectedUsers: 87,
-      lastOccurrence: "2 minutes ago",
-      source: "components/DataTable.tsx",
-    },
-    {
-      id: "ERR-1932",
-      type: "TypeError",
-      message: "Expected string but received number",
-      timestamp: "2023-11-14T09:12:33Z",
-      status: "active",
-      occurrences: 87,
-      affectedUsers: 42,
-      lastOccurrence: "15 minutes ago",
-      source: "utils/validation.js",
-    },
-    {
-      id: "ERR-8472",
-      type: "NetworkError",
-      message: "Failed to fetch API response",
-      timestamp: "2023-11-13T16:45:12Z",
-      status: "resolved",
-      occurrences: 231,
-      affectedUsers: 156,
-      lastOccurrence: "1 day ago",
-      source: "services/api.ts",
-    },
-  ];
-  const logs: Log[] = [
-    {
-      id: "LOG-4821",
-      level: "error",
-      message: "Failed to connect to database",
-      timestamp: "2023-11-15T14:32:45Z",
-      source: "database.js",
-      context: { attempt: 3, timeout: 5000 },
-    },
-    {
-      id: "LOG-3829",
-      level: "warn",
-      message: "Deprecated function called",
-      timestamp: "2023-11-15T13:45:12Z",
-      source: "legacy.js",
-      context: { function: "oldFormatData" },
-    },
-    {
-      id: "LOG-1923",
-      level: "info",
-      message: "User logged in successfully",
-      timestamp: "2023-11-15T13:42:33Z",
-      source: "auth.js",
-      context: { userId: "usr-4821", method: "email" },
-    },
-  ];
+
   const traces: Trace[] = [
     {
       id: "TRC-4821",
@@ -219,7 +196,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
             <OverviewTab platforms={platforms}>
               {/* Recent Errors */}
               <ErrorPreview />
-
               {/* Recent Alerts */}
               <AlertPreview />
             </OverviewTab>
@@ -230,19 +206,15 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "errors":
         return (
           <ErrorsTab
+            total={total}
             errors={errors}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+            filters={filters}
+            handleFilterChange={handleFilterChange}
+            onErrorUpdate={fetchErrorData}
           />
         );
       case "logs":
-        return (
-          <LogsTab
-            logs={logs}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-        );
+        return <LogsTab project={project} />;
       case "traces":
         return (
           <TracesTab
@@ -256,7 +228,9 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "integrations":
         return <IntegrationsTab integrations={integrations} />;
       case "settings":
-        return <SettingsTab />;
+        return <SettingsTab project={project} />;
+      case "connect-platform":
+        return <ConnectPlatformPage />;
       default:
         return <OverviewTab {...{ platforms, errors, alerts }} />;
     }
@@ -272,33 +246,41 @@ export default function DashboardComponent({ project }: { project: Project }) {
         setSearchQuery={setSearchQuery}
       />
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="px-10 py-6">
         {/* project header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Project: {project.name}</h1>
-            <p className="text-gray-400">Project ID: {project.slug}</p>
+            <CardTitle className="text-2xl text-white">
+              {project.name}
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Monitor your application and resolve errors across all
+              environments
+            </CardDescription>
           </div>
           <div className="flex gap-3">
+            <a href="/documentation" target="_blank" rel="noopener noreferrer">
+              <Button
+                variant="outline"
+                className="bg-black/30 border border-blue-900/40"
+              >
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Documentation
+              </Button>
+            </a>
             <Button
-              variant="outline"
-              className="bg-black/30 border border-blue-900/40"
+              className="gap-2"
+              onClick={() => setActiveTab("connect-platform")}
             >
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Documentation
-            </Button>
-            <Button className="gap-2">
               <Plus className="h-4 w-4" />
               Connect Platform
             </Button>
           </div>
         </div>
-
-        {/* tabs */}
         {renderActiveTab()}
       </main>
 
-      {/* floating button */}
+      {/* floating button for AI implementation later*/}
       <HelpButton />
     </div>
   );

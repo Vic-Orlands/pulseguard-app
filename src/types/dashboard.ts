@@ -6,7 +6,8 @@ export type NavItem =
   | "traces"
   | "alerts"
   | "integrations"
-  | "settings";
+  | "settings"
+  | "connect-platform";
 
 export type Error = {
   id: string;
@@ -31,21 +32,21 @@ export type Platform = {
 };
 
 export type Log = {
+  // level: "info" | "warn" | "error";
+  // source: string;
   id: string;
-  level: "info" | "warn" | "error";
+  projectId: string;
   message: string;
   timestamp: string;
-  source: string;
-  context: object;
 };
 
 export type Trace = {
+  // spans: number;
   id: string;
+  projectId: string;
+  traceId: string;
   name: string;
-  duration: number;
-  status: "success" | "error" | "timeout";
   timestamp: string;
-  spans: number;
 };
 
 export type Alert = {

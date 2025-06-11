@@ -1,31 +1,38 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Zap, BarChart3 } from "lucide-react";
 import { useOverviewContext } from "@/context/overview-context";
+import { format } from "date-fns";
 
 export default function AlertPreview() {
   const { alerts, setActiveTab } = useOverviewContext();
 
   return (
-    <Card className="bg-black/30 border border-blue-900/40">
-      <CardHeader>
-        <CardTitle>Recent Alerts</CardTitle>
-        <CardDescription>Active and resolved alerts</CardDescription>
+    <Card className="bg-black/30 border border-blue-900/40 relative">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-xl font-semibold text-white flex items-center">
+            <Zap className="w-5 h-5 text-yellow-400 mr-2" />
+            Recent Alerts
+          </CardTitle>
+        </div>
+
+        <Button
+          variant="ghost"
+          className="text-blue-400 hover:text-blue-300 text-sm font-normal flex items-center border-none"
+          onClick={() => setActiveTab?.("alerts")}
+        >
+          <BarChart3 className="w-4 h-4" />
+          Manage
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {alerts.slice(0, 3).map((alert) => (
             <div
               key={alert.id}
-              className="flex items-start gap-4 p-4 rounded-lg bg-gray-900/50"
+              className="flex items-start gap-4 p-4 rounded-lg border border-blue-900 bg-grday-900/50 bg-blue-900/10"
             >
               <div
                 className={`p-2 rounded-full ${
@@ -43,16 +50,16 @@ export default function AlertPreview() {
                   <h3 className="font-medium">{alert.name}</h3>
                   <Badge
                     variant={
-                      alert.status === "active" ? "destructive" : "outline"
+                      alert.status === "active" ? "secondary" : "outline"
                     }
                   >
-                    {alert.status === "active" ? "Active" : "Resolved"}
+                    {alert.status.toUpperCase()}
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-400 mt-1">{alert.condition}</p>
                 <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                   <span>
-                    Triggered: {new Date(alert.triggeredAt).toLocaleString()}
+                    {format(new Date(alert.triggeredAt), "MMM d, yyyy HH:mm")}
                   </span>
                   <span>Type: {alert.type}</span>
                 </div>
@@ -61,15 +68,6 @@ export default function AlertPreview() {
           ))}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button
-          variant="ghost"
-          className="text-blue-400"
-          onClick={() => setActiveTab?.("alerts")}
-        >
-          View all alerts
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

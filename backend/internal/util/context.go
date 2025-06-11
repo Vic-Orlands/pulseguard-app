@@ -11,9 +11,9 @@ import (
 
 // GetUserIDFromContext retrieves the user_id from the context
 func GetUserIDFromContext(ctx context.Context, metrics *otel.Metrics) (string, bool) {
-    userID, ok := ctx.Value("user_id").(string)
-    if !ok && metrics != nil {
-        metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_user_id")))
-    }
-    return userID, ok
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok && metrics != nil {
+		metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_user_id")))
+	}
+	return userID, ok
 }

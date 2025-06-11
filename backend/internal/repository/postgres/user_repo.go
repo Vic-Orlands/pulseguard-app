@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"pulseguard/internal/models"
 	"time"
 
@@ -61,6 +62,55 @@ func (repo *UserRepository) GetByEmail(ctx context.Context, email string) (*mode
 	return &user, nil
 }
 
+// get current user
+func (repo *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	var user models.User
+	row := repo.db.QueryRowContext(ctx, "SELECT id, email, name, created_at FROM users WHERE id=$1", id)
+	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.CreatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// update user details
+func (repo *UserRepository) Update(ctx context.Context, id uuid.UUID, name, hashedPassword string) (*models.User, error) {
+	query := `UPDATE users SET `
+	args := []interface{}{}
+	argIdx := 1
+
+	if name != "" {
+		query += fmt.Sprintf("name = $%d,", argIdx)
+		args = append(args, name)
+		argIdx++
+	}
+	if hashedPassword != "" {
+		query += fmt.Sprintf("password = $%d,", argIdx)
+		args = append(args, hashedPassword)
+		argIdx++
+	}
+
+	if len(args) == 0 {
+		return repo.GetByID(ctx, id)
+	}
+
+	// Remove trailing comma and add WHERE clause
+	query = query[:len(query)-1]
+	query += fmt.Sprintf(" WHERE id = $%d RETURNING id, email, name, created_at", argIdx)
+	args = append(args, id)
+
+	var user models.User
+	row := repo.db.QueryRowContext(ctx, query, args...)
+	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// check if key exists in db
 func IsDuplicateKeyError(err error) bool {
 	var pqErr *pq.Error
 	if errors.As(err, &pqErr) {

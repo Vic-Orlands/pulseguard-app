@@ -62,24 +62,6 @@ const fullSignupSchema = signupStep1Schema
 
 type SignupFormData = z.infer<typeof fullSignupSchema>;
 
-// API functions
-const apiRegister = async (data: SignupFormData) => {
-  const response = await fetch("http://localhost:8081/api/users/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Registration failed");
-  }
-
-  return response.json();
-};
-
 export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
   const [step, setStep] = useState<number>(1);
   const [error, setError] = useState<string>("");
@@ -137,8 +119,24 @@ export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
     startTransition(async () => {
       try {
         setError("");
-        const result = await apiRegister(data);
-        console.log("Registration successful:", result);
+
+        const response = await fetch(
+          "http://localhost:8081/api/users/register",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          toast(error.message || "Registration failed");
+          return;
+        }
+
         toast("Registration successful");
         onToggleMode();
       } catch (error) {

@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import DashboardComponent from "./project-component";
 import { cookies } from "next/headers";
+import { ProjectTelemetrySync } from "./project-telemetry-sync";
+
+const url = process.env.NEXT_PUBLIC_API_URL;
 
 export async function generateStaticParams() {
-  const res = await fetch("http://localhost:8081/api/projects", {
+  const res = await fetch(`${url}/api/projects`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -33,7 +36,7 @@ export default async function ProjectDashboardPage({
     .map((c) => `${c.name}=${c.value}`)
     .join("; ");
 
-  const res = await fetch(`http://localhost:8081/api/projects/${slug}`, {
+  const res = await fetch(`${url}/api/projects/${slug}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -49,5 +52,10 @@ export default async function ProjectDashboardPage({
   }
 
   const project = await res.json();
-  return <DashboardComponent project={project} />;
+  return (
+    <>
+      <ProjectTelemetrySync projectId={project.id} />
+      <DashboardComponent project={project} />
+    </>
+  );
 }

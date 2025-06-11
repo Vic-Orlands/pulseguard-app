@@ -2,43 +2,57 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"pulseguard/internal/models"
 	"pulseguard/internal/repository/postgres"
-
-	"github.com/google/uuid"
 )
 
 type ErrorService struct {
-    errorRepo *postgres.ErrorRepository
+	errorRepo *postgres.ErrorRepository
 }
 
 func NewErrorService(errorRepo *postgres.ErrorRepository) *ErrorService {
-    return &ErrorService{errorRepo: errorRepo}
+	return &ErrorService{errorRepo: errorRepo}
 }
 
-func (s *ErrorService) Track(ctx context.Context, projectID, message, stackTrace, fingerprint string, occurredAt time.Time) (*models.Error, error) {
-    e := &models.Error{
-        ID:          uuid.NewString(),
-        ProjectID:   projectID,
-        Message:     message,
-        StackTrace:  stackTrace,
-        Fingerprint: fingerprint,
-        OccurredAt:  occurredAt,
-        CreatedAt:   time.Now(),
-    }
-
-    err := s.errorRepo.Create(ctx, e)
-    if err != nil {
-        fmt.Printf("❌ DB insert error tracking: %v\n", err)
-        return nil, err
-    }
-
-    return e, nil
+func (s *ErrorService) Track(ctx context.Context, errorData *models.Error, metadata map[string]interface{}) (*models.Error, error) {
+	return s.errorRepo.Track(ctx, errorData, metadata)
 }
 
-func (s *ErrorService) ListByProject(ctx context.Context, projectID string) ([]*models.Error, error) {
-    return s.errorRepo.ListByProject(ctx, projectID)
+type ErrorFilters struct {
+	ProjectID   string
+	Environment string
+	Status      string
+	Search      string
+	UserID      string
+	SessionID   string
+	StartDate   time.Time
+	EndDate     time.Time
+	Page        int
+	Limit       int
+}
+
+func (s *ErrorService) GetErrors(ctx context.Context, filters ErrorFilters) ([]*models.Error, int, error) {
+	repoFilters := postgres.ErrorFilters{
+		ProjectID:   filters.ProjectID,
+		Environment: filters.Environment,
+		Status:      filters.Status,
+		Search:      filters.Search,
+		UserID:      filters.UserID,
+		SessionID:   filters.SessionID,
+		StartDate:   filters.StartDate,
+		EndDate:     filters.EndDate,
+		Page:        filters.Page,
+		Limit:       filters.Limit,
+	}
+	return s.errorRepo.GetErrors(ctx, repoFilters)
+}
+
+func (s *ErrorService) GetErrorByID(ctx context.Context, id string) (*models.Error, error) {
+	return s.errorRepo.GetErrorByID(ctx, id)
+}
+
+func (s *ErrorService) UpdateErrorStatus(ctx context.Context, id, status string) (*models.Error, error) {
+	return s.errorRepo.UpdateErrorStatus(ctx, id, status)
 }

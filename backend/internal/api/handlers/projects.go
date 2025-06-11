@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
+	"pulseguard/pkg/logger"
 	"pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
@@ -18,12 +20,14 @@ import (
 type ProjectHandler struct {
 	metrics        *otel.Metrics
 	projectService *service.ProjectService
+	logger         *logger.Logger
 }
 
-func NewProjectHandler(projectService *service.ProjectService, metrics *otel.Metrics) *ProjectHandler {
+func NewProjectHandler(projectService *service.ProjectService, metrics *otel.Metrics, logger *logger.Logger) *ProjectHandler {
 	return &ProjectHandler{
 		metrics:        metrics,
 		projectService: projectService,
+		logger:         logger,
 	}
 }
 
@@ -74,6 +78,11 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//  Add project_id to context
+	ctx = logger.WithProjectID(ctx, project.ID)
+	h.logger.Info(ctx, "Project created", "name", project.Name)
+
+	//  Metrics
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "create_project"),
 		attribute.String("user_id", userID),
@@ -117,6 +126,37 @@ func (h *ProjectHandler) GetBySlug(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusInternalServerError, "Failed to retrieve project")
 		return
 	}
+
+	// Set project ID in cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "pulseguard_project_id",
+		Value:    project.ID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   os.Getenv("APP_ENV") == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	util.WriteJSON(w, http.StatusOK, project)
+}
+
+// DeleteBySlug deletes a project by its slug
+func (h *ProjectHandler) DeleteBySlug(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := chi.URLParam(r, "slug")
+
+	project, err := h.projectService.DeleteBySlug(ctx, slug)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "Project not found")
+			return
+		}
+		util.WriteError(w, http.StatusInternalServerError, "Failed to retrieve project")
+		return
+	}
+
+	ctx = logger.WithProjectID(ctx, project.ID)
+	h.logger.Info(ctx, "Project deleted")
 
 	util.WriteJSON(w, http.StatusOK, project)
 }

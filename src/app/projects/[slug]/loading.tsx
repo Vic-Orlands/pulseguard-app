@@ -1,4 +1,4 @@
-export default function Loading() {
+export default function Loading({ text = "projects" }: { text?: string }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white flex items-center justify-center">
       <div className="animate-pulse text-center">
@@ -24,7 +24,7 @@ export default function Loading() {
             ></path>
           </svg>
         </div>
-        <h2 className="text-xl font-semibold mb-2">Loading project...</h2>
+        <h2 className="text-xl font-semibold mb-2">Loading {text}...</h2>
         <p className="text-sm text-gray-400">
           Please wait while we fetch your data.
         </p>

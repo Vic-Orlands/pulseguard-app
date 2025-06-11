@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/otel"
 
+	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -35,12 +35,12 @@ func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) 
 	ctx, span := util.StartSpanFromRequest(h.tracer, r, "DashboardHandler.GetDashboard")
 	defer span.End()
 
-	projectID := r.URL.Query().Get("project_id")
+	projectID := chi.URLParam(r, "project_id")
 	if projectID == "" {
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_project_id"),
 		))
-		http.Error(w, "Missing project_id", http.StatusBadRequest)
+		util.WriteError(w, http.StatusBadRequest, "project_id query param is required")
 		return
 	}
 
@@ -50,7 +50,7 @@ func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) 
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "fetch_dashboard_failed"),
 		))
-		http.Error(w, "Failed to fetch dashboard data", http.StatusInternalServerError)
+        util.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
@@ -64,6 +64,5 @@ func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) 
 		attribute.String("project_id", projectID),
 	))
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	util.WriteJSON(w, http.StatusOK, data)
 }

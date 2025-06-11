@@ -50,13 +50,10 @@ async function processRequest(
   startTime: number
 ): Promise<NextResponse> {
   try {
-    // Set initial span attributes
     setRequestAttributes(span, request);
 
-    // Process the request
     const response = NextResponse.next();
 
-    // Capture response details
     const duration = Date.now() - startTime;
     const statusCode = 200; // Default status code
     // In Next.js middleware, we can't directly get the status code from the response

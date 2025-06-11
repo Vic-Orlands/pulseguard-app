@@ -7,13 +7,13 @@ import (
 )
 
 type LogsService struct {
-    lokiRepo *telemetry.LokiRepository
+	lokiRepo *telemetry.LokiRepository
 }
 
 func NewLogsService(lokiRepo *telemetry.LokiRepository) *LogsService {
-    return &LogsService{lokiRepo: lokiRepo}
+	return &LogsService{lokiRepo: lokiRepo}
 }
 
-func (s *LogsService) ListByProject(ctx context.Context, projectID string) ([]*models.Log, error) {
-    return s.lokiRepo.QueryLogs(ctx, projectID)
+func (s *LogsService) GetLogsByProjectID(ctx context.Context, projectID string) ([]*models.Log, error) {
+	return s.lokiRepo.QueryLogs(ctx, projectID)
 }

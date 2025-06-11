@@ -12,67 +12,69 @@ import (
 )
 
 type TempoRepository struct {
-    baseURL string
-    client  *http.Client
+	baseURL string
+	client  *http.Client
 }
 
 func NewTempoRepository(baseURL string) *TempoRepository {
-    return &TempoRepository{
-        baseURL: baseURL,
-        client:  &http.Client{Timeout: 10 * time.Second},
-    }
+	return &TempoRepository{
+		baseURL: baseURL,
+		client:  &http.Client{Timeout: 10 * time.Second},
+	}
 }
 
 type tempoResponse struct {
-    Traces []struct {
-        TraceID string `json:"traceID"`
-        Spans   []struct {
-            SpanID  string                 `json:"spanID"`
-            Name    string                 `json:"name"`
-            Start   int64                  `json:"startTimeUnixNano"`
-            Attrs   map[string]interface{} `json:"attributes"`
-        } `json:"spans"`
-    } `json:"traces"`
+	Traces []struct {
+		TraceID string `json:"traceID"`
+		Spans   []struct {
+			SpanID string                 `json:"spanID"`
+			Name   string                 `json:"name"`
+			Start  int64                  `json:"startTimeUnixNano"`
+			Attrs  map[string]interface{} `json:"attributes"`
+		} `json:"spans"`
+	} `json:"traces"`
 }
 
 func (r *TempoRepository) QueryTraces(ctx context.Context, projectID string) ([]*models.Trace, error) {
-    query := fmt.Sprintf(`{project_id="%s"}`, projectID)
-    u, err := url.Parse(fmt.Sprintf("%s/api/search?tags=%s", r.baseURL, url.QueryEscape(query)))
-    if err != nil {
-        return nil, fmt.Errorf("parse query URL: %w", err)
-    }
+	// query := fmt.Sprintf(`{job="pulseguard", project_id="%s"}`, projectID)
+	query := `{job="pulseguard"}`
 
-    req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-    if err != nil {
-        return nil, fmt.Errorf("create request: %w", err)
-    }
+	u, err := url.Parse(fmt.Sprintf("%s/api/search?tags=%s", r.baseURL, url.QueryEscape(query)))
+	if err != nil {
+		return nil, fmt.Errorf("parse query URL: %w", err)
+	}
 
-    resp, err := r.client.Do(req)
-    if err != nil {
-        return nil, fmt.Errorf("execute request: %w", err)
-    }
-    defer resp.Body.Close()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
 
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("unexpected status: %d", resp.StatusCode)
-    }
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("execute request: %w", err)
+	}
+	defer resp.Body.Close()
 
-    var tempoResp tempoResponse
-    if err := json.NewDecoder(resp.Body).Decode(&tempoResp); err != nil {
-        return nil, fmt.Errorf("decode response: %w", err)
-    }
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %d", resp.StatusCode)
+	}
 
-    var traces []*models.Trace
-    for _, trace := range tempoResp.Traces {
-        for _, span := range trace.Spans {
-            traces = append(traces, &models.Trace{
-                ID:        span.SpanID,
-                ProjectID: projectID,
-                TraceID:   trace.TraceID,
-                Name:      span.Name,
-                Timestamp: time.Unix(0, span.Start),
-            })
-        }
-    }
-    return traces, nil
+	var tempoResp tempoResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tempoResp); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	var traces []*models.Trace
+	for _, trace := range tempoResp.Traces {
+		for _, span := range trace.Spans {
+			traces = append(traces, &models.Trace{
+				ID:        span.SpanID,
+				ProjectID: projectID,
+				TraceID:   trace.TraceID,
+				Name:      span.Name,
+				Timestamp: time.Unix(0, span.Start),
+			})
+		}
+	}
+	return traces, nil
 }

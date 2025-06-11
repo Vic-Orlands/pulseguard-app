@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,86 +60,184 @@ export default function ProjectForm({
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Animation variants for form content
+  const contentVariants = {
+    initial: { opacity: 0, x: -20 },
+    animate: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, x: -20, transition: { duration: 0.3 } },
+  };
+
+  // Animation variants for form fields
+  const fieldVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
+    }),
+    exit: { opacity: 0, y: 10 },
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="name" className="block text-sm font-medium">
-          Project Name
-        </label>
-        <Input
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="bg-black/30 border border-blue-900/40"
-        />
-        {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="description" className="block text-sm font-medium">
-          Description
-        </label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          className="bg-black/30 border border-blue-900/40 min-h-[100px]"
-        />
-        {errors.description && (
-          <p className="text-red-500 text-xs">{errors.description}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="platform" className="block text-sm font-medium">
-          Platform
-        </label>
-        <Select
-          value={formData.platform}
-          onValueChange={(value) => {
-            setFormData((prev) => ({ ...prev, platform: value }));
-            setErrors((prev) => ({ ...prev, platform: "" }));
-          }}
-        >
-          <SelectTrigger className="bg-black/30 border border-blue-900/40">
-            <SelectValue placeholder="Select platform" />
-          </SelectTrigger>
-          <SelectContent className="border border-blue-900/40">
-            <SelectItem value="Next.js">Next.js</SelectItem>
-            <SelectItem value="React">React</SelectItem>
-            <SelectItem value="Node.js">Node.js</SelectItem>
-            <SelectItem value="Angular">Angular</SelectItem>
-            <SelectItem value="Vue">Vue</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.platform && (
-          <p className="text-red-500 text-xs">{errors.platform}</p>
-        )}
-      </div>
-
-      <div className="flex justify-between gap-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
+    <motion.div
+      variants={contentVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="p-6 h-full flex flex-col"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-white">
+            Create New Project
+          </h3>
+          <p className="text-sm text-slate-400">Set up your project details</p>
+        </div>
+        <button
           onClick={onCancel}
           disabled={isLoading}
+          className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors"
         >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            "Create Project"
-          )}
-        </Button>
+          <X className="w-4 h-4 text-slate-400" />
+        </button>
       </div>
-    </form>
+
+      {/* Form Content */}
+      <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+        <motion.div custom={0} variants={fieldVariants} className="space-y-2">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-white"
+          >
+            Project Name
+          </label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:border-blue-500 focus-visible:ring-0"
+            disabled={isLoading}
+          />
+          <AnimatePresence>
+            {errors.name && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-red-400 text-xs"
+              >
+                {errors.name}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div custom={1} variants={fieldVariants} className="space-y-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-white"
+          >
+            Description
+          </label>
+          <Textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-400 focus:border-blue-500 focus-visible:ring-0 min-h-[100px]"
+            disabled={isLoading}
+          />
+          <AnimatePresence>
+            {errors.description && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-red-400 text-xs"
+              >
+                {errors.description}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div custom={2} variants={fieldVariants} className="space-y-2">
+          <label
+            htmlFor="platform"
+            className="block text-sm font-medium text-white"
+          >
+            Platform
+          </label>
+          <Select
+            value={formData.platform}
+            onValueChange={(value) => {
+              setFormData((prev) => ({ ...prev, platform: value }));
+              setErrors((prev) => ({ ...prev, platform: "" }));
+            }}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus-visible:ring-0">
+              <SelectValue placeholder="Select platform" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+              <SelectItem value="Next.js">Next.js</SelectItem>
+              <SelectItem value="React">React</SelectItem>
+              <SelectItem value="Node.js">Node.js</SelectItem>
+              <SelectItem value="Angular">Angular</SelectItem>
+              <SelectItem value="Vue">Vue</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <AnimatePresence>
+            {errors.platform && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-red-400 text-xs"
+              >
+                {errors.platform}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div
+          custom={3}
+          variants={fieldVariants}
+          className="flex justify-between gap-3 pt-4"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isLoading}
+              className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Project"
+              )}
+            </Button>
+          </motion.div>
+        </motion.div>
+      </form>
+    </motion.div>
   );
 }

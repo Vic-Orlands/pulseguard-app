@@ -44,11 +44,11 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID 
 			}
 		}
 
-		fmt.Printf("❌ DB insert create project error: %v\n", err)
+		// fmt.Printf("❌ DB insert create project error: %v\n", err)
 		return nil, err
 	}
 
-	fmt.Printf("✅ Project created successfully: %s\n", p.Name)
+	// fmt.Printf("✅ Project created successfully: %s\n", p.Name)
 
 	return p, nil
 }
@@ -57,15 +57,15 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID 
 func (s *ProjectService) ListByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
 	projects, err := s.projectRepo.ListByOwner(ctx, ownerID)
 	if err != nil {
-		fmt.Printf("❌ Error retrieving projects for owner %s: %v\n", ownerID, err)
+		// fmt.Printf("❌ Error retrieving projects for owner %s: %v\n", ownerID, err)
 		return nil, err
 	}
 
-	if len(projects) == 0 {
-		fmt.Printf("ℹ️ No projects found for owner %s\n", ownerID)
-	} else {
-		fmt.Printf("✅ Found %d projects for owner %s\n", len(projects), ownerID)
-	}
+	// if len(projects) == 0 {
+	// 	fmt.Printf("ℹ️ No projects found for owner %s\n", ownerID)
+	// } else {
+	// 	fmt.Printf("✅ Found %d projects for owner %s\n", len(projects), ownerID)
+	// }
 
 	return projects, nil
 }
@@ -74,14 +74,24 @@ func (s *ProjectService) ListByOwner(ctx context.Context, ownerID string) ([]*mo
 func (s *ProjectService) GetBySlug(ctx context.Context, slug string) (*models.Project, error) {
 	project, err := s.projectRepo.GetBySlug(ctx, slug)
 	if err != nil {
-		fmt.Printf("❌ Error retrieving project %s: %v\n", slug, err)
+		// fmt.Printf("❌ Error retrieving project %s: %v\n", slug, err)
 		return nil, err
 	}
 
-	if project == nil {
-		fmt.Printf("ℹ️ No project found with ID %s\n", slug)
-	} else {
-		fmt.Printf("✅ Found project %s\n", project.Name)
+	// if project == nil {
+	// 	fmt.Printf("ℹ️ No project found with ID %s\n", slug)
+	// } else {
+	// 	fmt.Printf("✅ Found project %s\n", project.Name)
+	// }
+
+	return project, nil
+}
+
+// DeleteBySlug deletes project by specified slug
+func (s *ProjectService) DeleteBySlug(ctx context.Context, slug string) (*models.Project, error) {
+	project, err := s.projectRepo.DeleteBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
 	}
 
 	return project, nil

@@ -17,14 +17,15 @@ const geistMono = Geist_Mono({
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pulseguard.dev";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "PulseGuard",
-  icons: {
-    icon: `${baseUrl}/icon`,
-    shortcut: `${baseUrl}/icon`,
-    apple: `${baseUrl}/apple-icon`,
-  },
   description:
     "An intelligent, error tracking and monitoring tool for your web apps.",
+  icons: {
+    icon: "/icon",
+    shortcut: "/icon",
+    apple: "/apple-icon",
+  },
   openGraph: {
     title: "PulseGuard",
     description:
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "PulseGuard",
     images: [
       {
-        url: `${baseUrl}/opengraph-image`,
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "PulseGuard Dashboard Preview",
@@ -47,14 +48,7 @@ export const metadata: Metadata = {
     title: "PulseGuard",
     description:
       "An intelligent, error tracking and monitoring tool for your web apps.",
-    images: [
-      {
-        url: `${baseUrl}/twitter-image`,
-        width: 800,
-        height: 418,
-        alt: "PulseGuard Dashboard Preview",
-      },
-    ],
+    images: "/twitter-image",
     creator: "@MezieIV",
   },
 };
@@ -69,7 +63,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TelemetryProvider>{children}</TelemetryProvider>
+        <TelemetryProvider
+          initialProjectId={"85c2423d-d1dd-453f-8a29-7272fa14c031"}
+        >
+          {children}
+        </TelemetryProvider>
         <Toaster />
       </body>
     </html>

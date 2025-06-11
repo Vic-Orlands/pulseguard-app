@@ -1,23 +1,40 @@
-// config for error tracking props
-// props is passed as userConfig which is an object containing userId and issueTrackerUrl
-// userId and issueTrackerUrl are optional
-type ErrorTrackingConfig = {
+import { validate as validateUUID } from "uuid";
+
+export type ErrorTrackingConfig = {
   userId?: string;
+  projectId?: string;
   issueTrackerUrl?: string;
 };
 
 let config: ErrorTrackingConfig = {};
+let sessionId = "";
 
-export function initClientErrorTracking(userConfig: ErrorTrackingConfig) {
-  config = { ...userConfig };
+export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
+  config = { ...config, ...userConfig };
+
+  if (!sessionId) {
+    sessionId =
+      localStorage.getItem("pulseguard_session_id") ||
+      `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem("pulseguard_session_id", sessionId);
+  }
 }
 
-export function getClientErrorTrackingConfig() {
+export function updateClientErrorTracking(
+  updates: Partial<ErrorTrackingConfig>
+): void {
+  config = { ...config, ...updates };
+}
+
+export function getClientErrorTrackingConfig(): ErrorTrackingConfig {
   return config;
 }
 
-// main configuration
-export interface ErrorEvent {
+export function getSessionId(): string {
+  return sessionId;
+}
+
+export interface ClientErrorEvent {
   message: string;
   source?: string;
   lineno?: number;
@@ -27,103 +44,115 @@ export interface ErrorEvent {
   timestamp: number;
   sessionId: string;
   userId?: string;
+  projectId?: string;
   url: string;
   userAgent: string;
 }
 
-// Generate a session ID for the current user
-const generateSessionId = (): string => {
-  const sessionId = localStorage.getItem("pulseguard_session_id");
-  if (sessionId) return sessionId;
+export function setupClientErrorTracking(
+  configOverride?: ErrorTrackingConfig
+): {
+  reportError: (error: Error | string, componentStack?: string) => void;
+  reportCustomEvent: (
+    eventName: string,
+    eventData: Record<string, unknown>
+  ) => void;
+  cleanup: () => void;
+} | null {
+  if (typeof window === "undefined") return null;
 
-  const newSessionId = `session_${Date.now()}_${Math.random()
-    .toString(36)
-    .substring(2, 9)}`;
-  localStorage.setItem("pulseguard_session_id", newSessionId);
-  return newSessionId;
-};
+  if (configOverride) initClientErrorTracking(configOverride);
 
-// Set up global error tracking
-export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
-  if (typeof window === "undefined") return;
+  const { userId, projectId } = getClientErrorTrackingConfig();
+  const sessionId = getSessionId();
 
-  if (configOverride) {
-    initClientErrorTracking(configOverride);
+  if (!projectId || !validateUUID(projectId)) {
+    console.warn("PulseGuard SDK: Invalid or missing project ID.");
+    return null;
   }
 
-  const { userId } = getClientErrorTrackingConfig(); // Get the user ID from the config
-  const sessionId = generateSessionId(); // Generate a session ID for the current user
+  async function reportErrorToServer(
+    errorEvent: ClientErrorEvent
+  ): Promise<void> {
+    const { error, ...rest } = errorEvent;
 
-  // Handle uncaught errors
-  window.addEventListener("error", (event) => {
-    const errorEvent: ErrorEvent = {
-      message: event.message,
-      source: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-      error: event.error,
+    return fetch("/api/telemetry/error", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-project-id": projectId || "",
+      },
+      body: JSON.stringify({
+        ...rest,
+        error: error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : undefined,
+      }),
+    })
+      .then(() => {})
+      .catch((err) =>
+        console.error("PulseGuard SDK: Failed to report error:", err)
+      );
+  }
+
+  const onError = (e: ErrorEvent): void => {
+    reportErrorToServer({
+      message: e.message || "Unknown error",
+      source: e.filename,
+      lineno: e.lineno,
+      colno: e.colno,
+      error: e.error,
       timestamp: Date.now(),
       sessionId,
       userId,
+      projectId,
       url: window.location.href,
       userAgent: navigator.userAgent,
-    };
-
-    reportErrorToServer(errorEvent);
-  });
-
-  // Handle unhandled promise rejections
-  const rejectionListener = (event: PromiseRejectionEvent) => {
-    const errorEvent = {
-      message: event.reason?.message || "Unhandled Promise Rejection",
-      error: event.reason,
-      timestamp: Date.now(),
-      sessionId,
-      userId,
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-    };
-    reportErrorToServer(errorEvent);
+    });
   };
-  window.addEventListener("unhandledrejection", rejectionListener);
 
-  // Report errors to the server
-  async function reportErrorToServer(errorEvent: ErrorEvent) {
-    try {
-      await fetch("/api/telemetry/error", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(errorEvent),
-      });
-    } catch (error) {
-      console.error("Failed to report error to server:", error);
-    }
-  }
+  const onRejection = (e: PromiseRejectionEvent): void => {
+    const error =
+      e.reason instanceof Error ? e.reason : new Error(String(e.reason));
 
-  // Return functions that can be used for manual error reporting
+    reportErrorToServer({
+      message: error.message,
+      error,
+      timestamp: Date.now(),
+      sessionId,
+      userId,
+      projectId,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+    });
+  };
+
+  window.addEventListener("error", onError);
+  window.addEventListener("unhandledrejection", onRejection);
+
   return {
-    reportError: (error: Error | string, componentStack?: string) => {
-      const errorEvent: ErrorEvent = {
+    reportError: (error, componentStack) =>
+      reportErrorToServer({
         message: error instanceof Error ? error.message : error,
         error: error instanceof Error ? error : new Error(error),
         componentStack,
         timestamp: Date.now(),
         sessionId,
         userId,
+        projectId,
         url: window.location.href,
         userAgent: navigator.userAgent,
-      };
-
-      reportErrorToServer(errorEvent);
-    },
-    reportCustomEvent: (eventName: string, eventData: unknown) => {
-      // For tracking custom events that aren't errors
+      }),
+    reportCustomEvent: (eventName, eventData) => {
       fetch("/api/telemetry/event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-project-id": projectId,
         },
         body: JSON.stringify({
           eventName,
@@ -131,29 +160,15 @@ export function setupClientErrorTracking(configOverride?: ErrorTrackingConfig) {
           timestamp: Date.now(),
           sessionId,
           userId,
+          projectId,
           url: window.location.href,
           userAgent: navigator.userAgent,
         }),
       }).catch(console.error);
     },
     cleanup: () => {
-      window.removeEventListener("error", (event) => {
-        const errorEvent: ErrorEvent = {
-          message: event.message,
-          source: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-          error: event.error,
-          timestamp: Date.now(),
-          sessionId,
-          userId,
-          url: window.location.href,
-          userAgent: navigator.userAgent,
-        };
-
-        reportErrorToServer(errorEvent);
-      });
-      window.removeEventListener("unhandledrejection", rejectionListener);
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
     },
   };
 }

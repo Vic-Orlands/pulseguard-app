@@ -35,13 +35,18 @@ receivers:
         span_id:
           parse_from: attributes.spanId
 
+        attributes:
+          - project_id:
+          -   parse_from: attributes.projectId
+          -   to: project_id
+
 processors:
   batch:
     timeout: 1s
     send_batch_size: 1024
 
   resourcedetection:
-    detectors: [env, system, docker]
+    detectors: [env, system]
     timeout: 5s
 
   memory_limiter:
@@ -60,6 +65,9 @@ processors:
       - action: insert
         key: service_name
         value: "pulseguard"
+      - action: insert
+        key: project_id
+        from_attribute: project_id
 
       - action: delete
         key: traceId
@@ -104,6 +112,8 @@ exporters:
     default_labels_enabled:
       exporter: true
       job: true
+      service_name: true
+      project_id: true
     # Allow old logs to be ingested (adjust as needed)
     retry_on_failure:
       enabled: true

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import type { Trace } from "@/types/dashboard";
 import { Input } from "@/components/ui/input";
+import TestErrorsPage from "@/app/test-errors/page";
 
 interface TracesTabProps {
   traces: Trace[];
@@ -31,6 +32,8 @@ export default function TracesTab({
   searchQuery,
   setSearchQuery,
 }: TracesTabProps) {
+  return <TestErrorsPage />;
+
   return (
     <div className="space-y-6">
       <Card className="bg-black/30 border border-blue-900/40">

@@ -28,7 +28,7 @@ import {
   ChevronLeft,
   X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Tabs, TabsList } from "@/components/ui/tabs";
 import type { Alert, NavItem } from "@/types/dashboard";
 import { PulseGuardLogo } from "../Icons";
@@ -130,8 +130,8 @@ export default function Header({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/user.png" />
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <span className="hidden md:inline">John Doe</span>
@@ -231,12 +231,24 @@ function NavButton({
       variant="ghost"
       className={`rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors ${
         activeTab === item.id
-          ? "border-blue-500 text-white"
-          : "border-transparent text-gray-400 hover:text-white"
+          ? "border-b-[2px] border-transparent border-b-blue-400 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          : "border-b border-transparent text-gray-400 hover:text-white/80"
       }`}
       onClick={onClick}
     >
-      {item.icon}
+      {activeTab === item.id ? (
+        <div className="flex items-center">
+          <svg width="0" height="0" className="absolute">
+            <linearGradient id="blue-purple" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop stopColor="#2563eb" offset="0%" />
+              <stop stopColor="#9333ea" offset="100%" />
+            </linearGradient>
+          </svg>
+          <div className="[&>svg]:stroke-[url(#blue-purple)]">{item.icon}</div>
+        </div>
+      ) : (
+        item.icon
+      )}
       <span>{item.label}</span>
     </Button>
   );
@@ -255,7 +267,7 @@ function BackToProjectButton({
       variant="ghost"
       className={`w-full justify-start text-lg py-4 mb-2 ${
         false
-          ? "bg-blue-900/40 text-white"
+          ? "bg-blue-900/40 text-white/80"
           : "text-gray-300 hover:bg-gray-800/70"
       }`}
     >
@@ -267,7 +279,7 @@ function BackToProjectButton({
   ) : (
     <Button
       variant="ghost"
-      className="rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white mr-4"
+      className="rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white/80 mr-4"
     >
       <ChevronLeft className="h-4 w-4" />
       <span>Back to Projects</span>

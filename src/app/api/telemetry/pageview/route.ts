@@ -9,9 +9,11 @@ export async function POST(request: NextRequest) {
   return tracer.startActiveSpan("pageview-api.process", async (span) => {
     try {
       const pageViewData = await request.json();
+      const projectId = request.headers.get("x-project-id") || "";
 
       // Set span attributes for the pageview
       span.setAttributes({
+        "project.id": projectId,
         page: pageViewData.page,
         "session.id": pageViewData.sessionId,
         "user.id": pageViewData.userId || "anonymous",
@@ -19,6 +21,7 @@ export async function POST(request: NextRequest) {
       });
 
       logger.info(`Processing pageview: ${pageViewData.page}`, {
+        projectId,
         pageViewData,
       });
 

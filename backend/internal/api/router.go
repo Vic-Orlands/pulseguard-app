@@ -40,15 +40,16 @@ func NewRouter(
 	// Custom middlewares for tracing and metrics
 	r.Use(tracingMiddleware)
 	r.Use(metricsMiddleware)
+	r.Use(middleware.ProjectContextMiddleware)
 
 	// Handlers
-	userHandler := handlers.NewUserHandler(userSvc, metrics, tokenSvc)
-	projectHandler := handlers.NewProjectHandler(projectSvc, metrics)
+	userHandler := handlers.NewUserHandler(userSvc, metrics, tokenSvc, logger)
+	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
 	errorHandler := handlers.NewErrorHandler(errorSvc, metrics, logger, tracer)
 	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
 	metricsHandler := handlers.NewMetricsHandler(metricsSvc, metrics)
-	logsHandler := handlers.NewLogsHandler(logsSvc, metrics)
-	tracesHandler := handlers.NewTracesHandler(tracesSvc, metrics)
+	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics)
+	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, metrics, tracer)
 
 	// user routes
@@ -62,24 +63,29 @@ func NewRouter(
 		r.Use(jwtauth.Verifier(tokenSvc.GetTokenAuth()))
 		r.Use(authMiddleware)
 
+		// user routes
+		r.Get("/api/users/me", userHandler.CheckCurrentUser)
+		r.Put("/api/users/me", userHandler.UpdateUser)
+
 		// project routes
 		r.Post("/api/projects", projectHandler.Create)
 		r.Get("/api/projects", projectHandler.ListByOwner)
 		r.Get("/api/projects/{slug}", projectHandler.GetBySlug)
-		// r.Put("/api/projects/{project_id}", projectHandler.GetByID)
-		// r.Delete("/api/projects/{project_id}", projectHandler.GetByID)
+		r.Delete("/api/projects/{slug}", projectHandler.DeleteBySlug)
 
 		// Error tracking routes
 		r.Post("/api/errors/track", errorHandler.Track)
 		r.Get("/api/errors", errorHandler.ListByProject)
+		r.Get("/api/errors/get", errorHandler.GetErrorByID)
+		r.Put("/api/errors/status", errorHandler.UpdateErrorStatus)
 
 		// alert routes
 		r.Post("/api/alerts", alertHandler.Create)
-		r.Get("/api/alerts/{id}", alertHandler.ListByProject)
+		r.Get("/api/alerts/{project_id}", alertHandler.ListByProject)
 
 		// otlp
 		r.Get("/api/metrics", metricsHandler.GetMetrics)
-		r.Get("/api/logs", logsHandler.ListByProject)
+		r.Get("/api/logs", logsHandler.GetLogsByProjectID)
 		r.Get("/api/traces", tracesHandler.ListByProject)
 		r.Get("/api/dashboard", dashboardHandler.GetDashboard)
 	})

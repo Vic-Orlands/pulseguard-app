@@ -59,7 +59,12 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 	return user, nil
 }
 
-// GetByID retrieves a user by their ID.
-func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	return s.userRepo.GetByEmail(ctx, email)
+// get current user by id
+func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+	return s.userRepo.GetByID(ctx, userID)
+}
+
+// updates user details
+func (s *UserService) Update(ctx context.Context, userID uuid.UUID, name string, hashedPassword string) (*models.User, error) {
+	return s.userRepo.Update(ctx, userID, name, hashedPassword)
 }

@@ -1,10 +1,13 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 
 	"pulseguard/internal/service"
+	"pulseguard/internal/util"
+	"pulseguard/pkg/logger"
 	"pulseguard/pkg/otel"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -12,34 +15,47 @@ import (
 )
 
 type LogsHandler struct {
-    logsService *service.LogsService
-    metrics     *otel.Metrics
+	logsService *service.LogsService
+	logger      *logger.Logger
+	metrics     *otel.Metrics
 }
 
-func NewLogsHandler(logsService *service.LogsService, metrics *otel.Metrics) *LogsHandler {
-    return &LogsHandler{logsService: logsService, metrics: metrics}
+func NewLogsHandler(logsService *service.LogsService, logger *logger.Logger, metrics *otel.Metrics) *LogsHandler {
+	return &LogsHandler{logsService: logsService, logger: logger, metrics: metrics}
 }
 
-func (h *LogsHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
-    projectID := r.URL.Query().Get("project_id")
-    if projectID == "" {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "missing_project_id")))
-        http.Error(w, "Missing project_id", http.StatusBadRequest)
-        return
-    }
+func (h *LogsHandler) GetLogsByProjectID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	projectID, ok := logger.GetProjectIDFromContext(ctx)
 
-    logs, err := h.logsService.ListByProject(r.Context(), projectID)
-    if err != nil {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "fetch_logs_failed")))
-        http.Error(w, "Failed to fetch logs", http.StatusInternalServerError)
-        return
-    }
+	if !ok {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("error_type", "missing_project_id"),
+		))
+		util.WriteError(w, http.StatusBadRequest, "Missing project_id in context")
+		return
+	}
 
-    h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
-        attribute.String("activity_type", "list_logs"),
-        attribute.String("project_id", projectID),
-    ))
+	h.logger.Info(ctx, "Fetching logs for project", "project_id", projectID)
+	logs, err := h.logsService.GetLogsByProjectID(ctx, projectID)
+	if err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("error_type", "fetch_logs_failed"),
+		))
+		h.logger.Error(ctx, "failed to get logs by project id", err)
+		if os.Getenv("APP_ENV") == "development" {
+			util.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("failed to fetch logs: %v", err))
+		} else {
+			util.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(logs)
+	h.logger.Info(ctx, "Fetched logs", "project_id", projectID, "count", len(logs))
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("activity_type", "list_logs"),
+		attribute.String("project_id", projectID),
+	))
+
+	util.WriteJSON(w, http.StatusOK, logs)
 }

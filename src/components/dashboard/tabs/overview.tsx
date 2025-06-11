@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import {
   Card,
   CardHeader,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Code, Cpu } from "lucide-react";
+import { Code, Cpu, Server, Activity } from "lucide-react";
 import type { Platform } from "@/types/dashboard";
 import { useOverviewContext } from "@/context/overview-context";
 
@@ -28,8 +28,10 @@ interface OverviewTabProps {
 
 export default function OverviewTab({ platforms, children }: OverviewTabProps) {
   const { errors, alerts } = useOverviewContext();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const criticalErrors = errors.filter((e) => e.status === "active").length;
+  const criticalErrors =
+    errors !== null && errors.filter((e) => e.status === "active").length;
   const totalSessions = platforms.reduce(
     (sum, platform) => sum + platform.sessions,
     0
@@ -168,6 +170,33 @@ export default function OverviewTab({ platforms, children }: OverviewTabProps) {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{children}</div>
+
+      {/* footer analysis */}
+      <section className="mt-8 bg-black/30 backdrop-blur-sm border border-black/10 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+              <span className="text-green-400 font-medium">
+                All Systems Operational
+              </span>
+            </div>
+            <div className="text-gray-400 text-sm">
+              Last updated: {currentTime.toLocaleTimeString()}
+            </div>
+          </div>
+          <div className="flex items-center space-x-6 text-sm">
+            <div className="flex items-center">
+              <Server className="w-4 h-4 text-blue-400 mr-1" />
+              <span className="text-gray-400">4 Services</span>
+            </div>
+            <div className="flex items-center">
+              <Activity className="w-4 h-4 text-green-400 mr-1" />
+              <span className="text-gray-400">99.8% Uptime</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

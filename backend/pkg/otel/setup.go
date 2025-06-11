@@ -7,6 +7,7 @@ import (
 	"pulseguard/pkg/logger"
 
 	"go.opentelemetry.io/otel"
+	// "go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 
@@ -25,18 +26,25 @@ type Client struct {
 }
 
 // InitClient initializes OpenTelemetry tracing and metrics.
-// All logs/errors are routed through your app logger.
+// All logs/errors are routed through app logger.
 func InitClient(otlpEndpoint string, log *logger.Logger) (*Client, error) {
 	ctx := context.Background()
 	client := &Client{
 		shutdownFuncs: make([]func(context.Context) error, 0),
 	}
 
+	// projectId, ok := logger.GetProjectIDFromContext(ctx)
+	// if !ok {
+	// 	log.Error(ctx, "Project ID not found in context", nil)
+	// 	return client, nil
+	// } 
+
 	// Set up resource
 	res, err := sdkresource.New(
 		ctx,
 		sdkresource.WithAttributes(
 			semconv.ServiceNameKey.String("pulseguard"),
+			// attribute.String("project_id", projectId),
 		),
 	)
 	if err != nil {

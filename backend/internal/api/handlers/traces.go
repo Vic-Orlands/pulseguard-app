@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"pulseguard/internal/service"
+	"pulseguard/internal/util"
+	"pulseguard/pkg/logger"
 	"pulseguard/pkg/otel"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -12,34 +13,39 @@ import (
 )
 
 type TracesHandler struct {
-    tracesService *service.TracesService
-    metrics       *otel.Metrics
+	tracesService *service.TracesService
+	logger        *logger.Logger
+	metrics       *otel.Metrics
 }
 
-func NewTracesHandler(tracesService *service.TracesService, metrics *otel.Metrics) *TracesHandler {
-    return &TracesHandler{tracesService: tracesService, metrics: metrics}
+func NewTracesHandler(tracesService *service.TracesService, logger *logger.Logger, metrics *otel.Metrics) *TracesHandler {
+	return &TracesHandler{tracesService: tracesService, logger: logger, metrics: metrics}
 }
 
 func (h *TracesHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
-    projectID := r.URL.Query().Get("project_id")
-    if projectID == "" {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "missing_project_id")))
-        http.Error(w, "Missing project_id", http.StatusBadRequest)
-        return
-    }
+	ctx := r.Context()
+	projectID, ok := logger.GetProjectIDFromContext(r.Context())
+	if !ok {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("error_type", "missing_project_id"),
+		))
+		util.WriteError(w, http.StatusUnauthorized, "Missing project_id in context")
+		return
+	}
 
-    traces, err := h.tracesService.ListByProject(r.Context(), projectID)
-    if err != nil {
-        h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "fetch_traces_failed")))
-        http.Error(w, "Failed to fetch traces", http.StatusInternalServerError)
-        return
-    }
+	traces, err := h.tracesService.ListByProject(ctx, projectID)
+	if err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("error_type", "fetch_traces_failed"),
+		))
+		util.WriteError(w, http.StatusInternalServerError, "failed to fetch traces")
+		return
+	}
 
-    h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
-        attribute.String("activity_type", "list_traces"),
-        attribute.String("project_id", projectID),
-    ))
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("activity_type", "list_traces"),
+		attribute.String("project_id", projectID),
+	))
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(traces)
+	util.WriteJSON(w, http.StatusOK, traces)
 }
