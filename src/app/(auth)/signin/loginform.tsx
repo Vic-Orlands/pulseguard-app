@@ -3,11 +3,13 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { motion } from "motion/react";
 import { Github, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormField, InputWithIcon } from "./shared";
-import { toast } from "sonner";
+import { loginUser } from "@/lib/api/user-api";
+import { useAuth } from "@/context/auth-context";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -21,7 +23,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
+  const { fetchUser } = useAuth();
   const router = useRouter();
+
   const [isPending, startTransition] = useTransition();
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string>("");
@@ -39,25 +43,19 @@ export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
       try {
         setError("");
 
-        const response = await fetch("http://localhost:8081/api/users/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          toast(error.message || "Login failed");
+        const { error, message } = await loginUser(data);
+        if (error) {
+          setError(error);
         }
 
-        const user = await response.json();
-        console.log("user:", user);
+        if (message) {
+          await fetchUser();
 
-        toast("Login successful!");
-        setTimeout(() => {
-          router.push("/projects");
-        }, 1500);
+          setTimeout(() => {
+            router.push("/projects");
+            toast("Login successful!");
+          }, 1500);
+        }
       } catch (error) {
         setError(error instanceof Error ? error.message : "Login failed");
       }

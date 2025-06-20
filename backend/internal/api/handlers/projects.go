@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
@@ -33,6 +34,12 @@ func NewProjectHandler(projectService *service.ProjectService, metrics *otel.Met
 
 type createProjectRequest struct {
 	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type updateProjectRequest struct {
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
 	Description string `json:"description"`
 }
 
@@ -68,8 +75,8 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	project, err := h.projectService.Create(ctx, req.Name, req.Description, userID)
 	if err != nil {
-		if err.Error() == "duplicate_slug" {
-			util.WriteErrorFields(w, "Slug already exists", []string{"name"})
+		if errors.Is(err, service.ErrDuplicateSlug) {
+			util.WriteErrorFields(w, "Project name already exists", []string{"name"})
 			return
 		}
 
@@ -157,6 +164,49 @@ func (h *ProjectHandler) DeleteBySlug(w http.ResponseWriter, r *http.Request) {
 
 	ctx = logger.WithProjectID(ctx, project.ID)
 	h.logger.Info(ctx, "Project deleted")
+
+	util.WriteJSON(w, http.StatusOK, project)
+}
+
+// UpdateProject updates an existing project
+func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	oldSlug := chi.URLParam(r, "slug")
+
+	var req updateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "invalid_body")))
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Name == "" {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_name")))
+		util.WriteError(w, http.StatusBadRequest, "Missing project name")
+		return
+	}
+	if req.Description == "" {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_description")))
+		util.WriteError(w, http.StatusBadRequest, "Missing project description")
+		return
+	}
+
+	log.Println("Updating project slug from", oldSlug, "to", req.Slug)
+
+
+	project, err := h.projectService.UpdateProject(ctx, oldSlug, req.Name, req.Description, req.Slug)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "Project not found")
+			return
+		}
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "update_project_failed")))
+		util.WriteError(w, http.StatusInternalServerError, "Failed to update project")
+		return
+	}
+
+	ctx = logger.WithProjectID(ctx, project.ID)
+	h.logger.Info(ctx, "Project updated", "name", project.Name)
 
 	util.WriteJSON(w, http.StatusOK, project)
 }

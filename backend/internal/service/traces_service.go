@@ -7,13 +7,13 @@ import (
 )
 
 type TracesService struct {
-    tempoRepo *telemetry.TempoRepository
+    TempoClient *telemetry.TempoClient
 }
 
-func NewTracesService(tempoRepo *telemetry.TempoRepository) *TracesService {
-    return &TracesService{tempoRepo: tempoRepo}
+func NewTracesService(tempoRepo *telemetry.TempoClient) *TracesService {
+    return &TracesService{TempoClient: tempoRepo}
 }
 
-func (s *TracesService) ListByProject(ctx context.Context, projectID string) ([]*models.Trace, error) {
-    return s.tempoRepo.QueryTraces(ctx, projectID)
+func (s *TracesService) GetTrace(ctx context.Context, traceID string) (*models.Trace, error) {
+	return s.TempoClient.GetTrace(ctx, traceID)
 }

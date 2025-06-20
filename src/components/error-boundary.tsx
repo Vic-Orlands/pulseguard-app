@@ -11,7 +11,7 @@ interface ErrorBoundaryProps {
   children?: React.ReactNode;
   fallback?: React.ReactNode;
   userId?: string;
-  projectId?: string;
+  projectId: string;
 }
 
 interface ErrorBoundaryState {
@@ -47,8 +47,8 @@ export class ErrorBoundary extends React.Component<
   };
 
   render(): React.ReactNode {
-    const { fallback, children } = this.props;
     const { hasError, error } = this.state;
+    const { fallback, children } = this.props;
     const { issueTrackerUrl } = getClientErrorTrackingConfig();
 
     if (hasError) {

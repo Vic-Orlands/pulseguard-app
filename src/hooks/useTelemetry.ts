@@ -128,7 +128,7 @@ export function useTelemetry({
     reportError: (error: Error | string, componentStack?: string) => {
       errorReporter.current?.reportError(error, componentStack);
     },
-    reportEvent: (eventName: string, eventData: unknown) => {
+    reportEvent: (eventName: string, eventData: Record<string, unknown>) => {
       errorReporter.current?.reportCustomEvent(eventName, eventData);
     },
   };

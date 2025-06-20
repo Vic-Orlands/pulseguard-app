@@ -3,9 +3,23 @@ package models
 import "time"
 
 type Trace struct {
-    ID        string    `json:"id"`
-    ProjectID string    `json:"project_id"`
-    TraceID   string    `json:"trace_id"`
-    Name      string    `json:"name"`
-    Timestamp time.Time `json:"timestamp"`
+	TraceID string  `json:"traceId"`
+	Spans   []*Span `json:"spans"`
+}
+
+type Span struct {
+	SpanID       string            `json:"spanId"`
+	ParentSpanID string            `json:"parentSpanId"`
+	TraceID      string            `json:"traceId"`
+	Name         string            `json:"name"`
+	StartTime    time.Time         `json:"startTime"`
+	EndTime      time.Time         `json:"endTime"`
+	DurationMs   float64           `json:"duration"`
+	ServiceName  string            `json:"serviceName"`
+	Operation    string            `json:"operation"`
+	HTTPMethod   string            `json:"httpMethod"`
+	HTTPURL      string            `json:"httpUrl"`
+	HTTPStatus   int               `json:"httpStatus"`
+	Attributes   map[string]string `json:"attributes"`
+	Resources    map[string]string `json:"resources"`
 }

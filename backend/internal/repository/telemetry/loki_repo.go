@@ -20,8 +20,13 @@ type LokiRepository struct {
 func NewLokiRepository(baseURL string) *LokiRepository {
 	return &LokiRepository{
 		baseURL: baseURL,
-		client:  &http.Client{Timeout: 10 * time.Second},
+		client:  &http.Client{Timeout: 30 * time.Second},
 	}
+}
+
+type lokiStream struct {
+	Stream map[string]string `json:"stream"`
+	Values [][]string        `json:"values"`
 }
 
 type lokiResponse struct {
@@ -31,21 +36,17 @@ type lokiResponse struct {
 	} `json:"data"`
 }
 
-type lokiStream struct {
-	Stream map[string]string `json:"stream"`
-	Values [][]string        `json:"values"`
-}
-
-func (r *LokiRepository) QueryLogs(ctx context.Context, projectID string) ([]*models.Log, error) {
-	// query := `{job="pulseguard"}`
-	query := fmt.Sprintf(`{job="pulseguard", project_id="%s"}`, projectID)
+// QueryLogs
+func (r *LokiRepository) QueryLogs(ctx context.Context, projectID string, start, end time.Time) ([]*models.Log, error) {
+	query := `{service_name="pulseguard"}`
+	// query := fmt.Sprintf(`{job="pulseguard"} | {projectId="%s"}`, projectID)
 
 	u, err := url.Parse(fmt.Sprintf(
 		"%s/loki/api/v1/query_range?query=%s&limit=100&start=%d&end=%d",
 		r.baseURL,
 		url.QueryEscape(query),
-		time.Now().Add(-48*time.Hour).UnixNano(),
-		time.Now().UnixNano(),
+		start.UnixNano(),
+		end.UnixNano(),
 	))
 	if err != nil {
 		return nil, fmt.Errorf("parse query URL: %w", err)
@@ -79,18 +80,37 @@ func (r *LokiRepository) QueryLogs(ctx context.Context, projectID string) ([]*mo
 				return nil, fmt.Errorf("parse timestamp: %w", err)
 			}
 			timestamp := time.Unix(0, ns)
-			message := value[1]
-			logs = append(logs, &models.Log{
-				ID:        value[0],
-				ProjectID: projectID,
-				Message:   message,
-				Timestamp: timestamp,
-			})
+			rawMessage := value[1]
+
+			// Try to extract JSON body
+			var parsed map[string]interface{}
+			if err := json.Unmarshal([]byte(rawMessage), &parsed); err != nil {
+				continue
+			}
+
+			// Check for "project_id" in root or nested "attributes"
+			var currentProjectID string
+			if v, ok := parsed["project_id"].(string); ok {
+				currentProjectID = v
+			} else if attr, ok := parsed["attributes"].(map[string]interface{}); ok {
+				if v, ok := attr["project_id"].(string); ok {
+					currentProjectID = v
+				}
+			}
+
+			if currentProjectID == projectID {
+				logs = append(logs, &models.Log{
+					ID:        value[0],
+					ProjectID: projectID,
+					Message:   rawMessage,
+					Timestamp: timestamp,
+				})
+			}
 		}
 	}
 
-	if len(logs) == 0 {
-		fmt.Printf("No logs found for query: %s\n", query)
-	}
+	// if len(logs) == 0 {
+	// 	fmt.Printf("No logs found for query: %s\n", query)
+	// }
 	return logs, nil
 }

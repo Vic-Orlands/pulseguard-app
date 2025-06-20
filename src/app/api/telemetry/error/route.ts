@@ -3,7 +3,6 @@ import { trace, metrics, SpanStatusCode, Counter } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
 import { cookies } from "next/headers";
 
-const logger = createLogger("error-api");
 const tracer = trace.getTracer("error-api");
 const meter = metrics.getMeter("error-api");
 
@@ -16,6 +15,9 @@ const errorCounter: Counter = meter.createCounter("app.errors.total", {
 
 // main POST function
 export async function POST(request: NextRequest) {
+  const projectId = request.headers.get("x-project-id") as string;
+  const logger = createLogger("error-api", projectId);
+
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()
@@ -26,7 +28,6 @@ export async function POST(request: NextRequest) {
     try {
       const errorEvent = await request.json();
       const environment = process.env.NODE_ENV || "development";
-      const projectId = request.headers.get("x-project-id") || "";
 
       // Enhance error data with additional context
       const enhancedErrorData = {

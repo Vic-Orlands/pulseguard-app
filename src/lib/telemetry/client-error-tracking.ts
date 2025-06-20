@@ -1,17 +1,19 @@
 import { validate as validateUUID } from "uuid";
+import { getTraceContext, isDuplicate } from "./telemetry-utils";
 
 export type ErrorTrackingConfig = {
   userId?: string;
-  projectId?: string;
+  projectId: string; // UUID
   issueTrackerUrl?: string;
 };
 
-let config: ErrorTrackingConfig = {};
-let sessionId = "";
+let sessionId: string = "";
+let config: ErrorTrackingConfig = {
+  projectId: "",
+};
 
 export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
   config = { ...config, ...userConfig };
-
   if (!sessionId) {
     sessionId =
       localStorage.getItem("pulseguard_session_id") ||
@@ -32,6 +34,22 @@ export function getClientErrorTrackingConfig(): ErrorTrackingConfig {
 
 export function getSessionId(): string {
   return sessionId;
+}
+
+// Sets projectId globally and updates config
+export function setProjectId(id: string): void {
+  if (validateUUID(id)) {
+    config.projectId = id;
+  } else {
+    console.warn("PulseGuard SDK: Invalid project ID, must be a valid UUID.");
+  }
+}
+
+// Retrieves projectId from config
+export function getProjectId(requestProjectId?: string): string {
+  return requestProjectId && validateUUID(requestProjectId)
+    ? requestProjectId
+    : config.projectId;
 }
 
 export interface ClientErrorEvent {
@@ -55,7 +73,8 @@ export function setupClientErrorTracking(
   reportError: (error: Error | string, componentStack?: string) => void;
   reportCustomEvent: (
     eventName: string,
-    eventData: Record<string, unknown>
+    eventData: Record<string, unknown>,
+    tags?: string[]
   ) => void;
   cleanup: () => void;
 } | null {
@@ -76,6 +95,8 @@ export function setupClientErrorTracking(
   ): Promise<void> {
     const { error, ...rest } = errorEvent;
 
+    if (error && isDuplicate(error.message)) return;
+
     return fetch("/api/telemetry/error", {
       method: "POST",
       headers: {
@@ -84,6 +105,7 @@ export function setupClientErrorTracking(
       },
       body: JSON.stringify({
         ...rest,
+        traceContext: getTraceContext(),
         error: error
           ? {
               name: error.name,

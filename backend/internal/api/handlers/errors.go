@@ -120,16 +120,16 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		))
 		span.SetStatus(codes.Error, "Failed to store error")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Failed to store error in database", err)
+		h.logger.Error(ctx, "Failed to store error in database", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to store error")
 		return
 	}
 
-	// h.logger.ErrorWithFields(ctx, "Error tracked", map[string]interface{}{
-	// 	"project_id":  projectUUID.String(),
-	// 	"message":     req.Message,
-	// 	"fingerprint": errEntry.Fingerprint,
-	// })
+	h.logger.ErrorWithFields(ctx, "Error tracked", map[string]interface{}{
+		"project_id":  projectUUID.String(),
+		"message":     req.Message,
+		"fingerprint": errEntry.Fingerprint,
+	})
 
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "error_tracked"),
@@ -163,7 +163,7 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 			attribute.String("error_type", "missing_project_id"),
 		))
 		span.SetStatus(codes.Error, "Missing project_id")
-		// h.logger.Error(ctx, "Missing project_id in list errors request", nil)
+		h.logger.Error(ctx, "Missing project_id in list errors request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing project_id")
 		return
 	}
@@ -175,7 +175,7 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 		))
 		span.SetStatus(codes.Error, "Invalid project_id")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Invalid project_id format", err)
+		h.logger.Error(ctx, "Invalid project_id format", err)
 		util.WriteError(w, http.StatusBadRequest, "Invalid project_id")
 		return
 	}
@@ -183,7 +183,7 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
 	if !ok {
 		span.SetStatus(codes.Error, "Unauthorized")
-		// h.logger.Error(ctx, "Unauthorized access to list errors", nil)
+		h.logger.Error(ctx, "Unauthorized access to list errors", nil)
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
@@ -236,7 +236,7 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 		))
 		span.SetStatus(codes.Error, "Failed to fetch errors")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Failed to fetch errors from database", err)
+		h.logger.Error(ctx, "Failed to fetch errors from database", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch errors")
 		return
 	}
@@ -276,7 +276,7 @@ func (h *ErrorHandler) GetErrorByID(w http.ResponseWriter, r *http.Request) {
 			attribute.String("error_type", "missing_id"),
 		))
 		span.SetStatus(codes.Error, "Missing error id")
-		// h.logger.Error(ctx, "Missing error id in request", nil)
+		h.logger.Error(ctx, "Missing error id in request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing error id")
 		return
 	}
@@ -284,7 +284,7 @@ func (h *ErrorHandler) GetErrorByID(w http.ResponseWriter, r *http.Request) {
 	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
 	if !ok {
 		span.SetStatus(codes.Error, "Unauthorized")
-		// h.logger.Error(ctx, "Unauthorized access to get error", nil)
+		h.logger.Error(ctx, "Unauthorized access to get error", nil)
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
@@ -296,13 +296,13 @@ func (h *ErrorHandler) GetErrorByID(w http.ResponseWriter, r *http.Request) {
 		))
 		span.SetStatus(codes.Error, "Failed to fetch error")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Failed to fetch error from database", err)
+		h.logger.Error(ctx, "Failed to fetch error from database", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch error")
 		return
 	}
 	if errorData == nil {
 		span.SetStatus(codes.Error, "Error not found")
-		// h.logger.Error(ctx, "Error not found", nil)
+		h.logger.Error(ctx, "Error not found", nil)
 		util.WriteError(w, http.StatusNotFound, "Error not found")
 		return
 	}
@@ -343,7 +343,7 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 		))
 		span.SetStatus(codes.Error, "Invalid request body")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Failed to decode request body", err)
+		h.logger.Error(ctx, "Failed to decode request body", err)
 		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -353,7 +353,7 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 			attribute.String("error_type", "missing_fields"),
 		))
 		span.SetStatus(codes.Error, "Missing required fields")
-		// h.logger.Error(ctx, "Missing required fields in update status request", nil)
+		h.logger.Error(ctx, "Missing required fields in update status request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -363,7 +363,7 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 			attribute.String("error_type", "invalid_status"),
 		))
 		span.SetStatus(codes.Error, "Invalid status")
-		// h.logger.Error(ctx, "Invalid status value", nil)
+		h.logger.Error(ctx, "Invalid status value", nil)
 		util.WriteError(w, http.StatusBadRequest, "Invalid status")
 		return
 	}
@@ -371,7 +371,7 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
 	if !ok {
 		span.SetStatus(codes.Error, "Unauthorized")
-		// h.logger.Error(ctx, "Unauthorized access to update error status", nil)
+		h.logger.Error(ctx, "Unauthorized access to update error status", nil)
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
@@ -383,7 +383,7 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 		))
 		span.SetStatus(codes.Error, "Failed to update error status")
 		span.RecordError(err)
-		// h.logger.Error(ctx, "Failed to update error status in database", err)
+		h.logger.Error(ctx, "Failed to update error status in database", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to update error status")
 		return
 	}

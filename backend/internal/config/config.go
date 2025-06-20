@@ -26,7 +26,7 @@ func getEnv(key, fallback string) string {
 func Load() (*Config, error) {
     // Load .env file if it exists
      if err := godotenv.Load(); err != nil {
-        log.Println("⚠️  No .env file found, using system env vars")
+        log.Println("⚠️  No .env file found for config")
     }
 
     cfg := &Config{
@@ -35,7 +35,7 @@ func Load() (*Config, error) {
         JWTSecret:     getEnv("JWT_SECRET", ""),
         PrometheusURL: getEnv("PROMETHEUS_URL", "http://localhost:9090"),
         LokiURL:       getEnv("LOKI_URL", "http://localhost:3100"),
-        TempoURL:      getEnv("TEMPO_URL", "http://localhost:3200"),
+        TempoURL:      getEnv("TEMPO_URL", "http://tempo:3200"),
     }
 
     if cfg.DatabaseURL == "" {

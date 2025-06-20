@@ -67,11 +67,7 @@ export async function fetchLogs(
 export async function fetchTraces(
   projectId: string,
   timeRange?: TimeRange
-): Promise<Trace[]> {
-  if (!projectId) {
-    throw new Error("Missing projectId in fetchTraces");
-  }
-
+): Promise<Trace> {
   const url = new URL(`${API_URL}/api/traces`);
   url.searchParams.set("project_id", projectId);
   if (timeRange?.start) url.searchParams.set("start", timeRange.start);
@@ -86,7 +82,29 @@ export async function fetchTraces(
       const errorText = await res.text();
       throw new Error(`Failed to fetch traces: ${errorText || res.statusText}`);
     }
-    const traces: Trace[] = await res.json();
+    const traces: Trace = await res.json();
+    return traces;
+  } catch (error) {
+    console.error("Error fetching traces:", error);
+    throw error;
+  }
+}
+
+// function fetches all traces
+export async function fetchLogToTrace(traceId: string): Promise<Trace> {
+  const url = new URL(`${API_URL}/api/traces`);
+  // url.searchParams.set("trace_id", traceId);
+  url.searchParams.set("trace_id", "445eb3a993c85370b1408ecd6c643a9d");
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Failed to fetch traces: ${errorText || res.statusText}`);
+    }
+    const traces: Trace = await res.json();
     return traces;
   } catch (error) {
     console.error("Error fetching traces:", error);

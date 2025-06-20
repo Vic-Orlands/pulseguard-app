@@ -4,6 +4,7 @@ import (
 	"context"
 	"pulseguard/internal/models"
 	"pulseguard/internal/repository/telemetry"
+	"time"
 )
 
 type LogsService struct {
@@ -14,6 +15,7 @@ func NewLogsService(lokiRepo *telemetry.LokiRepository) *LogsService {
 	return &LogsService{lokiRepo: lokiRepo}
 }
 
-func (s *LogsService) GetLogsByProjectID(ctx context.Context, projectID string) ([]*models.Log, error) {
-	return s.lokiRepo.QueryLogs(ctx, projectID)
+// GetLogsByProjectID
+func (s *LogsService) GetLogsByProjectID(ctx context.Context, projectID string, start, end time.Time) ([]*models.Log, error) {
+	return s.lokiRepo.QueryLogs(ctx, projectID, start, end)
 }

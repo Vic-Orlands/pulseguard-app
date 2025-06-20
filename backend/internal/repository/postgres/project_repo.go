@@ -147,3 +147,32 @@ func (repo *ProjectRepository) DeleteBySlug(ctx context.Context, slug string) (*
 
     return &p, nil
 }
+
+// UpdateProject updates an existing project in the database.
+func (repo *ProjectRepository) UpdateProject(ctx context.Context, oldSlug string, project *models.Project) (*models.Project, error) {
+	query := `
+		UPDATE projects
+		SET name = $1, slug = $2, description = $3, updated_at = NOW()
+		WHERE slug = $4
+		RETURNING id, name, slug, description, owner_id, created_at, updated_at
+	`
+
+	var p models.Project
+	err := repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug).Scan(
+		&p.ID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("project with name %s not found", p.Name)
+		}
+		return nil, err
+	}
+
+	return &p, nil
+}

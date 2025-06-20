@@ -55,6 +55,7 @@ import { format } from "date-fns";
 import type { Error } from "@/types/error";
 import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getSeverityColor } from "@/lib/utils";
 
 interface Filters {
   project_id: string;
@@ -114,13 +115,11 @@ export function ErrorDetailsSheet({
   isOpen,
   onClose,
   selectedError,
-  getSeverityColor,
   onStatusChange,
 }: {
   selectedError: Error | null;
   isOpen: boolean;
   onClose: () => void;
-  getSeverityColor: (severity: string) => string;
   onStatusChange: (errorId: string, newStatus: string) => void;
 }) {
   const [isStatusLoading, setIsStatusLoading] = useState(false);
@@ -134,10 +133,8 @@ export function ErrorDetailsSheet({
 
     try {
       await updateErrorStatus(selectedError.id, status);
-      // Only close after API success
       setTimeout(() => {
         setIsStatusLoading(false);
-        // onClose();
       }, 300);
     } catch (err) {
       console.error("Error setting status:", err);
@@ -523,9 +520,9 @@ export default function ErrorsTab({
 }: ErrorsTabProps) {
   const [errorType, setErrorType] = useState<string>("");
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
+  const [loadingErrorIds, setLoadingErrorIds] = useState<string[]>([]);
   const [selectedError, setSelectedError] = useState<Error | null>(null);
   const [localErrors, setLocalErrors] = useState<Error[] | null>(errors);
-  const [loadingErrorIds, setLoadingErrorIds] = useState<string[]>([]);
 
   // Sync localErrors with prop changes
   useMemo(() => {
@@ -579,21 +576,6 @@ export default function ErrorsTab({
   const closeSheet = () => {
     setIsSheetOpen(false);
     setTimeout(() => setSelectedError(null), 300);
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "critical":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
-      case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
-      case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
-      case "low":
-        return "bg-green-500/20 text-green-400 border-green-500/30";
-      default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
-    }
   };
 
   const handleStatusChange = (errorId: string, newStatus: string) => {
@@ -720,7 +702,10 @@ export default function ErrorsTab({
             </TableHeader>
             <TableBody className="border-b border-slate-700/50">
               {filteredErrors.map((error) => (
-                <TableRow key={error.id} className="border-slate-700/50">
+                <TableRow
+                  key={error.id}
+                  className="border-slate-700/50 hover:bg-slate-800/30 group transition-colors"
+                >
                   <TableCell>
                     <div className="font-mono text-sm text-purple-300 font-medium">
                       {error.id}
@@ -818,15 +803,20 @@ export default function ErrorsTab({
               <Button
                 variant="outline"
                 size="sm"
-                disabled
+                disabled={filters.page <= 1}
                 className="bg-slate-800/30 border-slate-600/50"
+                onClick={() =>
+                  handleFilterChange("page", Math.max(1, filters.page - 1))
+                }
               >
                 Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => handleFilterChange("page", filters.page + 1)}
                 className="bg-slate-800/30 border-slate-600/50 hover:bg-slate-700/50"
+                disabled={filteredErrors.length < filters.limit}
               >
                 Next
               </Button>
@@ -840,7 +830,6 @@ export default function ErrorsTab({
         selectedError={selectedError}
         isOpen={isSheetOpen}
         onClose={closeSheet}
-        getSeverityColor={getSeverityColor}
         onStatusChange={handleStatusChange}
       />
     </div>

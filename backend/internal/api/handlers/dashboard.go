@@ -5,6 +5,7 @@ import (
 
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
+	"pulseguard/internal/util/spanutil"
 	"pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
@@ -32,7 +33,7 @@ func NewDashboardHandler(
 }
 
 func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.StartSpanFromRequest(h.tracer, r, "DashboardHandler.GetDashboard")
+	ctx, span := spanutil.StartSpanFromRequest(h.tracer, r, "DashboardHandler.GetDashboard")
 	defer span.End()
 
 	projectID := chi.URLParam(r, "project_id")

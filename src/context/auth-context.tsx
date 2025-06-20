@@ -1,81 +1,76 @@
-import {
+"use client";
+
+import React, {
   createContext,
   useContext,
   useState,
+  useCallback,
   useEffect,
   ReactNode,
 } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/api/settings-api";
+
+import type { UserProps } from "@/types/user";
+import { logoutUser } from "@/lib/api/user-api";
 
 interface AuthContextType {
-  user: any;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
+  user: UserProps | null;
+  logout: () => Promise<void>;
+  fetchUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<UserProps | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if user is logged in
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/auth/session");
-        const session = await response.json();
-        if (session) {
-          setUser(session.user);
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
+  // fetch user func
+  const fetchUser = useCallback(async () => {
+    try {
+      const userData: UserProps = await getCurrentUser();
+      setUser(userData);
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  // logout user func
+  const logout = useCallback(async () => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Login failed");
+      const res = await logoutUser();
+      if (!res) {
+        throw new Error("Error logging out");
       }
 
-      const data = await response.json();
-      setUser(data.user);
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout");
       setUser(null);
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
+      router.push("/signin");
+    } catch (err) {
+      console.error("Logout failed:", err);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
-      {children}
+    <AuthContext.Provider value={{ user, fetchUser, logout }}>
+      {children || loading}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+// Custom hook for consuming the context
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

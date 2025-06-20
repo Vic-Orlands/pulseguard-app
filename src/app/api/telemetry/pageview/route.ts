@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
 
-const logger = createLogger("error-api");
-const tracer = trace.getTracer("error-api");
-
 export async function POST(request: NextRequest) {
+  const projectId = request.headers.get("x-project-id") as string;
+  const logger = createLogger("error-api", projectId);
+  const tracer = trace.getTracer("error-api");
+
   return tracer.startActiveSpan("pageview-api.process", async (span) => {
     try {
       const pageViewData = await request.json();
-      const projectId = request.headers.get("x-project-id") || "";
 
       // Set span attributes for the pageview
       span.setAttributes({
@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       });
 
       logger.info(`Processing pageview: ${pageViewData.page}`, {
-        projectId,
         pageViewData,
       });
 

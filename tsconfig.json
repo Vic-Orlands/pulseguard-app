@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/lib/prometheus.ts", "src/components/Icons.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/lib/prometheus.ts", "src/components/Icons.jsx", "src/app/(public)/blog/loki.mdx"],
   "exclude": ["node_modules"]
 }

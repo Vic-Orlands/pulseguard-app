@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -49,7 +51,10 @@ func (s *UserService) Register(ctx context.Context, email, name, hashedPassword 
 func (s *UserService) Login(ctx context.Context, email, password string) (*models.User, error) {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		return nil, fmt.Errorf("user not found: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
 	if err := auth.ComparePassword(user.Password, password); err != nil {

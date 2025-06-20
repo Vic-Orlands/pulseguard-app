@@ -35,11 +35,6 @@ receivers:
         span_id:
           parse_from: attributes.spanId
 
-        attributes:
-          - project_id:
-          -   parse_from: attributes.projectId
-          -   to: project_id
-
 processors:
   batch:
     timeout: 1s
@@ -57,6 +52,9 @@ processors:
   attributes:
     actions:
       - action: insert
+        key: project_id
+        from_attribute: projectId
+      - action: insert
         key: trace_id
         from_attribute: traceId
       - action: insert
@@ -65,27 +63,19 @@ processors:
       - action: insert
         key: service_name
         value: "pulseguard"
-      - action: insert
-        key: project_id
-        from_attribute: project_id
 
       - action: delete
         key: traceId
       - action: delete
         key: spanId
+      - action: delete
+        key: projectId
 
   resource/add_service:
     attributes:
       - action: insert
         key: service.name
         value: pulseguard
-
-    # Updated filter to only accept recent logs
-    # filter/recent_logs:
-    #   logs:
-    #     log_record:
-    #       - IsMatch(attributes["time"], "^2025-04-2[6-9]T\\d{2}:\\d{2}:\\d{2}Z$")
-    #       - IsMatch(attributes["time"], "^2025-04-3[0-1]T\\d{2}:\\d{2}:\\d{2}Z$")
 
 exporters:
   prometheus:
@@ -112,8 +102,7 @@ exporters:
     default_labels_enabled:
       exporter: true
       job: true
-      service_name: true
-      project_id: true
+
     # Allow old logs to be ingested (adjust as needed)
     retry_on_failure:
       enabled: true

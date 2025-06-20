@@ -5,7 +5,7 @@ import (
 	"pulseguard/pkg/logger"
 )
 
-func ProjectContextMiddleware(next http.Handler) http.Handler {
+func ProjectIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 

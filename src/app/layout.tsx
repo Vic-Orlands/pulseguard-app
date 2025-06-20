@@ -3,6 +3,17 @@ import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TelemetryProvider } from "@/components/telemetry-provider";
+import { AuthProvider } from "@/context/auth-context";
+import { setProjectId } from "@/lib/telemetry/client-error-tracking";
+
+// Set projectId globally
+const currentProjectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+const trackerUrl = process.env.NEXT_PUBLIC_ISSUE_TRACKER_URL;
+
+if (!currentProjectId) {
+  console.error("Missing NEXT_PUBLIC_PROJECT_ID environment variable");
+}
+setProjectId(currentProjectId);
 
 const geistSans = Inter({
   variable: "--font-inter",
@@ -64,9 +75,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TelemetryProvider
-          initialProjectId={"85c2423d-d1dd-453f-8a29-7272fa14c031"}
+          projectId={currentProjectId}
+          issueTrackerUrl={trackerUrl}
         >
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </TelemetryProvider>
         <Toaster />
       </body>

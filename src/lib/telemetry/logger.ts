@@ -5,16 +5,14 @@ export const runtime = "nodejs";
 
 declare const EdgeRuntime: string | undefined;
 
-type LogMethod = (obj: unknown, msg?: string, ...args: any[]) => void;
+type LogMethod = (obj: unknown, msg?: string, ...args: unknown[]) => void;
 
-// Environment detection
 const isDev = process.env.NODE_ENV !== "production";
 const level = isDev ? "debug" : "info";
 const ENABLE_TRACING = process.env.ENABLE_OTEL_TRACING !== "false";
 const IS_EDGE =
   typeof window !== "undefined" || typeof EdgeRuntime !== "undefined";
 
-// Base logger configuration
 const baseConfig = {
   level,
   timestamp: pino.stdTimeFunctions.isoTime,
@@ -33,7 +31,7 @@ const baseConfig = {
                 }
               : {};
           } catch (err) {
-            console.log("Logger base config error", err);
+            console.error("Logger base config error", err);
             return {};
           }
         },
@@ -41,10 +39,8 @@ const baseConfig = {
     : {}),
 };
 
-// Node.js specific setup
 let baseLogger: Logger;
 if (!IS_EDGE) {
-  // Dynamic import for Node.js modules
   const { default: fs } = await import("fs");
   const { default: path } = await import("path");
 
@@ -61,18 +57,17 @@ if (!IS_EDGE) {
     baseLogger = pino(baseConfig);
   }
 } else {
-  // Edge/browser environment
   baseLogger = pino(baseConfig);
 }
 
-export function createLogger(name: string): Logger {
-  const childLogger = baseLogger.child({ name });
+export function createLogger(name: string, projectId?: string): Logger {
+  const bindings = projectId ? { name, projectId } : { name };
+  const childLogger = baseLogger.child(bindings);
 
   if (!ENABLE_TRACING) {
     return childLogger;
   }
 
-  // Create a new logger instance instead of using Proxy
   const tracingLogger = pino(
     {
       ...baseConfig,
@@ -86,15 +81,15 @@ export function createLogger(name: string): Logger {
               }
             : {};
         } catch (err) {
-          console.log("Logger tracing error", err);
+          console.error("Logger tracing error", err);
           return {};
         }
       },
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     childLogger as any
   );
 
-  // Manually copy log methods to ensure proper this binding
   const methods = ["trace", "debug", "info", "warn", "error", "fatal"] as const;
   const wrappedLogger = {} as Logger;
 
@@ -114,8 +109,8 @@ export function createLogger(name: string): Logger {
             args.unshift({ traceId, spanId });
           }
         }
-      } catch (err) {
-        childLogger.error("Failed to inject tracing context", { error: err });
+      } catch (error) {
+        childLogger.error("Failed to inject tracing context", { error });
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
       return (childLogger[method] as Function)(...args);
@@ -124,9 +119,11 @@ export function createLogger(name: string): Logger {
 
   return Object.assign(tracingLogger, wrappedLogger, {
     child: (bindings: Record<string, unknown>) =>
-      createLogger(`${name}:${bindings.name || "child"}`),
+      createLogger(
+        `${name}:${bindings.name || "child"}`,
+        bindings.project_id as string | undefined
+      ),
   });
 }
 
-// Export a default logger instance
 export const logger = createLogger("app");

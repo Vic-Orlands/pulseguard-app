@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormField, InputWithIcon } from "./shared";
+import { registerUser } from "@/lib/api/user-api";
 import { toast } from "sonner";
 
 // Validation schemas
@@ -120,20 +121,9 @@ export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
       try {
         setError("");
 
-        const response = await fetch(
-          "http://localhost:8081/api/users/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }
-        );
-
-        if (!response.ok) {
-          const error = await response.json();
-          toast(error.message || "Registration failed");
+        const response = await registerUser(data);
+        if (response.error) {
+          setError(response.error || "Registration failed");
           return;
         }
 
@@ -373,7 +363,7 @@ export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                {step === 3 ? "Complete" : "Continue"}
+                {step === 3 ? "Register" : "Continue"}
                 {!isPending && <ArrowRight className="h-4 w-4" />}
               </>
             )}

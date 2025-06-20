@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Logger wraps a zerolog.Logger for structured logging
@@ -31,41 +32,59 @@ func WithProjectID(ctx context.Context, projectID string) context.Context {
 }
 
 // GetProjectIDFromContext retrieves the stored project_id from the context
-func GetProjectIDFromContext(ctx context.Context) (string, bool) {
+func GetProjectIDFromContext(ctx context.Context) (string, bool) { // Fixed signature
 	projectID, ok := ctx.Value(projectIDKey).(string)
 	return projectID, ok
 }
 
-// Loggers: info, error, and error-with-array-fields
+// Add common OTEL trace/span/project fields
+func enrichEventWithContext(ctx context.Context, evt *zerolog.Event) *zerolog.Event {
+	if projectID, ok := GetProjectIDFromContext(ctx); ok {
+		evt = evt.Str("project_id", projectID)
+	}
+
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanCtx.IsValid() {
+		evt = evt.
+			Str("trace_id", spanCtx.TraceID().String()).
+			Str("span_id", spanCtx.SpanID().String())
+	}
+
+	return evt
+}
+
 // Info logs an info-level message
 func (l *Logger) Info(ctx context.Context, msg string, fields ...interface{}) {
-	evt := l.zlog.Info()
-
-	if pid, ok := GetProjectIDFromContext(ctx); ok {
-		evt = evt.Str("project_id", pid)
-	}
-	if uid, ok := ctx.Value(userIDKey).(string); ok {
-		evt = evt.Str("user_id", uid)
-	}
+	evt := enrichEventWithContext(ctx, l.zlog.Info())
 
 	for i := 0; i < len(fields); i += 2 {
-		evt = evt.Interface(fields[i].(string), fields[i+1])
+		key, ok := fields[i].(string)
+		if !ok {
+			continue
+		}
+		evt = evt.Interface(key, fields[i+1])
 	}
 	evt.Msg(msg)
 }
 
 // Error logs an error-level message
 func (l *Logger) Error(ctx context.Context, msg string, err error, fields ...interface{}) {
-	evt := l.zlog.Error().Err(err)
+	evt := enrichEventWithContext(ctx, l.zlog.Error().Err(err))
+
 	for i := 0; i < len(fields); i += 2 {
-		evt = evt.Interface(fields[i].(string), fields[i+1])
+		key, ok := fields[i].(string)
+		if !ok {
+			continue
+		}
+		evt = evt.Interface(key, fields[i+1])
 	}
 	evt.Msg(msg)
 }
 
 // Error logs with fields
 func (l *Logger) ErrorWithFields(ctx context.Context, msg string, fields map[string]interface{}) {
-	evt := l.zlog.Error()
+	evt := enrichEventWithContext(ctx, l.zlog.Error())
+
 	for k, v := range fields {
 		evt = evt.Interface(k, v)
 	}

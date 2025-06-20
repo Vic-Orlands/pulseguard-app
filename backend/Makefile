@@ -21,6 +21,10 @@ build:
 	@echo "📦 Building $(APP_NAME)..."
 	@go build -o $(APP_NAME) $(CMD_PATH)
 
+## Backup db before running migrations
+# backup-db:
+# 	pg_dump -U postgres -h localhost -d pulseguard > backups/backup_$(shell date +%F_%H-%M-%S).sql
+
 ## Run only database migrations
 migrate:
 	@echo "🧱 Running migrations..."

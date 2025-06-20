@@ -11,18 +11,23 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o pulseguard ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o pulseguard ./cmd/server/main.go
+
+# Existing lines...
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+ENV PATH="/go/bin:$PATH"
 
 # Final stage
-FROM gcr.io/distroless/static
+FROM alpine:latest
 
 WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /app/pulseguard .
+RUN apk --no-cache add ca-certificates
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8081
 
 # Run the application
 CMD ["./pulseguard"]

@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  ChevronDown,
-  Plus,
   Trash2,
-  Shield,
   Users,
   Settings,
   Eye,
@@ -25,83 +22,39 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { Project } from "@/app/projects/page";
 import { toast } from "sonner";
-import { DeleteProjectDialog } from "../delete-project-dialog";
+import { DeleteProjectDialog } from "../shared/delete-project-dialog";
+import { updateProject } from "@/lib/api/settings-api";
+import type { Project } from "@/types/dashboard";
 
 export default function PulseGuardSettings({ project }: { project: Project }) {
   const { id, slug, name, description } = project;
 
-  const [projectName, setProjectName] = useState(name);
-  const [projectId, setProjectId] = useState(id);
-  const [projectDescription, setProjectDescription] = useState(description);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [projectSlug, setProjectSlug] = useState<string>(slug || "");
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [projectName, setProjectName] = useState<string>(name);
+  const [apiKeyCopied, setApiKeyCopied] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [projectDescription, setProjectDescription] =
+    useState<string>(description);
 
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@digitalocean.com",
-      role: "Owner",
-      avatar:
-        "avatar: https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face,",
-      initials: "JD",
-      isOwner: true,
-      lastActive: "2 minutes ago",
-    },
-    {
-      id: 2,
-      name: "Alice Smith",
-      email: "alice@digitalocean.com",
-      role: "Developer",
-      avatar:
-        "avatar: https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face,",
-      initials: "AS",
-      isOwner: false,
-      lastActive: "1 hour ago",
-    },
-    {
-      id: 3,
-      name: "Bob Wilson",
-      email: "bob@digitalocean.com",
-      role: "Admin",
-      avatar:
-        "avatar: https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face,",
-      initials: "BW",
-      isOwner: false,
-      lastActive: "3 hours ago",
-    },
-  ]);
+  // const [notifications, setNotifications] = useState({
+  //   errorAlerts: true,
+  //   performanceAlerts: true,
+  //   weeklyReports: false,
+  //   downtimeNotifications: true,
+  // });
 
-  const [notifications, setNotifications] = useState({
-    errorAlerts: true,
-    performanceAlerts: true,
-    weeklyReports: false,
-    teamUpdates: true,
-  });
-
-  const [projectSettings, setProjectSettings] = useState({
-    errorRetention: "30",
-    alertThreshold: "5",
-    autoResolve: true,
-    publicDashboard: false,
-  });
-
-  const apiKey = "pg_live_sk_1a2b3c4d5e6f7g8h9i0j";
+  // const [projectSettings, setProjectSettings] = useState({
+  //   errorRetention: "30",
+  //   alertThreshold: "5",
+  //   autoResolve: true,
+  //   publicDashboard: false,
+  // });
 
   // Auto-generate project ID from project name
   useEffect(() => {
@@ -113,64 +66,85 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "");
 
-    const newId = generateId(projectName);
-    if (newId !== projectId) {
-      setProjectId(newId);
+    const newSlug = generateId(projectName);
+    if (newSlug !== slug) {
+      setProjectSlug(newSlug);
       setHasUnsavedChanges(true);
     }
-  }, [projectName, projectId]);
+  }, [projectName, slug]);
 
   const handleProjectNameChange = (value: string) => {
     setProjectName(value);
     setHasUnsavedChanges(true);
   };
 
-  const handleRoleChange = (memberId: number, newRole: string) => {
-    setTeamMembers((prev) =>
-      prev.map((member) =>
-        member.id === memberId ? { ...member, role: newRole } : member
-      )
-    );
-    setHasUnsavedChanges(true);
-  };
+  // const handleRoleChange = (memberId: number, newRole: string) => {
+  //   setTeamMembers((prev) =>
+  //     prev.map((member) =>
+  //       member.id === memberId ? { ...member, role: newRole } : member
+  //     )
+  //   );
+  //   setHasUnsavedChanges(true);
+  // };
 
-  const handleRemoveMember = (memberId: number) => {
-    setTeamMembers((prev) => prev.filter((member) => member.id !== memberId));
-    setHasUnsavedChanges(true);
-  };
+  // const handleRemoveMember = (memberId: number) => {
+  //   setTeamMembers((prev) => prev.filter((member) => member.id !== memberId));
+  //   setHasUnsavedChanges(true);
+  // };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setHasUnsavedChanges(false);
-    setIsSaving(false);
-    toast.success("Changes saved successfully!");
+
+    try {
+      const res = await updateProject(slug, {
+        name: projectName,
+        slug: projectSlug,
+        description: projectDescription,
+      });
+
+      if (!res || res == null) {
+        toast.error("Failed to save changes. Please try again.");
+        setIsSaving(false);
+        return;
+      }
+
+      setHasUnsavedChanges(false);
+      setIsSaving(false);
+      toast.success("Changes saved successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+    }
   };
 
   const copyApiKey = async () => {
-    await navigator.clipboard.writeText(apiKey);
+    await navigator.clipboard.writeText(id);
     setApiKeyCopied(true);
     setTimeout(() => setApiKeyCopied(false), 2000);
     toast.success("API key copied to clipboard!");
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "Owner":
-        return "default";
-      case "Admin":
-        return "secondary";
-      case "Developer":
-      case "Viewer":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
+  // const getRoleBadgeVariant = (role: string) => {
+  //   switch (role) {
+  //     case "Owner":
+  //       return "default";
+  //     case "Admin":
+  //       return "secondary";
+  //     case "Developer":
+  //     case "Viewer":
+  //       return "outline";
+  //     default:
+  //       return "outline";
+  //   }
+  // };
 
   return (
-    <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 space-y-8 p-6 min-h-screen">
+    <Card
+      className={
+        deleteDialogOpen
+          ? ""
+          : "bg-slate-900/50 backdrop-blur-xl border-slate-700/50 space-y-8 p-6 min-h-screen"
+      }
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -241,7 +215,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                   </label>
                   <div className="relative">
                     <Input
-                      value={projectId}
+                      value={projectSlug}
                       className="bg-slate-900/30 border-slate-600 text-slate-400 pr-12"
                       disabled
                     />
@@ -271,8 +245,8 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                   placeholder="Describe your project..."
                 />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
+              {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300">
                     Error Retention (days)
                   </label>
@@ -350,8 +324,8 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                       setHasUnsavedChanges(true);
                     }}
                   />
-                </div>
-              </div>
+                </div> 
+              </div>*/}
             </CardContent>
           </Card>
 
@@ -367,8 +341,8 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                   variant="outline"
                   className="border-purple-400/30 text-purple-400"
                 >
-                  {teamMembers.length} member
-                  {teamMembers.length !== 1 ? "s" : ""}
+                  1 member
+                  {/* {teamMembers.length !== 1 ? "s" : ""} */}
                 </Badge>
               </div>
               <CardDescription>
@@ -376,7 +350,16 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {teamMembers.map((member) => (
+              <div className="flex flex-col items-center justify-center py-12">
+                <span className="text-2xl font-semibold text-slate-400">
+                  Teams
+                </span>
+                <span className="text-lg text-slate-500 mb-4">Coming soon</span>
+                <span className="text-sm text-slate-600">
+                  Team management features will be available in a future update.
+                </span>
+              </div>
+              {/* {teamMembers.map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center justify-between p-4 rounded-lg bg-slate-900/30 border border-slate-700/30 hover:border-slate-600/50 transition-colors"
@@ -456,7 +439,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Invite Team Member
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
         </div>
@@ -478,7 +461,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                 </label>
                 <div className="flex items-center gap-2">
                   <Input
-                    value={showApiKey ? apiKey : "•".repeat(apiKey.length)}
+                    value={showApiKey ? id : "•".repeat(id.length)}
                     className="bg-slate-900/50 border-slate-600 font-mono text-sm"
                     readOnly
                   />
@@ -498,7 +481,11 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                     variant="outline"
                     size="sm"
                     onClick={copyApiKey}
-                    className="border-slate-600"
+                    className={
+                      apiKeyCopied
+                        ? "border-green-900 bg-green-800"
+                        : "border-slate-600"
+                    }
                   >
                     {apiKeyCopied ? (
                       <Check className="h-4 w-4" />
@@ -524,7 +511,16 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {Object.entries(notifications).map(([key, value]) => (
+              <div className="flex flex-col items-center justify-center py-12">
+                <span className="text-2xl font-semibold text-slate-400">
+                  Notifications
+                </span>
+                <span className="text-lg text-slate-500 mb-4">Coming soon</span>
+                <span className="text-sm text-slate-600">
+                  Notification features will be available in a future update.
+                </span>
+              </div>
+              {/* {Object.entries(notifications).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between">
                   <label className="text-sm text-slate-300 capitalize">
                     {key.replace(/([A-Z])/g, " $1").toLowerCase()}
@@ -537,7 +533,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                     }}
                   />
                 </div>
-              ))}
+              ))} */}
             </CardContent>
           </Card>
 

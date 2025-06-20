@@ -43,19 +43,19 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, projectID strin
 		return nil, err
 	}
 
-	logs, err := s.logsService.GetLogsByProjectID(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	traces, err := s.tracesService.ListByProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
+	// logs, err := s.logsService.GetLogsByProjectID(ctx, projectID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// traces, err := s.tracesService.ListByProject(ctx, projectID)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &DashboardData{
 		Alerts:  alerts,
 		Metrics: metrics,
-		Logs:    logs,
-		Traces:  traces,
+		// Logs:    logs,
+		// Traces:  traces,
 	}, nil
 }

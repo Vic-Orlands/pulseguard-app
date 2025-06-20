@@ -56,7 +56,10 @@ func (repo *UserRepository) GetByEmail(ctx context.Context, email string) (*mode
 		&user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("user not found: %w", sql.ErrNoRows)
+		}
+		return nil, fmt.Errorf("db error fetching user by email: %w", err)
 	}
 
 	return &user, nil

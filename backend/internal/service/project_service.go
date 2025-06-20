@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,8 @@ import (
 type ProjectService struct {
 	projectRepo *postgres.ProjectRepository
 }
+
+var ErrDuplicateSlug = errors.New("duplicate project slug")
 
 func NewProjectService(projectRepo *postgres.ProjectRepository) *ProjectService {
 	return &ProjectService{projectRepo: projectRepo}
@@ -39,17 +42,17 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID 
 	err := s.projectRepo.Create(ctx, p)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
-			if pgErr.Code == "23505" && pgErr.Constraint == "projects_slug_key" {
-				return nil, fmt.Errorf("duplicate_slug")
+			if pgErr.Code == "23505" && pgErr.Constraint == "projects_name_key" {
+				fmt.Printf("❌ DB insert multiple project name: %v\n", err)
+				return nil, ErrDuplicateSlug
 			}
 		}
 
-		// fmt.Printf("❌ DB insert create project error: %v\n", err)
+		fmt.Printf("❌ DB insert create project error: %v\n", err)
 		return nil, err
 	}
 
-	// fmt.Printf("✅ Project created successfully: %s\n", p.Name)
-
+	fmt.Printf("✅ Project created successfully: %s\n", p.Name)
 	return p, nil
 }
 
@@ -92,6 +95,35 @@ func (s *ProjectService) DeleteBySlug(ctx context.Context, slug string) (*models
 	project, err := s.projectRepo.DeleteBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
+	}
+
+	return project, nil
+}
+
+// UpdateProject updates an existing project with the given slug, name, and description.
+func (s *ProjectService) UpdateProject(ctx context.Context, oldSlug, name, description, slug string) (*models.Project, error) {
+	// Fetch the existing project
+	project, err := s.projectRepo.GetBySlug(ctx, oldSlug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch project: %w", err)
+	}
+	if project == nil {
+		return nil, fmt.Errorf("project with slug %s not found", oldSlug)
+	}
+
+	p := &models.Project{
+		Name:        name,
+		Slug:        slug,
+		Description: description,
+		OwnerID:     project.OwnerID,
+		CreatedAt:   project.CreatedAt,
+		UpdatedAt:   time.Now(),
+	}
+
+	// Save updated project
+	project, err = s.projectRepo.UpdateProject(ctx, oldSlug, p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update project: %w", err)
 	}
 
 	return project, nil

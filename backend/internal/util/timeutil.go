@@ -1,6 +1,7 @@
 package util
 
 import (
+	"net/http"
 	"time"
 )
 
@@ -9,39 +10,38 @@ func NowUTC() time.Time {
     return time.Now().UTC()
 }
 
-// FormatTimestamp formats a time.Time object as an ISO 8601 string (e.g., "2025-06-03T01:01:00Z").
-// Suitable for JSON serialization and PostgreSQL TIMESTAMP fields.
-func FormatTimestamp(t time.Time) string {
-    return t.UTC().Format(time.RFC3339)
+// GetIPAddress extracts the client's IP address from the request.
+// It checks the "X-Forwarded-For" header first, then falls back to RemoteAddr.
+func GetIPAddress(r *http.Request) string {
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	return ip
 }
 
-// ParseTimestamp parses an ISO 8601 string into a time.Time object.
-// Returns an error if the string is invalid.
-func ParseTimestamp(s string) (time.Time, error) {
-    return time.Parse(time.RFC3339, s)
-}
+// ParseTimeRange parses start and end time strings in RFC3339 format.
+// If the strings are empty or invalid, it defaults to the last 48 hours for start
+// and the current time for end.
+func ParseTimeRange(startStr, endStr string) (time.Time, time.Time) {
+	var start, end time.Time
+	var err error
 
-// UnixMilli returns the Unix timestamp in milliseconds for a given time.
-func UnixMilli(t time.Time) int64 {
-    return t.UnixMilli()
-}
-
-// FromUnixMilli creates a time.Time from a Unix timestamp in milliseconds.
-func FromUnixMilli(ms int64) time.Time {
-    return time.Unix(0, ms*int64(time.Millisecond)).UTC()
-}
-
-// IsZero checks if a time.Time is the zero value (e.g., for validating unset timestamps).
-func IsZero(t time.Time) bool {
-    return t.IsZero()
-}
-
-// DurationSince returns the duration since the given time until now in UTC.
-func DurationSince(t time.Time) time.Duration {
-    return time.Since(t.UTC())
-}
-
-// AddDuration adds a duration to a time and returns the result in UTC.
-func AddDuration(t time.Time, d time.Duration) time.Time {
-    return t.Add(d).UTC()
+	if startStr != "" {
+		start, err = time.Parse(time.RFC3339, startStr)
+		if err != nil {
+			start = time.Now().Add(-48 * time.Hour)
+		}
+	} else {
+		start = time.Now().Add(-48 * time.Hour)
+	}
+	if endStr != "" {
+		end, err = time.Parse(time.RFC3339, endStr)
+		if err != nil {
+			end = time.Now()
+		}
+	} else {
+		end = time.Now()
+	}
+	return start, end
 }

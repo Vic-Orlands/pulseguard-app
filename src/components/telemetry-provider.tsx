@@ -10,39 +10,56 @@ import React, {
 } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
+  getSessionId,
   setupClientErrorTracking,
   updateClientErrorTracking,
-  getSessionId,
 } from "@/lib/telemetry/client-error-tracking";
 
 interface TelemetryContextType {
+  setUserId: (userId: string) => void;
   reportError: (error: Error | string, componentStack?: string) => void;
   reportEvent: (eventName: string, eventData: Record<string, unknown>) => void;
-  setUserId: (userId: string) => void;
-  setProjectId: (projectId: string) => void;
 }
 
 const TelemetryContext = createContext<TelemetryContextType | null>(null);
 
 interface TelemetryProviderProps {
+  projectId: string;
   children: ReactNode;
   initialUserId?: string;
-  initialProjectId: string; // Required now
+  issueTrackerUrl?: string;
 }
 
+// Error Boundary Wrapper hidden:
+const TelemetryErrorBoundary = ({
+  userId,
+  children,
+  projectId,
+}: {
+  userId?: string;
+  projectId: string;
+  children: React.ReactNode;
+}) => (
+  <ErrorBoundary userId={userId} projectId={projectId}>
+    {children}
+  </ErrorBoundary>
+);
+
+// main Telemetry Provider
 export function TelemetryProvider({
   children,
+  projectId,
   initialUserId,
-  initialProjectId,
+  issueTrackerUrl,
 }: TelemetryProviderProps): JSX.Element {
-  if (typeof window === "undefined") {
-  }
-
   const [userId, setUserId] = useState<string | undefined>(initialUserId);
-  const [projectId, setProjectId] = useState<string>(initialProjectId);
   const [reporter, setReporter] = useState<ReturnType<
     typeof setupClientErrorTracking
   > | null>(null);
+
+  useEffect(() => {
+    updateClientErrorTracking({ userId, projectId });
+  }, [userId, projectId]);
 
   useEffect(() => {
     if (!projectId) {
@@ -53,9 +70,8 @@ export function TelemetryProvider({
     const tracker = setupClientErrorTracking({
       userId,
       projectId,
-      issueTrackerUrl: "https://github.com/Vic-Orlands/pulseguard/issues",
+      issueTrackerUrl,
     });
-
     setReporter(tracker);
 
     fetch("/api/telemetry/pageview", {
@@ -78,24 +94,19 @@ export function TelemetryProvider({
     return () => {
       reporter?.cleanup?.();
     };
-  }, [userId, projectId]);
-
-  useEffect(() => {
-    updateClientErrorTracking({ userId, projectId });
-  }, [userId, projectId]);
+  }, [userId, projectId, issueTrackerUrl]);
 
   return (
     <TelemetryContext.Provider
       value={{
+        setUserId,
         reportError: (error, stack) => reporter?.reportError(error, stack),
         reportEvent: (event, data) => reporter?.reportCustomEvent(event, data),
-        setUserId,
-        setProjectId,
       }}
     >
-      <ErrorBoundary userId={userId} projectId={projectId}>
+      <TelemetryErrorBoundary userId={userId} projectId={projectId}>
         {children}
-      </ErrorBoundary>
+      </TelemetryErrorBoundary>
     </TelemetryContext.Provider>
   );
 }

@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"pulseguard/internal/service"
@@ -137,10 +140,22 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	user, err := h.userService.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
+		errorType := "login_failed"
+		errorMessage := "Invalid email or password"
+
+		if errors.Is(err, sql.ErrNoRows) {
+			errorType = "user_not_found"
+			errorMessage = "No user found with that email"
+		} else if strings.Contains(err.Error(), "invalid password") {
+			errorType = "invalid_password"
+			// Leave message generic to avoid info leaks
+		}
+
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
-			attribute.String("error_type", "login_failed"),
+			attribute.String("error_type", errorType),
 		))
-		util.WriteError(w, http.StatusUnauthorized, "Invalid email or password")
+
+		util.WriteError(w, http.StatusUnauthorized, errorMessage)
 		return
 	}
 

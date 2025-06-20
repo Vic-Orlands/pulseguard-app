@@ -45,7 +45,7 @@ func main() {
 
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
-		appLogger.Info(context.Background(), "⚠️ No .env file found, using system env vars")
+		appLogger.Info(context.Background(), "No .env file found, using system env vars")
 	}
 
 	// Get all config variables

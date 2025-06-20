@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	middlewareSlash "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"go.opentelemetry.io/otel/trace"
 
@@ -33,6 +34,7 @@ func NewRouter(
 	authMiddleware func(http.Handler) http.Handler,
 ) chi.Router {
 	r := chi.NewRouter()
+	middlewareSlash.StripSlashes(r)
 
 	// Request middleware logging
 	middleware.Logging(r)
@@ -40,17 +42,19 @@ func NewRouter(
 	// Custom middlewares for tracing and metrics
 	r.Use(tracingMiddleware)
 	r.Use(metricsMiddleware)
-	r.Use(middleware.ProjectContextMiddleware)
+	r.Use(middleware.ProjectIDMiddleware)
 
 	// Handlers
 	userHandler := handlers.NewUserHandler(userSvc, metrics, tokenSvc, logger)
 	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
-	errorHandler := handlers.NewErrorHandler(errorSvc, metrics, logger, tracer)
-	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
-	metricsHandler := handlers.NewMetricsHandler(metricsSvc, metrics)
-	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics)
-	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics)
+
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, metrics, tracer)
+	errorHandler := handlers.NewErrorHandler(errorSvc, metrics, logger, tracer)
+	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics, tracer)
+	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics, tracer)
+
+	metricsHandler := handlers.NewMetricsHandler(metricsSvc, metrics)
+	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
 
 	// user routes
 	r.Post("/api/users/register", userHandler.Register)
@@ -71,6 +75,7 @@ func NewRouter(
 		r.Post("/api/projects", projectHandler.Create)
 		r.Get("/api/projects", projectHandler.ListByOwner)
 		r.Get("/api/projects/{slug}", projectHandler.GetBySlug)
+		r.Put("/api/projects/{slug}", projectHandler.UpdateProject)
 		r.Delete("/api/projects/{slug}", projectHandler.DeleteBySlug)
 
 		// Error tracking routes
@@ -86,7 +91,7 @@ func NewRouter(
 		// otlp
 		r.Get("/api/metrics", metricsHandler.GetMetrics)
 		r.Get("/api/logs", logsHandler.GetLogsByProjectID)
-		r.Get("/api/traces", tracesHandler.ListByProject)
+		r.Get("/api/traces", tracesHandler.GetTraceByID)
 		r.Get("/api/dashboard", dashboardHandler.GetDashboard)
 	})
 

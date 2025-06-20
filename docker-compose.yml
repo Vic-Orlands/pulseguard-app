@@ -142,16 +142,19 @@ services:
       context: ./backend # Path to your Go project (with Dockerfile)
       dockerfile: Dockerfile
     container_name: go-backend
+    env_file:
+      - .env
     # ports:
     #   - "8080:8080" # Expose your Go HTTP server
     environment:
       # - POSTGRES_URL=postgresql://neondb_owner:npg_UP7rwnCW8Rly@ep-dry-silence-a4fqwlt8-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
-      - DB_URL=${DB_URL}
-      - PORT=${PORT}
-      - JWT_SECRET=${JWT_SECRET}
-      - PROMETHEUS_ENDPOINT=${PROMETHEUS_URL}
-      - LOKI_ENDPOINT=${LOKI_URL}
-      - TEMPO_ENDPOINT=${TEMPO_URL}
+      - DB_URL=postgres://postgres:newpass123@postgres:5432/pulseguard?sslmode=disable
+      - PORT=8081
+      - JWT_SECRET=a-string-secret-at-least-256-bits-long
+      - TEMPO_URL=http://tempo:3200
+      - OTLP_ENDPOINT=localhost:4318
+      - LOKI_URL=http://localhost:3100
+      - PROMETHEUS_URL=http://prometheus:9090
     depends_on:
       - postgres
       - otel-collector
@@ -161,7 +164,8 @@ services:
     networks:
       - monitoring
     restart: unless-stopped
-    # For debugging purposes
+    volumes:
+      - ./logs:/app/logs
     tty: true
     stdin_open: true
 

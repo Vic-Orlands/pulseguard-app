@@ -63,25 +63,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 // Mock API functions
 const mockApi = {
-  getCurrentUser: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return {
-      id: "user_123",
-      name: "John Doe",
-      email: "john@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
-      createdAt: "2023-01-15",
-      lastLogin: "2024-06-10T14:30:00Z",
-      subscription: "Pro",
-      usage: {
-        projects: 12,
-        apiCalls: 145000,
-        storage: 2.4,
-      },
-    };
-  },
-
   updateUser: async (userData) => {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     return { success: true, user: userData };
@@ -150,12 +131,18 @@ const mockApi = {
 };
 
 const availableAvatars = [
+  "None",
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face",
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=64&h=64&fit=crop&crop=face",
+  "https://api.dicebear.com/7.x/big-ears/svg?seed=user1&w=64&h=64",
+  "https://api.dicebear.com/7.x/pixel-art/svg?seed=gamer1&w=64&h=64",
+  "https://api.dicebear.com/7.x/pixel-art/svg?seed=gamer2&w=64&h=64",
+  "https://api.dicebear.com/7.x/fun-emoji/svg?seed=happy&w=64&h=64",
+  "https://api.dicebear.com/7.x/fun-emoji/svg?seed=cool&w=64&h=64",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael&w=64&h=64",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna&w=64&h=64",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Max&w=64&h=64",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Rio&w=64&h=64",
 ];
 
 export default function UserSettingsPage() {
@@ -212,12 +199,31 @@ export default function UserSettingsPage() {
     twoFactorEnabled: false,
   });
 
+  const getCurrentUser = async () => {
+    const user = await new Promise((resolve) => setTimeout(resolve, 800));
+    return {
+      id: "user_123",
+      name: "John Doe",
+      email: "john@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
+      createdAt: "2023-01-15",
+      lastLogin: "2024-06-10T14:30:00Z",
+      subscription: "Pro",
+      usage: {
+        projects: 12,
+        apiCalls: 145000,
+        storage: 2.4,
+      },
+    };
+  };
+
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
         const [userData, projectsData] = await Promise.all([
-          mockApi.getCurrentUser(),
+          getCurrentUser(),
           mockApi.getUserProjects(),
         ]);
 
@@ -432,18 +438,29 @@ export default function UserSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="container mx-auto p-6 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+        >
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
               Account Settings
             </h1>
-            <p className="text-slate-400 text-lg mt-2">
+            <p className="text-gray-400 text-sm">
               Manage your account, projects, and preferences
             </p>
           </div>
+
           <div className="flex items-center gap-4">
             <AnimatePresence>
               {hasUnsavedChanges && (
@@ -459,6 +476,7 @@ export default function UserSettingsPage() {
               )}
             </AnimatePresence>
             <Button
+              type="submit"
               onClick={handleSaveChanges}
               disabled={!hasUnsavedChanges || isSaving}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
@@ -476,60 +494,83 @@ export default function UserSettingsPage() {
               )}
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm border border-slate-700/50">
-          {[
-            { id: "profile", label: "Profile", icon: User },
-            { id: "projects", label: "Projects", icon: Database },
-            { id: "preferences", label: "Preferences", icon: Settings },
-            { id: "security", label: "Security", icon: Shield },
-            { id: "danger", label: "Danger Zone", icon: AlertTriangle },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                activeTab === tab.id
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
-              }`}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm border border-slate-700/50 mb-4">
+          <div className="flex space-x-2">
+            {[
+              { id: "profile", label: "Profile", icon: User },
+              { id: "projects", label: "Projects", icon: Database },
+              { id: "preferences", label: "Preferences", icon: Settings },
+              { id: "security", label: "Security", icon: Shield },
+              { id: "danger", label: "Danger Zone", icon: AlertTriangle },
+            ].map((tab) => (
+              <Button
+                variant="secondary"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 border-none font-medium h-8 transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => window.history.back()}
+            className="border-none text-slate-400 hover:text-slate-200"
+          >
+            Back Home
+            <ChevronDown className="h-4 w-4 rotate-[-90deg]" />
+          </Button>
         </div>
-
         {/* Tab Content */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="xl:col-span-3">
             {activeTab === "profile" && (
               <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-16 w-16 ring-4 ring-blue-400/20">
+                <CardHeader className="gap-0">
+                  <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Profile Information
+                  </CardTitle>
+                  <CardDescription className="text-slate-400 text-md">
+                    Update your personal details and avatar
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16 ring-2 ring-slate-600">
                       <AvatarImage src={userForm.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold text-xl">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold">
                         {userForm.name
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                        Profile Information
-                      </CardTitle>
-                      <CardDescription className="text-lg">
-                        Update your personal details and avatar
-                      </CardDescription>
+
+                    <div className="flex flex-col space-y-1">
+                      <label className="text-sm font-medium text-slate-300">
+                        Profile Avatar
+                      </label>
+                      <Button
+                        onClick={() => setAvatarDialogOpen(true)}
+                        variant="ghost"
+                        className="border-slate-600 hover:border-blue-400"
+                      >
+                        <Camera className="h-4 w-4" />
+                        Change Avatar
+                      </Button>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-300">
@@ -558,31 +599,6 @@ export default function UserSettingsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
-                      Profile Avatar
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16 ring-2 ring-slate-600">
-                        <AvatarImage src={userForm.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold">
-                          {userForm.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Button
-                        onClick={() => setAvatarDialogOpen(true)}
-                        variant="outline"
-                        className="border-slate-600 hover:border-blue-400"
-                      >
-                        <Camera className="h-4 w-4 mr-2" />
-                        Change Avatar
-                      </Button>
-                    </div>
-                  </div>
-
                   <div className="space-y-4 pt-4 border-t border-slate-700/50">
                     <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                       <Lock className="h-5 w-5 text-amber-400" />
@@ -605,11 +621,8 @@ export default function UserSettingsPage() {
                             }
                             className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3"
+                          <span
+                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
                             onClick={() =>
                               setShowPassword((prev) => ({
                                 ...prev,
@@ -622,7 +635,7 @@ export default function UserSettingsPage() {
                             ) : (
                               <Eye className="h-4 w-4" />
                             )}
-                          </Button>
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -638,11 +651,8 @@ export default function UserSettingsPage() {
                             }
                             className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3"
+                          <span
+                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
                             onClick={() =>
                               setShowPassword((prev) => ({
                                 ...prev,
@@ -655,7 +665,7 @@ export default function UserSettingsPage() {
                             ) : (
                               <Eye className="h-4 w-4" />
                             )}
-                          </Button>
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -674,11 +684,8 @@ export default function UserSettingsPage() {
                             }
                             className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3"
+                          <span
+                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
                             onClick={() =>
                               setShowPassword((prev) => ({
                                 ...prev,
@@ -691,7 +698,7 @@ export default function UserSettingsPage() {
                             ) : (
                               <Eye className="h-4 w-4" />
                             )}
-                          </Button>
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1275,9 +1282,7 @@ export default function UserSettingsPage() {
             </Card>
           </div>
         </div>
-
         {/* Dialogs */}
-
         {/* Avatar Selection Dialog */}
         <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
           <DialogContent className="bg-slate-800 border-slate-700">
@@ -1319,7 +1324,6 @@ export default function UserSettingsPage() {
             </motion.div>
           </DialogContent>
         </Dialog>
-
         {/* Delete Project Dialog */}
         <Dialog
           open={deleteProjectDialog.open}
@@ -1360,7 +1364,6 @@ export default function UserSettingsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         {/* Batch Delete Dialog */}
         <Dialog open={batchDeleteDialog} onOpenChange={setBatchDeleteDialog}>
           <DialogContent className="bg-slate-800 border-slate-700">
@@ -1393,7 +1396,6 @@ export default function UserSettingsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         {/* Delete All Projects Dialog */}
         <Dialog
           open={deleteAllProjectsDialog}
@@ -1435,7 +1437,6 @@ export default function UserSettingsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         {/* Delete Account Dialog */}
         <Dialog
           open={deleteAccountDialog.open}
@@ -1508,7 +1509,7 @@ export default function UserSettingsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
     </div>
   );
 }
