@@ -70,11 +70,13 @@ func NewRouter(
 		// user routes
 		r.Get("/api/users/me", userHandler.CheckCurrentUser)
 		r.Put("/api/users/me", userHandler.UpdateUser)
+		r.Delete("/api/users/me", userHandler.DeleteUser)
 
 		// project routes
 		r.Post("/api/projects", projectHandler.Create)
 		r.Get("/api/projects", projectHandler.ListByOwner)
 		r.Get("/api/projects/{slug}", projectHandler.GetBySlug)
+		r.Delete("/api/projects", projectHandler.DeleteAllByOwner)
 		r.Put("/api/projects/{slug}", projectHandler.UpdateProject)
 		r.Delete("/api/projects/{slug}", projectHandler.DeleteBySlug)
 

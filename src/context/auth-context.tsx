@@ -9,7 +9,7 @@ import React, {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/api/settings-api";
+import { getCurrentUser } from "@/lib/api/user-api";
 
 import type { UserProps } from "@/types/user";
 import { logoutUser } from "@/lib/api/user-api";
@@ -18,6 +18,7 @@ interface AuthContextType {
   user: UserProps | null;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<UserProps | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUser]);
 
   return (
-    <AuthContext.Provider value={{ user, fetchUser, logout }}>
+    <AuthContext.Provider value={{ user, setUser, fetchUser, logout }}>
       {children || loading}
     </AuthContext.Provider>
   );

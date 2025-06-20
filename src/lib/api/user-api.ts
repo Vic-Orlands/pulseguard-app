@@ -1,8 +1,14 @@
-import { SignupFormData, LoginFormData } from "@/types/user";
+import { SignupFormData, LoginFormData, UpdateUserData } from "@/types/user";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
-//register user
+const headerConfig = {
+  credentials: "include" as const,
+  headers: { "Content-Type": "application/json" },
+};
+
+// SETTINGS - USER API FUNCTIONS
+// Register user
 export const registerUser = async (data: SignupFormData) => {
   try {
     const response = await fetch(`${url}/api/users/register`, {
@@ -22,14 +28,13 @@ export const registerUser = async (data: SignupFormData) => {
   }
 };
 
-// login user
+// Login user
 export const loginUser = async (data: LoginFormData) => {
   try {
     const response = await fetch(`${url}/api/users/login`, {
       method: "POST",
-      credentials: "include",
+      ...headerConfig,
       body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
@@ -48,8 +53,7 @@ export const logoutUser = async () => {
   try {
     const res = await fetch(`${url}/api/users/logout`, {
       method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      ...headerConfig,
     });
 
     if (!res.ok) {
@@ -59,5 +63,54 @@ export const logoutUser = async () => {
     return await res.json();
   } catch (error) {
     throw error;
+  }
+};
+
+export const getCurrentUser = async () => {
+  try {
+    const res = await fetch(`${url}/api/users/me`, {
+      ...headerConfig,
+    });
+
+    if (res.status === 401) return null;
+    if (!res.ok) throw new Error("Failed to fetch user");
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    return null;
+  }
+};
+
+export const updateUser = async (userData: UpdateUserData) => {
+  try {
+    const res = await fetch(`${url}/api/users/me`, {
+      method: "PUT",
+      ...headerConfig,
+      body: JSON.stringify(userData),
+    });
+
+    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return null;
+  }
+};
+
+export const deleteUser = async () => {
+  try {
+    const res = await fetch(`${url}/api/users/me`, {
+      method: "DELETE",
+      ...headerConfig,
+    });
+
+    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return null;
   }
 };

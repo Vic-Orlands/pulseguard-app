@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, Trash2, X, CheckCircle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { deleteProject } from "@/lib/api/settings-api";
+import { deleteProject } from "@/lib/api/projects-api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

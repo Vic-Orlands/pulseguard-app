@@ -20,6 +20,16 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
+// check if key exists in db
+func IsDuplicateKeyError(err error) bool {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == "23505"
+	}
+	return false
+}
+
+// Create inserts a new user into the database.
 func (repo *UserRepository) Create(ctx context.Context, user *models.User) error {
 	query := `
         INSERT INTO users (id, name, email, password, created_at, updated_at)
@@ -113,11 +123,12 @@ func (repo *UserRepository) Update(ctx context.Context, id uuid.UUID, name, hash
 	return &user, nil
 }
 
-// check if key exists in db
-func IsDuplicateKeyError(err error) bool {
-	var pqErr *pq.Error
-	if errors.As(err, &pqErr) {
-		return pqErr.Code == "23505"
+// Delete removes a user from the database by ID.
+func (repo *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM users WHERE id = $1`
+	_, err := repo.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
-	return false
+	return nil
 }

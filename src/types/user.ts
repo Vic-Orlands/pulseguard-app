@@ -20,3 +20,8 @@ export type UserProps = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type UpdateUserData = {
+  name?: string;
+  password?: string;
+};

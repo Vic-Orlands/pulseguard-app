@@ -1,16 +1,18 @@
 "use client";
 
+import { z } from "zod";
+import clsx from "clsx";
+import { toast } from "sonner";
+import { format } from "date-fns";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronDown,
   Trash2,
-  Shield,
   Settings,
   Eye,
   EyeOff,
-  Bell,
-  Key,
   Save,
   RefreshCw,
   AlertTriangle,
@@ -18,20 +20,12 @@ import {
   Lock,
   Camera,
   Download,
-  Upload,
   Search,
   Filter,
   Calendar,
-  Activity,
   Zap,
   Database,
-  Moon,
-  Sun,
-  Palette,
-  Languages,
-  CheckCircle,
-  XCircle,
-  Clock,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -50,7 +44,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -60,75 +53,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/context/auth-context";
+import type { Project } from "@/types/dashboard";
+import { deleteAllProjects, deleteProject } from "@/lib/api/projects-api";
+import CustomErrorMessage from "@/components/dashboard/shared/error-message";
+import { RenderDeleteAccountDialogComp } from "./delete-user-card";
+import { updateUser } from "@/lib/api/user-api";
 
-// Mock API functions
-const mockApi = {
-  updateUser: async (userData) => {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    return { success: true, user: userData };
-  },
-
-  getUserProjects: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return [
-      {
-        id: "proj_1",
-        name: "E-commerce API",
-        slug: "ecommerce-api",
-        status: "active",
-        createdAt: "2024-05-15",
-        errorCount: 23,
-        uptime: 99.8,
-      },
-      {
-        id: "proj_2",
-        name: "Mobile App Backend",
-        slug: "mobile-app-backend",
-        status: "active",
-        createdAt: "2024-04-20",
-        errorCount: 7,
-        uptime: 99.9,
-      },
-      {
-        id: "proj_3",
-        name: "Analytics Dashboard",
-        slug: "analytics-dashboard",
-        status: "paused",
-        createdAt: "2024-03-10",
-        errorCount: 156,
-        uptime: 98.2,
-      },
-      {
-        id: "proj_4",
-        name: "Payment Gateway",
-        slug: "payment-gateway",
-        status: "active",
-        createdAt: "2024-02-28",
-        errorCount: 2,
-        uptime: 99.95,
-      },
-      {
-        id: "proj_5",
-        name: "User Management API",
-        slug: "user-management-api",
-        status: "archived",
-        createdAt: "2024-01-12",
-        errorCount: 89,
-        uptime: 97.5,
-      },
-    ];
-  },
-
-  deleteProject: async (projectId) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return { success: true };
-  },
-
-  deleteAccount: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return { success: true };
-  },
-};
+const url = process.env.NEXT_PUBLIC_API_URL;
 
 const availableAvatars = [
   "None",
@@ -145,100 +77,131 @@ const availableAvatars = [
   "https://api.dicebear.com/7.x/avataaars/svg?seed=Rio&w=64&h=64",
 ];
 
-export default function UserSettingsPage() {
-  // User data state
-  const [user, setUser] = useState(null);
-  const [userForm, setUserForm] = useState({
+// Zod Schema for UserForm
+const UserFormSchema = z
+  .object({
+    name: z.string().min(1, "Full name is required"),
+    currentPassword: z.string().optional(),
+    newPassword: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || val.length >= 8,
+        "New password must be at least 8 characters long"
+      ),
+    confirmPassword: z.string().optional(),
+    avatar: z.string().optional(),
+  })
+  .refine(
+    (data) => !data.newPassword || data.newPassword === data.confirmPassword,
+    {
+      message: "New password and confirmation do not match",
+      path: ["confirmPassword"],
+    }
+  )
+  .refine(
+    (data) => !data.newPassword || data.currentPassword !== data.newPassword,
+    {
+      message: "New password cannot be the same as current password",
+      path: ["newPassword"],
+    }
+  );
+
+type UserFormType = z.infer<typeof UserFormSchema>;
+
+export default function UserSettingsNew() {
+  const router = useRouter();
+  const { user, setUser } = useAuth();
+
+  // State
+  const [userForm, setUserForm] = useState<UserFormType>({
     name: "",
-    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
     avatar: "",
   });
-
   // Projects state
-  const [projects, setProjects] = useState([]);
-  const [selectedProjects, setSelectedProjects] = useState(new Set());
-  const [projectFilter, setProjectFilter] = useState("all");
-  const [projectSearch, setProjectSearch] = useState("");
-
+  const [error, setError] = useState<string>("");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectSearch, setProjectSearch] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("Ascending");
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
+    new Set()
+  );
   // UI state
-  const [activeTab, setActiveTab] = useState("profile");
-  const [loading, setLoading] = useState(true);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState({
-    current: false,
-    new: false,
-    confirm: false,
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("profile");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<
+    Record<"currentPassword" | "newPassword" | "confirmPassword", boolean>
+  >({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
   });
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState<boolean>(false);
+  const [deleteProjectDialog, setDeleteProjectDialog] = useState<{
+    open: boolean;
+    project: Project | null;
+  }>({ open: false, project: null });
+  const [batchDeleteDialog, setBatchDeleteDialog] = useState<boolean>(false);
+  const [deleteAccountDialog, setDeleteAccountDialog] = useState<{
+    open: boolean;
+    step: number;
+  }>({ open: false, step: 1 });
+  const [deleteAllProjectsDialog, setDeleteAllProjectsDialog] =
+    useState<boolean>(false);
 
-  // Dialog states
-  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
-  const [deleteProjectDialog, setDeleteProjectDialog] = useState({
-    open: false,
-    project: null,
-  });
-  const [batchDeleteDialog, setBatchDeleteDialog] = useState(false);
-  const [deleteAccountDialog, setDeleteAccountDialog] = useState({
-    open: false,
-    step: 1,
-  });
-  const [deleteAllProjectsDialog, setDeleteAllProjectsDialog] = useState(false);
+  // Effects
+  useEffect(() => {
+    if (error) {
+      setTimeout(() => setError(""), 5000);
+    }
+  }, [error]);
 
-  // Settings state
-  const [preferences, setPreferences] = useState({
-    theme: "dark",
-    language: "en",
-    timezone: "UTC",
-    emailNotifications: true,
-    pushNotifications: false,
-    weeklyReports: true,
-    securityAlerts: true,
-    twoFactorEnabled: false,
-  });
+  useEffect(() => {
+    if (user) {
+      setUserForm({
+        name: user.name,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        avatar: user.avatar || "",
+      });
+    }
+  }, [user]);
 
-  const getCurrentUser = async () => {
-    const user = await new Promise((resolve) => setTimeout(resolve, 800));
-    return {
-      id: "user_123",
-      name: "John Doe",
-      email: "john@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
-      createdAt: "2023-01-15",
-      lastLogin: "2024-06-10T14:30:00Z",
-      subscription: "Pro",
-      usage: {
-        projects: 12,
-        apiCalls: 145000,
-        storage: 2.4,
-      },
-    };
-  };
+  useEffect(() => {
+    const nameChanged = userForm.name === user?.name;
+    const passwordChanged =
+      userForm.currentPassword === "" &&
+      userForm.newPassword === "" &&
+      userForm.confirmPassword === "";
+    setHasUnsavedChanges(!nameChanged || !passwordChanged);
+  }, [userForm, user]);
 
-  // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [userData, projectsData] = await Promise.all([
-          getCurrentUser(),
-          mockApi.getUserProjects(),
-        ]);
-
-        setUser(userData);
-        setUserForm({
-          name: userData.name,
-          email: userData.email,
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-          avatar: userData.avatar,
+        const response = await fetch(`${url}/api/projects`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         });
-        setProjects(projectsData);
+
+        if (!response.ok) {
+          setError("Failed to fetch projects.");
+          setProjects([]);
+          return;
+        }
+
+        const data = await response.json();
+        setProjects(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load data:", error);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
@@ -247,121 +210,113 @@ export default function UserSettingsPage() {
     loadData();
   }, []);
 
-  // Handle form changes
-  const handleFormChange = (field, value) => {
+  // Handlers
+  const handleFormChange = (field: keyof UserFormType, value: string) => {
     setUserForm((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
   };
 
-  // Save user changes
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      const updateData = {
-        name: userForm.name,
-        email: userForm.email,
-        avatar: userForm.avatar,
-      };
-
-      if (userForm.newPassword) {
-        updateData.password = userForm.newPassword;
+      const validation = UserFormSchema.safeParse(userForm);
+      if (!validation.success) {
+        setError(validation.error.errors.map((e) => e.message).join(", "));
+        setIsSaving(false);
+        return;
       }
 
-      await mockApi.updateUser(updateData);
-      setUser((prev) => ({ ...prev, ...updateData }));
+      const { name, newPassword } = validation.data;
+      const updateData = { name, password: newPassword || undefined };
+
+      const res = await updateUser(updateData);
+      if (!res) {
+        setError("Failed to update user data");
+        setIsSaving(false);
+        return;
+      }
+
+      setUser({ ...user!, name, avatar: userForm.avatar });
       setHasUnsavedChanges(false);
-
-      // Reset password fields
-      setUserForm((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-
-      // Success animation
-      const successEl = document.createElement("div");
-      successEl.className =
-        "fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse";
-      successEl.textContent = "Changes saved successfully!";
-      document.body.appendChild(successEl);
-      setTimeout(() => successEl.remove(), 3000);
+      toast.success("Changes saved successfully!");
     } catch (error) {
+      setError("Failed to save changes");
       console.error("Failed to save changes:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Delete single project
-  const handleDeleteProject = async (project) => {
+  const handleDeleteProject = async (project: Project | null) => {
+    if (!project) return;
     setDeleteProjectDialog({ open: false, project: null });
 
-    // Animate project removal
     const projectEl = document.querySelector(
       `[data-project-id="${project.id}"]`
-    );
+    ) as HTMLElement | null;
     if (projectEl) {
       projectEl.style.transform = "translateX(-100%)";
       projectEl.style.opacity = "0";
       projectEl.style.transition = "all 0.5s ease-out";
     }
 
-    setTimeout(async () => {
-      try {
-        await mockApi.deleteProject(project.id);
-        setProjects((prev) => prev.filter((p) => p.id !== project.id));
-        setSelectedProjects((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(project.id);
-          return newSet;
-        });
-      } catch (error) {
-        console.error("Failed to delete project:", error);
-      }
-    }, 500);
+    try {
+      const res = await deleteProject(project.slug);
+      if (!res) throw new Error("Failed to delete project");
+
+      toast.success("Project deleted successfully!");
+      setProjects((prev) => prev.filter((p) => p.id !== project.id));
+      setSelectedProjects((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(project.id);
+        return newSet;
+      });
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      setError("Failed to delete project");
+    }
   };
 
-  // Batch delete projects
   const handleBatchDelete = async () => {
-    setBatchDeleteDialog(false);
-
-    const projectsToDelete = Array.from(selectedProjects);
+    setLoading(true);
+    // const projectsToDelete = Array.from(selectedProjects);
 
     // Animate selected projects
-    projectsToDelete.forEach((projectId) => {
-      const projectEl = document.querySelector(
-        `[data-project-id="${projectId}"]`
-      );
-      if (projectEl) {
-        projectEl.style.transform = "scale(0.8)";
-        projectEl.style.opacity = "0";
-        projectEl.style.transition = "all 0.4s ease-out";
-      }
-    });
+    // projectsToDelete.forEach((projectId) => {
+    //   const projectEl = document.querySelector(
+    //     `[data-project-id="${projectId}"]`
+    //   ) as HTMLElement | null;
+    //   if (projectEl) {
+    //     projectEl.style.transform = "scale(0.8)";
+    //     projectEl.style.opacity = "0";
+    //     projectEl.style.transition = "all 0.4s ease-out";
+    //   }
+    // });
 
-    setTimeout(async () => {
-      try {
-        await Promise.all(
-          projectsToDelete.map((id) => mockApi.deleteProject(id))
-        );
-        setProjects((prev) => prev.filter((p) => !selectedProjects.has(p.id)));
-        setSelectedProjects(new Set());
-      } catch (error) {
-        console.error("Failed to delete projects:", error);
-      }
-    }, 400);
+    // try {
+    //   const res = await batchDeleteProjects(projectsToDelete);
+    //   if (!res || res.some((r) => !r.success)) {
+    //     setError("Failed to delete projects");
+    //   }
+
+    //   setProjects((prev) => prev.filter((p) => !selectedProjects.has(p.id)));
+    //   setSelectedProjects(new Set());
+    //   setBatchDeleteDialog(false);
+    //   toast.success("Selected projects deleted successfully!");
+    // } catch (error) {
+    //   console.error("Failed to delete projects:", error);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
-  // Delete all projects
   const handleDeleteAllProjects = async () => {
     setDeleteAllProjectsDialog(false);
 
-    // Animate all projects
     projects.forEach((project) => {
       const projectEl = document.querySelector(
         `[data-project-id="${project.id}"]`
-      );
+      ) as HTMLElement | null;
       if (projectEl) {
         projectEl.style.transform = "rotateY(90deg)";
         projectEl.style.opacity = "0";
@@ -369,68 +324,536 @@ export default function UserSettingsPage() {
       }
     });
 
-    setTimeout(async () => {
-      try {
-        await Promise.all(projects.map((p) => mockApi.deleteProject(p.id)));
+    try {
+      const res = await deleteAllProjects();
+      if (res === null) {
+        toast.success("All projects deleted successfully!");
         setProjects([]);
         setSelectedProjects(new Set());
-      } catch (error) {
-        console.error("Failed to delete all projects:", error);
+      } else {
+        throw new Error("Failed to delete all projects");
       }
-    }, 600);
-  };
-
-  // Delete account
-  const handleDeleteAccount = async () => {
-    setDeleteAccountDialog({ open: false, step: 1 });
-
-    // Dramatic fade out animation
-    document.body.style.transition = "opacity 2s ease-out";
-    document.body.style.opacity = "0.3";
-
-    try {
-      await mockApi.deleteAccount();
-      // In real app, redirect to goodbye page
-      alert("Account deleted successfully. Goodbye!");
     } catch (error) {
-      console.error("Failed to delete account:", error);
-      document.body.style.opacity = "1";
+      setError("Failed to delete all projects");
+      console.error("Failed to delete all projects:", error);
+      setProjects([]);
     }
   };
 
   // Filter projects
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.name
-      .toLowerCase()
-      .includes(projectSearch.toLowerCase());
-    const matchesFilter =
-      projectFilter === "all" || project.status === projectFilter;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredProjects =
+    Array.isArray(projects) && projects.length > 0
+      ? projects
+          .filter(
+            (project) =>
+              typeof project.name === "string" &&
+              project.name.toLowerCase().includes(projectSearch.toLowerCase())
+          )
+          .sort((a, b) =>
+            projectFilter === "Ascending"
+              ? a.name.localeCompare(b.name)
+              : b.name.localeCompare(a.name)
+          )
+      : [];
 
-  // Get status badge variant
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "active":
-        return {
-          variant: "default",
-          color: "text-green-400",
-          icon: CheckCircle,
-        };
-      case "paused":
-        return { variant: "secondary", color: "text-yellow-400", icon: Clock };
-      case "archived":
-        return { variant: "outline", color: "text-gray-400", icon: XCircle };
-      default:
-        return { variant: "outline", color: "text-gray-400", icon: XCircle };
-    }
-  };
+  // Render components
+  const renderProfileTab = () => (
+    <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
+      <CardHeader className="gap-0">
+        <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Profile Information
+        </CardTitle>
+        <CardDescription className="text-slate-400 text-md">
+          Update your personal details and avatar
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16 ring-2 ring-slate-600">
+            <AvatarImage src={userForm.avatar} />
+            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold">
+              {userForm.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col space-y-1">
+            <label className="text-sm font-medium text-slate-300">
+              Profile Avatar
+            </label>
+            <Button
+              onClick={() => setAvatarDialogOpen(true)}
+              variant="ghost"
+              className="border-slate-600 hover:border-blue-400"
+            >
+              <Camera className="h-4 w-4" />
+              Change Avatar
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300">
+              Full Name
+            </label>
+            <Input
+              value={userForm.name}
+              onChange={(e) => handleFormChange("name", e.target.value)}
+              className="bg-slate-900/50 border-slate-600 text-gray-400 focus:border-blue-400"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300">
+              Email Address
+            </label>
+            <Input
+              value={user?.email}
+              disabled
+              type="email"
+              className="bg-slate-900/50 border-slate-600 focus:border-blue-400"
+            />
+          </div>
+        </div>
+        <div className="space-y-4 pt-4 border-t border-slate-700/50">
+          <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+            <Lock className="h-5 w-5 text-amber-400" />
+            Change Password
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(
+              ["currentPassword", "newPassword", "confirmPassword"] as const
+            ).map((field) => (
+              <div key={field} className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">
+                  {field === "currentPassword"
+                    ? "Current Password"
+                    : field === "newPassword"
+                    ? "New Password"
+                    : "Confirm Password"}
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPassword[field] ? "text" : "password"}
+                    value={userForm[field]}
+                    placeholder="********"
+                    onChange={(e) => handleFormChange(field, e.target.value)}
+                    className="bg-slate-900/50 border-slate-600 text-gray-400 focus:border-blue-400 pr-10"
+                  />
+                  <span
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
+                    onClick={() =>
+                      setShowPassword((prev) => ({
+                        ...prev,
+                        [field]: !prev[field],
+                      }))
+                    }
+                  >
+                    {showPassword[field] ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderProjectsTab = () => (
+    <div className="space-y-6">
+      <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Your Projects
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Manage all your monitoring projects
+              </CardDescription>
+            </div>
+            <Badge
+              variant="outline"
+              className="border-blue-400/30 text-blue-400 text-lg px-3 py-1"
+            >
+              {projects.length} total
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 items-center mb-6">
+            <div className="flex items-center gap-2 flex-1 min-w-[300px]">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search projects by name..."
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                  className="bg-slate-900/50 border-slate-600 focus:border-blue-400 pl-10"
+                />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" className="border-slate-600">
+                    <Filter className="h-4 w-4 mr-2" />
+                    {projectFilter}
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                  {["Ascending", "Descending"].map((order) => (
+                    <DropdownMenuItem
+                      key={order}
+                      onClick={() => setProjectFilter(order)}
+                      className="hover:bg-slate-700"
+                    >
+                      {order}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {selectedProjects.size > 0 && (
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-600/20 text-blue-400"
+                >
+                  {selectedProjects.size} selected
+                </Badge>
+                <Button
+                  onClick={() => setBatchDeleteDialog(true)}
+                  variant="destructive"
+                  size="sm"
+                  className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected
+                </Button>
+              </div>
+            )}
+            <Button
+              onClick={() => setDeleteAllProjectsDialog(true)}
+              variant="destructive"
+              disabled={projects.length === 0}
+              className={clsx(
+                "bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30",
+                projects.length === 0 && "cursor-not-allowed"
+              )}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete All
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {filteredProjects.map((project) => (
+              <div
+                key={project.id}
+                data-project-id={project.id}
+                className="group p-4 bg-slate-900/30 border border-slate-700/30 rounded-lg hover:border-slate-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Checkbox
+                      checked={selectedProjects.has(project.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedProjects((prev) => {
+                          const newSet = new Set(prev);
+                          if (checked) newSet.add(project.id);
+                          else newSet.delete(project.id);
+                          return newSet;
+                        });
+                      }}
+                      className="border-slate-600"
+                    />
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
+                        {project.name}
+                      </h3>
+                      <div className="flex items-center text-sm text-slate-400 w-full flex-wrap gap-2">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Created:{" "}
+                          {format(new Date(project.createdAt), "MMM, dd, yyyy")}
+                        </span>
+                        <span
+                          className={clsx(
+                            project.errorCount > 0
+                              ? "text-red-400"
+                              : "text-green-400",
+                            "flex items-center gap-1"
+                          )}
+                        >
+                          <AlertTriangle className="h-3 w-3" />
+                          {project.errorCount} errors
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() =>
+                        router.push(`/projects/${project.slug}?tab=settings`)
+                      }
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-200"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        setDeleteProjectDialog({ open: true, project })
+                      }
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredProjects.length === 0 && (
+              <div className="text-center py-12">
+                <Database className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400">
+                  {projectSearch || projectFilter !== "Ascending"
+                    ? "No projects match your filters"
+                    : "No projects found"}
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderDangerZoneTab = () => (
+    <Card className="bg-red-950/20 border border-red-900/50 backdrop-blur-xl">
+      <CardHeader>
+        <CardTitle className="text-2xl text-red-400 flex items-center gap-2">
+          <AlertTriangle className="h-6 w-6" />
+          Danger Zone
+        </CardTitle>
+        <CardDescription className="text-red-400/80 text-lg">
+          Irreversible and destructive actions
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
+            <h4 className="font-medium text-red-300">Delete All Projects</h4>
+            <p className="text-sm text-red-400/80 mt-1">
+              Permanently delete all your projects and their data. This cannot
+              be undone.
+            </p>
+            <Button
+              onClick={() => setDeleteAllProjectsDialog(true)}
+              variant="destructive"
+              disabled={projects.length === 0}
+              className={clsx(
+                "mt-3 bg-red-600 hover:bg-red-700",
+                projects.length === 0 && "cursor-not-allowed"
+              )}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete All Projects
+            </Button>
+          </div>
+          <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
+            <h4 className="font-medium text-red-300">Delete Account</h4>
+            <p className="text-sm text-red-400/80 mt-1">
+              Permanently delete your account and all associated data. This
+              action is irreversible.
+            </p>
+            <Button
+              onClick={() => setDeleteAccountDialog({ open: true, step: 1 })}
+              variant="destructive"
+              className="mt-3 bg-red-700 hover:bg-red-800"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Account
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderAvatarDialog = () => (
+    <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+      <DialogContent className="bg-slate-800 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Choose Avatar
+          </DialogTitle>
+          <DialogDescription>
+            Select a new avatar for your profile
+          </DialogDescription>
+        </DialogHeader>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="grid grid-cols-3 gap-4 py-4"
+        >
+          {availableAvatars.map((avatar, index) => (
+            <motion.button
+              key={index}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                handleFormChange("avatar", avatar);
+                setAvatarDialogOpen(false);
+              }}
+              className={`p-2 rounded-lg border-2 transition-all duration-200 ${
+                userForm.avatar === avatar
+                  ? "border-blue-400 bg-blue-400/10"
+                  : "border-slate-600 hover:border-blue-500"
+              }`}
+            >
+              <Avatar className="h-16 w-16 mx-auto">
+                <AvatarImage src={avatar} />
+                <AvatarFallback>?</AvatarFallback>
+              </Avatar>
+            </motion.button>
+          ))}
+        </motion.div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const renderDeleteProjectDialog = () => (
+    <Dialog
+      open={deleteProjectDialog.open}
+      onOpenChange={(open) => setDeleteProjectDialog({ open, project: null })}
+    >
+      <DialogContent className="bg-slate-800 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Delete Project
+          </DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete &quot;
+            {deleteProjectDialog.project?.name}
+            &quot;? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() =>
+              setDeleteProjectDialog({ open: false, project: null })
+            }
+            className="border-slate-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => handleDeleteProject(deleteProjectDialog.project)}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Project
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const renderBatchDeleteDialog = () => (
+    <Dialog open={batchDeleteDialog} onOpenChange={setBatchDeleteDialog}>
+      <DialogContent className="bg-slate-800 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Delete Selected Projects
+          </DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete {selectedProjects.size} selected
+            projects? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setBatchDeleteDialog(false)}
+            className="border-slate-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleBatchDelete}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete {selectedProjects.size} Projects
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const renderDeleteAllProjectsDialog = () => (
+    <Dialog
+      open={deleteAllProjectsDialog}
+      onOpenChange={setDeleteAllProjectsDialog}
+    >
+      <DialogContent className="bg-slate-800 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Delete All Projects
+          </DialogTitle>
+          <DialogDescription>
+            This will permanently delete ALL {projects.length} of your projects
+            and their data. This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-red-400/80 bg-red-950/30 p-3 rounded-lg border border-red-900/30">
+            ⚠️ This is a destructive action that will remove all monitoring
+            data, configurations, and history for all projects.
+          </p>
+        </div>
+        <DialogFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteAllProjectsDialog(false)}
+            className="border-slate-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAllProjects}
+            className="bg-red-700 hover:bg-red-800"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete All Projects
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <RefreshCw className="h-8 w-8 animate-spin text-blue-400 mx-auto" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-400 mx-auto" />
           <p className="text-slate-400">Loading your settings...</p>
         </div>
       </div>
@@ -439,13 +862,16 @@ export default function UserSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white py-12">
+      <div className="max-w-full lg:max-w-10/12 mx-auto">
+        {error && <CustomErrorMessage error={error} />}
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
       >
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -475,6 +901,7 @@ export default function UserSettingsPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
             <Button
               type="submit"
               onClick={handleSaveChanges}
@@ -483,12 +910,12 @@ export default function UserSettingsPage() {
             >
               {isSaving ? (
                 <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </>
               )}
@@ -496,14 +923,11 @@ export default function UserSettingsPage() {
           </div>
         </motion.div>
 
-        {/* Navigation Tabs */}
         <div className="flex items-center justify-between bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm border border-slate-700/50 mb-4">
           <div className="flex space-x-2">
             {[
               { id: "profile", label: "Profile", icon: User },
               { id: "projects", label: "Projects", icon: Database },
-              { id: "preferences", label: "Preferences", icon: Settings },
-              { id: "security", label: "Security", icon: Shield },
               { id: "danger", label: "Danger Zone", icon: AlertTriangle },
             ].map((tab) => (
               <Button
@@ -530,664 +954,14 @@ export default function UserSettingsPage() {
             <ChevronDown className="h-4 w-4 rotate-[-90deg]" />
           </Button>
         </div>
-        {/* Tab Content */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Content */}
           <div className="xl:col-span-3">
-            {activeTab === "profile" && (
-              <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-                <CardHeader className="gap-0">
-                  <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Profile Information
-                  </CardTitle>
-                  <CardDescription className="text-slate-400 text-md">
-                    Update your personal details and avatar
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16 ring-2 ring-slate-600">
-                      <AvatarImage src={userForm.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold">
-                        {userForm.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-sm font-medium text-slate-300">
-                        Profile Avatar
-                      </label>
-                      <Button
-                        onClick={() => setAvatarDialogOpen(true)}
-                        variant="ghost"
-                        className="border-slate-600 hover:border-blue-400"
-                      >
-                        <Camera className="h-4 w-4" />
-                        Change Avatar
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-300">
-                        Full Name
-                      </label>
-                      <Input
-                        value={userForm.name}
-                        onChange={(e) =>
-                          handleFormChange("name", e.target.value)
-                        }
-                        className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-300">
-                        Email Address
-                      </label>
-                      <Input
-                        value={userForm.email}
-                        onChange={(e) =>
-                          handleFormChange("email", e.target.value)
-                        }
-                        className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors"
-                        type="email"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-slate-700/50">
-                    <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
-                      <Lock className="h-5 w-5 text-amber-400" />
-                      Change Password
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">
-                          Current Password
-                        </label>
-                        <div className="relative">
-                          <Input
-                            type={showPassword.current ? "text" : "password"}
-                            value={userForm.currentPassword}
-                            onChange={(e) =>
-                              handleFormChange(
-                                "currentPassword",
-                                e.target.value
-                              )
-                            }
-                            className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
-                          />
-                          <span
-                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
-                            onClick={() =>
-                              setShowPassword((prev) => ({
-                                ...prev,
-                                current: !prev.current,
-                              }))
-                            }
-                          >
-                            {showPassword.current ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">
-                          New Password
-                        </label>
-                        <div className="relative">
-                          <Input
-                            type={showPassword.new ? "text" : "password"}
-                            value={userForm.newPassword}
-                            onChange={(e) =>
-                              handleFormChange("newPassword", e.target.value)
-                            }
-                            className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
-                          />
-                          <span
-                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
-                            onClick={() =>
-                              setShowPassword((prev) => ({
-                                ...prev,
-                                new: !prev.new,
-                              }))
-                            }
-                          >
-                            {showPassword.new ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">
-                          Confirm Password
-                        </label>
-                        <div className="relative">
-                          <Input
-                            type={showPassword.confirm ? "text" : "password"}
-                            value={userForm.confirmPassword}
-                            onChange={(e) =>
-                              handleFormChange(
-                                "confirmPassword",
-                                e.target.value
-                              )
-                            }
-                            className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors pr-10"
-                          />
-                          <span
-                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
-                            onClick={() =>
-                              setShowPassword((prev) => ({
-                                ...prev,
-                                confirm: !prev.confirm,
-                              }))
-                            }
-                          >
-                            {showPassword.confirm ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeTab === "projects" && (
-              <div className="space-y-6">
-                {/* Projects Header */}
-                <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                          Your Projects
-                        </CardTitle>
-                        <CardDescription className="text-lg">
-                          Manage all your monitoring projects
-                        </CardDescription>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="border-blue-400/30 text-blue-400 text-lg px-3 py-1"
-                      >
-                        {projects.length} total
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Controls */}
-                    <div className="flex flex-wrap gap-4 items-center mb-6">
-                      <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                        <div className="relative flex-1">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                          <Input
-                            placeholder="Search projects..."
-                            value={projectSearch}
-                            onChange={(e) => setProjectSearch(e.target.value)}
-                            className="bg-slate-900/50 border-slate-600 focus:border-blue-400 pl-10"
-                          />
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="border-slate-600"
-                            >
-                              <Filter className="h-4 w-4 mr-2" />
-                              {projectFilter === "all"
-                                ? "All Status"
-                                : projectFilter}
-                              <ChevronDown className="h-4 w-4 ml-2" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                            {["all", "active", "paused", "archived"].map(
-                              (status) => (
-                                <DropdownMenuItem
-                                  key={status}
-                                  onClick={() => setProjectFilter(status)}
-                                  className="hover:bg-slate-700"
-                                >
-                                  {status === "all" ? "All Status" : status}
-                                </DropdownMenuItem>
-                              )
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      {/* Batch Actions */}
-                      {selectedProjects.size > 0 && (
-                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-600/20 text-blue-400"
-                          >
-                            {selectedProjects.size} selected
-                          </Badge>
-                          <Button
-                            onClick={() => setBatchDeleteDialog(true)}
-                            variant="destructive"
-                            size="sm"
-                            className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Selected
-                          </Button>
-                        </div>
-                      )}
-
-                      <Button
-                        onClick={() => setDeleteAllProjectsDialog(true)}
-                        variant="outline"
-                        className="border-red-600/30 text-red-400 hover:bg-red-600/10"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete All
-                      </Button>
-                    </div>
-
-                    {/* Projects List */}
-                    <div className="space-y-4">
-                      {filteredProjects.map((project) => {
-                        const statusBadge = getStatusBadge(project.status);
-                        const StatusIcon = statusBadge.icon;
-
-                        return (
-                          <div
-                            key={project.id}
-                            data-project-id={project.id}
-                            className="group p-4 bg-slate-900/30 border border-slate-700/30 rounded-lg hover:border-slate-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <Checkbox
-                                  checked={selectedProjects.has(project.id)}
-                                  onCheckedChange={(checked) => {
-                                    setSelectedProjects((prev) => {
-                                      const newSet = new Set(prev);
-                                      if (checked) {
-                                        newSet.add(project.id);
-                                      } else {
-                                        newSet.delete(project.id);
-                                      }
-                                      return newSet;
-                                    });
-                                  }}
-                                  className="border-slate-600"
-                                />
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
-                                      {project.name}
-                                    </h3>
-                                    <Badge
-                                      variant={statusBadge.variant}
-                                      className="flex items-center gap-1"
-                                    >
-                                      <StatusIcon
-                                        className={`h-3 w-3 ${statusBadge.color}`}
-                                      />
-                                      {project.status}
-                                    </Badge>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-slate-400">
-                                    <span className="flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" />
-                                      Created{" "}
-                                      {new Date(
-                                        project.createdAt
-                                      ).toLocaleDateString()}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <AlertTriangle className="h-3 w-3" />
-                                      {project.errorCount} errors
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Activity className="h-3 w-3" />
-                                      {project.uptime}% uptime
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-200"
-                                >
-                                  <Settings className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  onClick={() =>
-                                    setDeleteProjectDialog({
-                                      open: true,
-                                      project,
-                                    })
-                                  }
-                                  variant="ghost"
-                                  size="sm"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-950/30"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {filteredProjects.length === 0 && (
-                        <div className="text-center py-12">
-                          <Database className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                          <p className="text-slate-400">
-                            {projectSearch || projectFilter !== "all"
-                              ? "No projects match your filters"
-                              : "No projects found"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === "preferences" && (
-              <div className="space-y-6">
-                <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-                  <CardHeader>
-                    <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                      Preferences
-                    </CardTitle>
-                    <CardDescription className="text-lg">
-                      Customize your experience
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-8">
-                    {/* Appearance */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
-                        <Palette className="h-5 w-5 text-purple-400" />
-                        Appearance
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-300">
-                            Theme
-                          </label>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full border-slate-600 justify-between"
-                              >
-                                <div className="flex items-center gap-2">
-                                  {preferences.theme === "dark" ? (
-                                    <Moon className="h-4 w-4" />
-                                  ) : (
-                                    <Sun className="h-4 w-4" />
-                                  )}
-                                  {preferences.theme === "dark"
-                                    ? "Dark"
-                                    : "Light"}
-                                </div>
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setPreferences((prev) => ({
-                                    ...prev,
-                                    theme: "dark",
-                                  }))
-                                }
-                                className="hover:bg-slate-700"
-                              >
-                                <Moon className="h-4 w-4 mr-2" />
-                                Dark
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setPreferences((prev) => ({
-                                    ...prev,
-                                    theme: "light",
-                                  }))
-                                }
-                                className="hover:bg-slate-700"
-                              >
-                                <Sun className="h-4 w-4 mr-2" />
-                                Light
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-300">
-                            Language
-                          </label>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full border-slate-600 justify-between"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Languages className="h-4 w-4" />
-                                  English
-                                </div>
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                              <DropdownMenuItem className="hover:bg-slate-700">
-                                English
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-slate-700">
-                                Spanish
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-slate-700">
-                                French
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Notifications */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
-                        <Bell className="h-5 w-5 text-yellow-400" />
-                        Notifications
-                      </h3>
-                      <div className="space-y-4">
-                        {Object.entries({
-                          emailNotifications: "Email Notifications",
-                          pushNotifications: "Push Notifications",
-                          weeklyReports: "Weekly Reports",
-                          securityAlerts: "Security Alerts",
-                        }).map(([key, label]) => (
-                          <div
-                            key={key}
-                            className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg"
-                          >
-                            <div>
-                              <label className="text-sm font-medium text-slate-300">
-                                {label}
-                              </label>
-                              <p className="text-xs text-slate-500 mt-1">
-                                {key === "emailNotifications" &&
-                                  "Receive notifications via email"}
-                                {key === "pushNotifications" &&
-                                  "Get push notifications on your devices"}
-                                {key === "weeklyReports" &&
-                                  "Weekly summary of your projects"}
-                                {key === "securityAlerts" &&
-                                  "Important security updates"}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={preferences[key]}
-                              onCheckedChange={(checked) => {
-                                setPreferences((prev) => ({
-                                  ...prev,
-                                  [key]: checked,
-                                }));
-                                setHasUnsavedChanges(true);
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === "security" && (
-              <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Security Settings
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Manage your account security
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/30">
-                      <div>
-                        <h4 className="font-medium text-slate-200">
-                          Two-Factor Authentication
-                        </h4>
-                        <p className="text-sm text-slate-400 mt-1">
-                          Add an extra layer of security to your account
-                        </p>
-                      </div>
-                      <Switch
-                        checked={preferences.twoFactorEnabled}
-                        onCheckedChange={(checked) => {
-                          setPreferences((prev) => ({
-                            ...prev,
-                            twoFactorEnabled: checked,
-                          }));
-                          setHasUnsavedChanges(true);
-                        }}
-                      />
-                    </div>
-
-                    <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/30">
-                      <h4 className="font-medium text-slate-200">
-                        Recent Activity
-                      </h4>
-                      <p className="text-sm text-slate-400 mt-1">
-                        Last login: {new Date(user?.lastLogin).toLocaleString()}
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="mt-3 border-slate-600"
-                      >
-                        <Activity className="h-4 w-4 mr-2" />
-                        View Login History
-                      </Button>
-                    </div>
-
-                    <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/30">
-                      <h4 className="font-medium text-slate-200">API Keys</h4>
-                      <p className="text-sm text-slate-400 mt-1">
-                        Manage your API access keys
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="mt-3 border-slate-600"
-                      >
-                        <Key className="h-4 w-4 mr-2" />
-                        Manage API Keys
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeTab === "danger" && (
-              <Card className="bg-red-950/20 border border-red-900/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-red-400 flex items-center gap-2">
-                    <AlertTriangle className="h-6 w-6" />
-                    Danger Zone
-                  </CardTitle>
-                  <CardDescription className="text-red-400/80 text-lg">
-                    Irreversible and destructive actions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
-                      <h4 className="font-medium text-red-300">
-                        Delete All Projects
-                      </h4>
-                      <p className="text-sm text-red-400/80 mt-1">
-                        Permanently delete all your projects and their data.
-                        This cannot be undone.
-                      </p>
-                      <Button
-                        onClick={() => setDeleteAllProjectsDialog(true)}
-                        variant="destructive"
-                        className="mt-3 bg-red-600 hover:bg-red-700"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete All Projects
-                      </Button>
-                    </div>
-
-                    <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
-                      <h4 className="font-medium text-red-300">
-                        Delete Account
-                      </h4>
-                      <p className="text-sm text-red-400/80 mt-1">
-                        Permanently delete your account and all associated data.
-                        This action is irreversible.
-                      </p>
-                      <Button
-                        onClick={() =>
-                          setDeleteAccountDialog({ open: true, step: 1 })
-                        }
-                        variant="destructive"
-                        className="mt-3 bg-red-700 hover:bg-red-800"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Account
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {activeTab === "profile" && renderProfileTab()}
+            {activeTab === "projects" && renderProjectsTab()}
+            {activeTab === "danger" && renderDangerZoneTab()}
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* User Overview */}
             <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
               <CardContent className="p-6">
                 <div className="text-center space-y-4">
@@ -1209,46 +983,12 @@ export default function UserSettingsPage() {
                       variant="outline"
                       className="border-purple-400/30 text-purple-400 mt-2"
                     >
-                      {user?.subscription} Plan
+                      Free Plan
                     </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Usage Stats */}
-            <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-green-400" />
-                  Usage Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-400">Projects</span>
-                    <span className="font-medium">
-                      {user?.usage?.projects || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-400">API Calls</span>
-                    <span className="font-medium">
-                      {user?.usage?.apiCalls?.toLocaleString() || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-400">Storage</span>
-                    <span className="font-medium">
-                      {user?.usage?.storage || 0} GB
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
             <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -1258,257 +998,25 @@ export default function UserSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   className="w-full border-slate-600 justify-start"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full border-slate-600 justify-start"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import Settings
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full border-slate-600 justify-start"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Reset Preferences
-                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
-        {/* Dialogs */}
-        {/* Avatar Selection Dialog */}
-        <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Choose Avatar
-              </DialogTitle>
-              <DialogDescription>
-                Select a new avatar for your profile
-              </DialogDescription>
-            </DialogHeader>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-              className="grid grid-cols-3 gap-4 py-4"
-            >
-              {availableAvatars.map((avatar, index) => (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    handleFormChange("avatar", avatar);
-                    onOpenChange(false);
-                  }}
-                  className={`p-2 rounded-lg border-2 transition-all duration-200 ${
-                    userForm.avatar === avatar
-                      ? "border-blue-400 bg-blue-400/10"
-                      : "border-slate-600 hover:border-blue-500"
-                  }`}
-                >
-                  <Avatar className="h-16 w-16 mx-auto">
-                    <AvatarImage src={avatar} />
-                    <AvatarFallback>?</AvatarFallback>
-                  </Avatar>
-                </motion.button>
-              ))}
-            </motion.div>
-          </DialogContent>
-        </Dialog>
-        {/* Delete Project Dialog */}
-        <Dialog
-          open={deleteProjectDialog.open}
-          onOpenChange={(open) =>
-            setDeleteProjectDialog({ open, project: null })
-          }
-        >
-          <DialogContent className="bg-slate-800 border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Delete Project
-              </DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete "
-                {deleteProjectDialog.project?.name}"? This action cannot be
-                undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setDeleteProjectDialog({ open: false, project: null })
-                }
-                className="border-slate-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleDeleteProject(deleteProjectDialog.project)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Project
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Batch Delete Dialog */}
-        <Dialog open={batchDeleteDialog} onOpenChange={setBatchDeleteDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Delete Selected Projects
-              </DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete {selectedProjects.size} selected
-                projects? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setBatchDeleteDialog(false)}
-                className="border-slate-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleBatchDelete}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete {selectedProjects.size} Projects
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Delete All Projects Dialog */}
-        <Dialog
-          open={deleteAllProjectsDialog}
-          onOpenChange={setDeleteAllProjectsDialog}
-        >
-          <DialogContent className="bg-slate-800 border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Delete All Projects
-              </DialogTitle>
-              <DialogDescription>
-                This will permanently delete ALL {projects.length} of your
-                projects and their data. This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-red-400/80 bg-red-950/30 p-3 rounded-lg border border-red-900/30">
-                ⚠️ This is a destructive action that will remove all monitoring
-                data, configurations, and history for all projects.
-              </p>
-            </div>
-            <DialogFooter className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteAllProjectsDialog(false)}
-                className="border-slate-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteAllProjects}
-                className="bg-red-700 hover:bg-red-800"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete All Projects
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Delete Account Dialog */}
-        <Dialog
-          open={deleteAccountDialog.open}
-          onOpenChange={(open) => setDeleteAccountDialog({ open, step: 1 })}
-        >
-          <DialogContent className="bg-slate-800 border-slate-700">
-            <DialogHeader>
-              <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Delete Account
-              </DialogTitle>
-              <DialogDescription>
-                {deleteAccountDialog.step === 1
-                  ? "This will permanently delete your account and all associated data."
-                  : "Please confirm by typing your email address to proceed."}
-              </DialogDescription>
-            </DialogHeader>
+        {renderAvatarDialog()}
+        {renderDeleteProjectDialog()}
+        {renderBatchDeleteDialog()}
+        {renderDeleteAllProjectsDialog()}
 
-            {deleteAccountDialog.step === 1 ? (
-              <div className="py-4 space-y-4">
-                <div className="bg-red-950/30 p-4 rounded-lg border border-red-900/30">
-                  <h4 className="font-medium text-red-300 mb-2">
-                    This will delete:
-                  </h4>
-                  <ul className="text-sm text-red-400/80 space-y-1">
-                    <li>• Your account and profile</li>
-                    <li>• All {projects.length} projects and their data</li>
-                    <li>• All monitoring history and logs</li>
-                    <li>• All API keys and configurations</li>
-                  </ul>
-                </div>
-                <p className="text-sm text-red-400/80">
-                  This action is irreversible. Please make sure you have
-                  exported any data you want to keep.
-                </p>
-              </div>
-            ) : (
-              <div className="py-4">
-                <label className="text-sm font-medium text-slate-300">
-                  Type your email address to confirm:
-                </label>
-                <Input
-                  placeholder={user?.email}
-                  className="mt-2 bg-slate-900/50 border-slate-600 focus:border-red-400"
-                />
-              </div>
-            )}
-
-            <DialogFooter className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteAccountDialog({ open: false, step: 1 })}
-                className="border-slate-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (deleteAccountDialog.step === 1) {
-                    setDeleteAccountDialog({ open: true, step: 2 });
-                  } else {
-                    handleDeleteAccount();
-                  }
-                }}
-                className="bg-red-700 hover:bg-red-800"
-              >
-                {deleteAccountDialog.step === 1 ? "Continue" : "Delete Account"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <RenderDeleteAccountDialogComp
+          isOpen={deleteAccountDialog.open}
+          onClose={() => setDeleteAccountDialog({ open: false, step: 1 })}
+        />
       </motion.div>
     </div>
   );

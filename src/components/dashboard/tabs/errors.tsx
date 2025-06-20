@@ -782,7 +782,7 @@ export default function ErrorsTab({
           </Table>
 
           {filteredErrors.length === 0 && (
-            <div className="text-center py-12">
+            <div className="text-center py-32">
               <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
               <p className="text-slate-400 text-lg">
                 No errors match your filters

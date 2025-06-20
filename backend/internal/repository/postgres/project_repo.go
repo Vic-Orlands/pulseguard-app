@@ -176,3 +176,45 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, oldSlug string
 
 	return &p, nil
 }
+
+// DeleteAllByOwner deletes all projects owned by the specified owner ID.
+func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
+	query := `
+		DELETE FROM projects
+		WHERE owner_id = $1
+		RETURNING id, name, slug, description, owner_id, created_at, updated_at
+	`
+
+	rows, err := repo.db.QueryContext(ctx, query, ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete projects for owner %s: %w", ownerID, err)
+	}
+	defer rows.Close()
+
+	var deletedProjects []*models.Project
+	for rows.Next() {
+		var p models.Project
+		if err := rows.Scan(
+			&p.ID,
+			&p.Name,
+			&p.Slug,
+			&p.Description,
+			&p.OwnerID,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan deleted project: %w", err)
+		}
+		deletedProjects = append(deletedProjects, &p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(deletedProjects) == 0 {
+		return nil, fmt.Errorf("no projects found for owner %s", ownerID)
+	}
+
+	return deletedProjects, nil
+}

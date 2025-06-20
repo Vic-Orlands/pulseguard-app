@@ -16,6 +16,7 @@ export type Project = {
   description: string;
   platform: string;
   createdAt: string;
+  updatedAt: string;
   errorCount: number;
   memberCount?: number;
 };

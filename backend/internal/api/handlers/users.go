@@ -270,3 +270,32 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(r.Context(), "User updated", "user_id", userID)
 	util.WriteJSON(w, http.StatusOK, updated)
 }
+
+// DeleteUser deletes the currently authenticated user
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := util.GetUserIDFromContext(r.Context(), h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	err = h.userService.Delete(r.Context(), userUUID)
+	if err != nil {
+		h.logger.Error(r.Context(), "Failed to delete user", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to delete user")
+		return
+	}
+
+	h.logger.Info(r.Context(), "User deleted", "user_id", userID)
+
+	// Expire the auth_token cookie
+	handleSetCookie(w, "", -1)
+
+	util.WriteJSON(w, http.StatusOK, map[string]string{"message": "User deleted successfully"})
+}

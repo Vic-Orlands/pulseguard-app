@@ -73,3 +73,17 @@ func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*models.Us
 func (s *UserService) Update(ctx context.Context, userID uuid.UUID, name string, hashedPassword string) (*models.User, error) {
 	return s.userRepo.Update(ctx, userID, name, hashedPassword)
 }
+
+// Delete removes a user from the system.
+func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
+	err := s.userRepo.Delete(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("user not found: %w", err)
+		}
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	fmt.Printf("✅ User deleted successfully: %s\n", userID.String())
+	return nil
+}

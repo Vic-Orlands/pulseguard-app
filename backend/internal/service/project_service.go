@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -127,4 +128,23 @@ func (s *ProjectService) UpdateProject(ctx context.Context, oldSlug, name, descr
 	}
 
 	return project, nil
+}
+
+// Delete all projects owned by a specific user.
+func (s *ProjectService) DeleteAllByOwner(ctx context.Context, ownerID string) error {
+	deleted, err := s.projectRepo.DeleteAllByOwner(ctx, ownerID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("no projects found for owner %s: %w", ownerID, err)
+		}
+		return fmt.Errorf("failed to delete projects for owner %s: %w", ownerID, err)
+	}
+
+	if len(deleted) > 0 {
+		fmt.Printf("✅ Deleted %d projects for owner %s\n", len(deleted), ownerID)
+	} else {
+		fmt.Printf("ℹ️ No projects found for owner %s to delete\n", ownerID)
+	}
+
+	return nil
 }

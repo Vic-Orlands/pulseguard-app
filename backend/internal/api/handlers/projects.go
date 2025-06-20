@@ -210,3 +210,24 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 
 	util.WriteJSON(w, http.StatusOK, project)
 }
+
+// DeleteAllByOwner deletes all projects owned by a specific user
+func (h *ProjectHandler) DeleteAllByOwner(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "unauthorized")))
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized: user_id not found in context")
+		return
+	}
+
+	err := h.projectService.DeleteAllByOwner(ctx, userID)
+	if err != nil {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "delete_all_projects_failed")))
+		util.WriteError(w, http.StatusInternalServerError, "Failed to delete projects")
+		return
+	}
+
+	h.logger.Info(ctx, "All projects deleted for user", "user_id", userID)
+	util.WriteJSON(w, http.StatusNoContent, nil)
+}

@@ -15,6 +15,7 @@ import {
   List,
   LayoutGrid,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -670,9 +671,9 @@ export default function ProjectSelectionPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center justify-center py-16"
+              className="flex items-center justify-center pt-48"
             >
-              <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
               <span className="ml-2 text-gray-400">Loading projects...</span>
             </motion.div>
           ) : filteredProjects.length > 0 ? (
