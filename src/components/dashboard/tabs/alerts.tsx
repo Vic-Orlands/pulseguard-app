@@ -27,7 +27,7 @@ import {
   Check,
 } from "lucide-react";
 
-import AlertConfiguration from "./config";
+import AlertConfiguration from "./settings/config";
 
 const AlertPage = () => {
   const [view, setView] = useState("grid");

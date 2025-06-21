@@ -60,4 +60,5 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.36.0
 	go.opentelemetry.io/otel/sdk/metric v1.36.0
 	golang.org/x/crypto v0.38.0
+	golang.org/x/sync v0.15.0
 )

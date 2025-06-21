@@ -39,7 +39,6 @@ type lokiResponse struct {
 // QueryLogs
 func (r *LokiRepository) QueryLogs(ctx context.Context, projectID string, start, end time.Time) ([]*models.Log, error) {
 	query := `{service_name="pulseguard"}`
-	// query := fmt.Sprintf(`{job="pulseguard"} | {projectId="%s"}`, projectID)
 
 	u, err := url.Parse(fmt.Sprintf(
 		"%s/loki/api/v1/query_range?query=%s&limit=100&start=%d&end=%d",

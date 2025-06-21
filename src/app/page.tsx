@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { PulseGuardLogo } from "@/components/Icons";
 import AnimatedBackground from "@/components/background-color";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 // Feature card component
 interface FeatureCardProps {
@@ -442,6 +443,34 @@ export const Footer = () => (
 
 // Main homepage
 export default function Homepage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient)
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white relative overflow-hidden">
+        <Navbar />
+        <main className="flex-1">
+          <div className="container mx-auto py-10">
+            <div className="space-y-8 animate-pulse">
+              <div className="h-10 bg-blue-900/30 rounded w-1/3 mx-auto" />
+              <div className="h-8 bg-blue-900/20 rounded w-2/3 mx-auto" />
+              <div className="h-64 bg-blue-900/10 rounded-lg" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="h-40 bg-blue-900/10 rounded-lg" />
+                <div className="h-40 bg-blue-900/10 rounded-lg" />
+                <div className="h-40 bg-blue-900/10 rounded-lg" />
+              </div>
+              <div className="h-12 bg-blue-900/20 rounded w-1/4 mx-auto" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <AnimatedBackground />

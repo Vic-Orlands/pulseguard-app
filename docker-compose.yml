@@ -1,25 +1,4 @@
 services:
-  # Next.js Frontend
-  # nextjs:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.frontend # Path to your Next.js Dockerfile
-  #   container_name: nextjs
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://go-backend:8080
-  #     - OTLP_ENDPOINT=http://otel-collector:4318 # For frontend OTLP HTTP
-  #   depends_on:
-  #     - go-backend
-  #     - otel-collector
-  #     - prometheus
-  #     - loki
-  #     - tempo
-  #   networks:
-  #     - monitoring
-  #   restart: unless-stopped
-
   # OpenTelemetry Collector
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest

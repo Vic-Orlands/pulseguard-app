@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from "react";
+import { ReactNode } from "react";
 import {
   Card,
   CardHeader,
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Code, Cpu, Server, Activity } from "lucide-react";
 import type { Platform } from "@/types/dashboard";
 import { useOverviewContext } from "@/context/overview-context";
+// import ErrorMonitoringDashboard from "./overview-scope";
 
 interface OverviewTabProps {
   platforms: Platform[];
@@ -28,7 +29,6 @@ interface OverviewTabProps {
 
 export default function OverviewTab({ platforms, children }: OverviewTabProps) {
   const { errors, alerts } = useOverviewContext();
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   const criticalErrors =
     errors !== null && errors.filter((e) => e.status === "active").length;
@@ -41,6 +41,8 @@ export default function OverviewTab({ platforms, children }: OverviewTabProps) {
     0
   );
   const activeAlerts = alerts.filter((a) => a.status === "active").length;
+
+  // return <ErrorMonitoringDashboard />
 
   return (
     <div className="space-y-6">
@@ -182,7 +184,7 @@ export default function OverviewTab({ platforms, children }: OverviewTabProps) {
               </span>
             </div>
             <div className="text-gray-400 text-sm">
-              Last updated: {currentTime.toLocaleTimeString()}
+              Date: {new Date().toLocaleTimeString()}
             </div>
           </div>
           <div className="flex items-center space-x-6 text-sm">

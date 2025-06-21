@@ -5,7 +5,7 @@ import Head from "next/head";
 import {
   Footer,
   Navbar,
-} from "../../../components/dashboard/tabs/trace-to-logs";
+} from "../../../components/dashboard/tabs/traces/trace-to-logs";
 import AnimatedBackground from "@/components/background-color";
 import Architecture from "./architecture";
 import { useState } from "react";

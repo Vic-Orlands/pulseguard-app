@@ -15,14 +15,14 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
-  Layers,
   AlertCircle,
   GitMerge,
   AlertTriangle,
   Server,
   ChevronLeft,
   X,
-  Activity
+  Activity,
+  ChartSpline,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Tabs, TabsList } from "@/components/ui/tabs";
@@ -45,7 +45,11 @@ const navItems = [
     icon: <LayoutDashboard className="h-4 w-4" />,
     label: "Overview",
   },
-  { id: "sessions", icon: <Layers className="h-4 w-4" />, label: "Sessions" },
+  {
+    id: "sessions",
+    icon: <ChartSpline className="h-4 w-4" />,
+    label: "Metrics",
+  },
   { id: "errors", icon: <AlertCircle className="h-4 w-4" />, label: "Errors" },
   { id: "logs", icon: <Activity className="h-4 w-4" />, label: "Logs" },
   { id: "traces", icon: <GitMerge className="h-4 w-4" />, label: "Traces" },

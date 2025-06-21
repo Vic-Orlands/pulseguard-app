@@ -36,7 +36,6 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Zap,
   Eye,
   TrendingUp,
@@ -52,20 +51,20 @@ import {
   Route,
   Globe,
   Target,
-  Filter,
   Check,
   AlertCircle,
   FileCog,
   ShieldAlert,
   Info,
+  Bug,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeverityColor, getSeverityIcon } from "../shared/severity-icons";
 import { fetchLogs } from "@/lib/api/otlp-api";
-import type { Log, Project } from "@/types/dashboard";
+import type { Log, Project, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
-import TraceToLogsComponent from "./trace-to-logs";
+import TraceToLogsComponent from "./traces/trace-to-logs";
 
 // Timeline data for the right sidebar
 const timelineSteps = [
@@ -111,8 +110,12 @@ const timelineSteps = [
   },
 ];
 
-type TimeProp = string | "1h" | "6h" | "24h" | "7d";
-
+/**
+ * Displays a searchable, filterable, and paginated log viewer for a given project,
+ * including log details, trace correlation, and timeline visualizations.
+ *
+ * @param project - The project whose logs are to be displayed.
+ */
 const LogsTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
 
@@ -123,13 +126,7 @@ const LogsTab = ({ project }: { project: Project }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [filterLevel, setFilterLevel] = useState<string>("all");
-  const [selectedLog, setSelectedLog] = useState<Log | null>(null); // Changed to Log | null
   const [showTraceDemo, setShowTraceDemo] = useState<boolean>(false);
-  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
-  const [customEnd, setCustomEnd] = useState<string>("2025-06-11T15:00:00Z");
-  const [customStart, setCustomStart] = useState<string>(
-    "2025-06-11T12:00:00Z"
-  );
 
   let start: string;
   switch (timeRange) {
@@ -192,7 +189,7 @@ const LogsTab = ({ project }: { project: Project }) => {
     };
 
     loadData();
-  }, [end, project.id, start, timeRange]);
+  }, [timeRange]);
 
   const copyToClipboard = async (text: string, name: string) => {
     try {
@@ -247,184 +244,229 @@ const LogsTab = ({ project }: { project: Project }) => {
 
   // Enhanced log visualization component
   const LogVisualization = ({ log }: { log: Log }) => {
-    const [traceSidebarOpen, setTraceSidebarOpen] = useState(false);
-
     return (
       <div className="p-6 pt-0 space-y-6">
-        {/* System Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center justify-between bg-gradient-to-br from-blue-900/30 to-blue-800/20 p-4 rounded-xl border border-blue-500/20">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-blue-400" />
-              <span className="text-blue-300 font-medium">OS</span>
-            </div>
-            <span className="text-lg font-bold text-blue-400">
-              {log.os ?? "N/A"}
+        <div className="flex justify-between mb-6">
+          <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+            <span className="text-base text-slate-400 font-mono">Log ID:</span>
+            <span className="text-cyan-400 font-mono">{log.id}</span>
+            <span className="text-slate-400 text-sm font-normal">
+              &mdash; Full details and context for this log entry.
             </span>
-          </div>
+          </h2>
 
-          <div className="flex items-center justify-between bg-gradient-to-br from-purple-900/30 to-purple-800/20 p-4 rounded-xl border border-purple-500/20">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-purple-400" />
-              <span className="text-purple-300 font-medium">
-                Severity Level
-              </span>
-            </div>
-            <span className="text-lg font-bold text-purple-400">
-              {log.severity ?? "N/A"}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-gradient-to-br from-orange-900/30 to-orange-800/20 p-4 rounded-xl border border-orange-500/20">
-            <div className="flex items-center gap-2">
-              <Server className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-300 font-medium">Service name</span>
-            </div>
-            <span className="text-lg font-bold text-orange-400">
-              {log.service_name ?? "N/A"}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-gradient-to-br from-green-900/30 to-green-800/20 p-4 rounded-xl border border-green-500/20">
-            <div className="flex items-center gap-2">
-              <Database className="w-5 h-5 text-green-400" />
-              <span className="text-green-300 font-medium">Host name</span>
-            </div>
-            <span className="text-lg font-bold text-green-400">
-              {log.hostname ?? "N/A"}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-gradient-to-br from-indigo-900/30 to-indigo-800/20 p-4 rounded-xl border border-indigo-500/20">
-            <div className="flex items-center gap-2">
-              <Network className="w-5 h-5 text-indigo-400" />
-              <span className="text-indigo-300 font-medium">PID</span>
-            </div>
-            <span className="text-lg font-bold text-indigo-400">
-              {log.pid ?? "N/A"}
+          <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg border border-slate-700/50 p-4 backdrop-blur-sm">
+            <Clock className="w-4 h-4 text-slate-500" />
+            <span className="font-mono text-slate-200 text-sm">
+              {format(new Date(log.time), "PP, h:mmaaa")}
             </span>
           </div>
         </div>
 
-        {/* ID Cards with Copy Functionality */}
-        <div className="grid grid-cols-1 gap-4">
-          <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 p-4 rounded-xl border border-green-500/20">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-green-400" />
-                <span className="text-green-300 font-medium">Project ID</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(log.project_id, "Project ID")}
-                className="text-green-400 hover:text-green-300 p-1"
-              >
-                {copyText(log.project_id)}
-              </Button>
-            </div>
-            <p className="text-xs font-mono text-green-200 bg-green-900/30 p-2 rounded">
-              {log.project_id}
-            </p>
-          </div>
-
-          {log.traceId && (
-            <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 p-4 rounded-xl border border-purple-500/20">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Hash className="w-5 h-5 text-purple-400" />
-                  <span className="text-purple-300 font-medium">Trace ID</span>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - System Metrics */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* System Information */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold text-slate-200 mb-4">
+                System Information
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20">
+                  <div className="p-2 bg-blue-800/40 rounded-lg">
+                    <Cpu className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-300 font-medium">
+                      Operating System
+                    </p>
+                    <p className="text-sm font-semibold text-blue-200">
+                      {log.os ?? "N/A"}
+                    </p>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(log.traceId, "Trace ID")}
-                  className="text-purple-400 hover:text-purple-300 p-1"
-                >
-                  {copyText(log.traceId)}
-                </Button>
-              </div>
-              <p className="text-xs font-mono text-purple-200 bg-purple-900/30 p-2 rounded">
-                {log.traceId}
-              </p>
-            </div>
-          )}
 
-          {log.spanId && (
-            <div className="bg-gradient-to-br from-violet-900/30 to-violet-800/20 p-4 rounded-xl border border-violet-500/20">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-violet-400" />
-                  <span className="text-violet-300 font-medium">Span ID</span>
+                <div className="flex items-center gap-3 p-3 bg-purple-900/30 rounded-lg border border-purple-500/20">
+                  <div className="p-2 bg-purple-800/40 rounded-lg">
+                    <ShieldAlert className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-purple-300 font-medium">
+                      Severity
+                    </p>
+                    <p className="text-sm font-semibold text-purple-200">
+                      {log.severity ?? "N/A"}
+                    </p>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(log.spanId, "Span ID")}
-                  className="text-violet-400 hover:text-violet-300 p-1"
-                >
-                  {copyText(log.spanId)}
-                </Button>
+
+                <div className="flex items-center gap-3 p-3 bg-orange-900/30 rounded-lg border border-orange-500/20">
+                  <div className="p-2 bg-orange-800/40 rounded-lg">
+                    <Server className="w-4 h-4 text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-orange-300 font-medium">
+                      Service
+                    </p>
+                    <p className="text-sm font-semibold text-orange-200">
+                      {log.service_name ?? "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-green-900/30 rounded-lg border border-green-500/20">
+                  <div className="p-2 bg-green-800/40 rounded-lg">
+                    <Database className="w-4 h-4 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-300 font-medium">
+                      Hostname
+                    </p>
+                    <p className="text-sm font-semibold text-green-200">
+                      {log.hostname ?? "N/A"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs font-mono text-violet-200 bg-violet-900/30 p-2 rounded">
-                {log.spanId}
-              </p>
-            </div>
-          )}
 
-          <div className="bg-gradient-to-br from-cyan-900/30 to-cyan-800/20 p-4 rounded-xl border border-cyan-500/20">
-            <div className="flex items-center gap-2 mb-3">
-              <FileCog className="w-5 h-5 text-cyan-400" />
-              <span className="text-cyan-300 font-medium">Log Message</span>
+              <div className="mt-4 pt-4 border-t border-slate-600">
+                <div className="flex items-center gap-3 p-3 bg-indigo-900/30 rounded-lg border border-indigo-500/20">
+                  <div className="p-2 bg-indigo-800/40 rounded-lg">
+                    <Network className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-indigo-300 font-medium">
+                      Process ID
+                    </p>
+                    <p className="text-sm font-semibold text-indigo-200">
+                      {log.pid ?? "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="text-xs font-mono text-cyan-200 bg-cyan-900/30 p-2 rounded">
-              {log.msg ?? "N/A"}
-            </p>
+
+            {/* Log Message */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <FileCog className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-semibold text-slate-200">
+                  Log Message
+                </h3>
+              </div>
+              <div className="bg-cyan-900/30 rounded-lg p-4 border border-cyan-500/20">
+                <p className="text-sm font-mono text-cyan-200 leading-relaxed">
+                  {log.msg ?? "N/A"}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Action Button and Sidebar */}
-        <div className="flex justify-end gap-3">
-          <Button
-            onClick={() => setTraceSidebarOpen(true)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-            disabled={!log.traceId}
-          >
-            <Route className="w-4 h-4 mr-2" />
-            View Trace-to-Log Correlation
-          </Button>
-        </div>
+          {/* Right Column - Identifiers */}
+          <div className="space-y-6">
+            {/* Project ID */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-semibold text-slate-200">
+                    Project ID
+                  </h3>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(log.project_id, "Project ID")}
+                  className="p-2 text-green-400 hover:text-green-300 hover:bg-green-900/20 rounded-lg transition-colors"
+                >
+                  {copyText(log.project_id)}
+                </button>
+              </div>
+              <div className="bg-green-900/30 rounded-lg p-3 border border-green-500/20">
+                <p className="text-xs font-mono text-green-200 break-all">
+                  {log.project_id}
+                </p>
+              </div>
+            </div>
 
-        {/* Sidebar */}
-        {traceSidebarOpen && (
-          <div className="fixed inset-y-0 right-0 sm:w-[65%] bg-slate-900 border-slate-700 overflow-y-auto z-50">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h2 className="text-white text-lg font-semibold">
-                    Trace Details
-                  </h2>
-                  <p className="text-gray-400 text-sm">
-                    Trace ID: {log.traceId ?? "N/A"}
+            {/* Trace ID */}
+            {log.traceId && (
+              <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Hash className="w-5 h-5 text-purple-400" />
+                    <h3 className="text-lg font-semibold text-slate-200">
+                      Trace ID
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(log.traceId, "Trace ID")}
+                    className="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-900/20 rounded-lg transition-colors"
+                  >
+                    {copyText(log.traceId)}
+                  </button>
+                </div>
+                <div className="bg-purple-900/30 rounded-lg p-3 border border-purple-500/20">
+                  <p className="text-xs font-mono text-purple-200 break-all">
+                    {log.traceId}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setTraceSidebarOpen(false)}
-                  className="text-gray-400 hover:text-gray-200"
-                >
-                  Close
-                </Button>
               </div>
-              {log.traceId ? (
-                <TraceToLogsComponent traceId={log.traceId} />
-              ) : (
-                <div className="text-red-500 p-4">No Trace ID found.</div>
-              )}
+            )}
+
+            {/* Span ID */}
+            {log.spanId && (
+              <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-violet-400" />
+                    <h3 className="text-lg font-semibold text-slate-200">
+                      Span ID
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(log.spanId, "Span ID")}
+                    className="p-2 text-violet-400 hover:text-violet-300 hover:bg-violet-900/20 rounded-lg transition-colors"
+                  >
+                    {copyText(log.spanId)}
+                  </button>
+                </div>
+                <div className="bg-violet-900/30 rounded-lg p-3 border border-violet-500/20">
+                  <p className="text-xs font-mono text-violet-200 break-all">
+                    {log.spanId}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Button */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                    <Route className="w-4 h-4" />
+                    View Trace-to-Log Correlation
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="sm:w-[67%] bg-slate-900 border-slate-700 overflow-y-auto"
+                >
+                  <SheetHeader>
+                    <SheetTitle className="text-white text-lg font-semibold">
+                      Trace Details
+                    </SheetTitle>
+                    <SheetDescription className="text-gray-400 text-sm">
+                      Trace ID: {log.traceId}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <TraceToLogsComponent traceId={log.traceId} />
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -494,29 +536,6 @@ const LogsTab = ({ project }: { project: Project }) => {
     </div>
   );
 
-  // CustomFilter Component
-  const CustomFilter = () => (
-    <div className="flex items-center gap-3 mt-4">
-      <div className="flex items-center space-x-2">
-        <Input
-          type="datetime-local"
-          value={customStart}
-          onChange={(e) => setCustomStart(e.target.value)}
-          className="bg-slate-800 border-slate-600 text-gray-300"
-        />
-      </div>
-      <div className="flex items-center space-x-2">
-        <Input
-          type="datetime-local"
-          value={customEnd}
-          onChange={(e) => setCustomEnd(e.target.value)}
-          className="bg-slate-800 border-slate-600 text-gray-300"
-        />
-      </div>
-      <Button onClick={() => setShowAdvancedFilter(false)}>Apply Filter</Button>
-    </div>
-  );
-
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
 
   // MAIN SECTION
@@ -562,20 +581,10 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <SelectItem value="1h">Last 1 Hour</SelectItem>
                     <SelectItem value="24h">Last 24 Hours</SelectItem>
                     <SelectItem value="7d">Last 7 Days</SelectItem>
+                    <SelectItem value="30d">Last 30 Days</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowAdvancedFilter(true)}
-                  className="bg-slate-800 border-slate-600 text-gray-300"
-                >
-                  <Filter className="w-4 h-4" />
-                  Custom Filter
-                </Button>
               </div>
-
-              {showAdvancedFilter && <CustomFilter />}
             </section>
 
             <div className="flex items-center gap-3">
@@ -616,7 +625,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                   </p>
                 </div>
                 <div className="p-3 bg-red-500/20 rounded-lg">
-                  <XCircle className="w-6 h-6 text-red-400" />
+                  <Bug className="w-6 h-6 text-red-400" />
                 </div>
               </CardContent>
             </Card>
@@ -712,9 +721,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                         <Sheet>
                           <SheetTrigger asChild>
                             <Button
-                              variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedLog(log)}
+                              variant="ghost"
                               className="text-cyan-400 hover:text-cyan-300"
                             >
                               <Eye className="w-4 h-4" />
@@ -726,14 +734,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                           >
                             <SheetHeader className="text-white">
                               <SheetTitle>Log Details</SheetTitle>
-                              <SheetDescription className="text-gray-400">
-                                Date:{" "}
-                                {format(new Date(log.time), "PP, h:mmaaa")}
-                              </SheetDescription>
                             </SheetHeader>
-                            {selectedLog && (
-                              <MemoizedLogVisualization log={selectedLog} />
-                            )}
+                            <MemoizedLogVisualization log={log} />
                           </SheetContent>
                         </Sheet>
 
@@ -750,7 +752,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                           </SheetTrigger>
                           <SheetContent
                             side="right"
-                            className="sm:w-[65%] bg-slate-900 border-slate-700 overflow-y-auto"
+                            className="sm:w-[70%] bg-slate-900 border-slate-700 overflow-y-auto"
                           >
                             <SheetHeader>
                               <SheetTitle className="text-white">

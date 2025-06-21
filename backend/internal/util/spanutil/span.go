@@ -18,7 +18,6 @@ func StartSpanFromRequest(tracer trace.Tracer, r *http.Request, name string) (co
 		attribute.String("http.url", r.URL.String()),
 		attribute.String("http.user_agent", r.UserAgent()),
 		attribute.String("http.client_ip", util.GetIPAddress(r)),
-
 	)
 	return ctx, span
 }

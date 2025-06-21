@@ -23,3 +23,11 @@ type Span struct {
 	Attributes   map[string]string `json:"attributes"`
 	Resources    map[string]string `json:"resources"`
 }
+
+type TraceSummary struct {
+	TraceID     string    `json:"traceId"`
+	Name        string    `json:"name"`
+	ServiceName string    `json:"serviceName"`
+	StartTime   time.Time `json:"startTime"`
+	DurationMs  float64   `json:"duration"`
+}

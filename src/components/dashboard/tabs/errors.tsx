@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -22,7 +20,6 @@ import {
   Users,
   Code,
   Globe,
-  Hash,
   Clock,
   Bug,
   ChevronRight,
@@ -56,22 +53,18 @@ import type { Error } from "@/types/error";
 import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSeverityColor } from "@/lib/utils";
-
-interface Filters {
-  project_id: string;
-  environment: string;
-  status: string;
-  search: string;
-  page: number;
-  limit: number;
-}
+import { toast } from "sonner";
 
 interface ErrorsTabProps {
   total: number;
   errors: Error[] | null;
-  filters: Filters;
-  handleFilterChange: (key: string, value: string | number) => void;
   onErrorUpdate?: () => void;
+  config: {
+    project_id: string;
+    page: number;
+    limit: number;
+  };
+  handleConfig: (key: string, value: number) => void;
 }
 
 interface ErrorMetaRowProps {
@@ -225,7 +218,7 @@ export function ErrorDetailsSheet({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <Hash className="h-5 w-5 text-blue-400" />
+                      <Bug className="h-5 w-5 text-blue-400" />
                     </div>
                     <div>
                       <p className="text-slate-400 text-sm">Occurrences</p>
@@ -270,9 +263,10 @@ export function ErrorDetailsSheet({
                     variant="ghost"
                     size="sm"
                     className="text-slate-400 hover:text-white"
-                    onClick={() =>
-                      navigator.clipboard.writeText(selectedError.message)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedError.message);
+                      toast.success("message copied successfully!");
+                    }}
                     disabled={isStatusLoading}
                   >
                     <Copy className="h-4 w-4 mr-1" />
@@ -305,9 +299,10 @@ export function ErrorDetailsSheet({
                     variant="ghost"
                     size="sm"
                     className="text-slate-400 hover:text-white"
-                    onClick={() =>
-                      navigator.clipboard.writeText(selectedError.stackTrace)
-                    }
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedError.stackTrace);
+                      toast.success("stackTrace copied successfully!");
+                    }}
                     disabled={isStatusLoading}
                   >
                     <Copy className="h-4 w-4 mr-1" />
@@ -514,17 +509,23 @@ export function ErrorDetailsSheet({
 export default function ErrorsTab({
   total,
   errors,
-  filters,
-  handleFilterChange,
+  config,
+  handleConfig,
   onErrorUpdate,
 }: ErrorsTabProps) {
-  const [errorType, setErrorType] = useState<string>("");
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
   const [loadingErrorIds, setLoadingErrorIds] = useState<string[]>([]);
   const [selectedError, setSelectedError] = useState<Error | null>(null);
   const [localErrors, setLocalErrors] = useState<Error[] | null>(errors);
+  const [filters, setFilters] = useState({
+    status: "" as string,
+    errorType: "" as string,
+    environment: "" as string,
+    inputSearch: "" as string,
+    page: 1 as number,
+    limit: 20 as number,
+  });
 
-  // Sync localErrors with prop changes
   useMemo(() => {
     setLocalErrors(errors);
   }, [errors]);
@@ -534,13 +535,18 @@ export default function ErrorsTab({
       ? []
       : localErrors.filter((error) => {
           const matchesSearch =
-            filters.search === "" ||
             error.message
               .toLowerCase()
-              .includes(filters.search.toLowerCase()) ||
-            error.type.toLowerCase().includes(filters.search.toLowerCase()) ||
-            error.id.toLowerCase().includes(filters.search.toLowerCase()) ||
-            error.source.toLowerCase().includes(filters.search.toLowerCase());
+              .includes(filters.inputSearch.toLowerCase()) ||
+            error.type
+              .toLowerCase()
+              .includes(filters.inputSearch.toLowerCase()) ||
+            error.id
+              .toLowerCase()
+              .includes(filters.inputSearch.toLowerCase()) ||
+            error.source
+              .toLowerCase()
+              .includes(filters.inputSearch.toLowerCase());
 
           const matchesStatus =
             filters.status === "" ||
@@ -551,10 +557,12 @@ export default function ErrorsTab({
             filters.environment === "all" ||
             error.environment === filters.environment;
           const matchesTypes =
-            errorType === "" ||
-            errorType === "error" ||
+            filters.errorType === "" ||
+            filters.errorType === "error" ||
             error.type.toLowerCase() ===
-              (errorType === "all" ? "" : errorType.toLowerCase());
+              (filters.errorType === "all"
+                ? ""
+                : filters.errorType.toLowerCase());
 
           return (
             matchesSearch && matchesStatus && matchesEnvironment && matchesTypes
@@ -562,10 +570,10 @@ export default function ErrorsTab({
         });
   }, [
     localErrors,
-    filters.search,
     filters.status,
+    filters.errorType,
+    filters.inputSearch,
     filters.environment,
-    errorType,
   ]);
 
   const handleErrorClick = (error: Error) => {
@@ -578,21 +586,29 @@ export default function ErrorsTab({
     setTimeout(() => setSelectedError(null), 300);
   };
 
+  const handleFilterChange = (key: string, value: string | number) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // this func resolves status and vice versa
   const handleStatusChange = (errorId: string, newStatus: string) => {
     setLoadingErrorIds((prev) => [...prev, errorId]);
+    setSelectedError((prev) =>
+      prev && prev.id === errorId ? { ...prev, status: newStatus } : prev
+    );
+
     setLocalErrors(
       (prev) =>
         prev?.map((err) =>
           err.id === errorId ? { ...err, status: newStatus } : err
         ) || null
     );
-    setSelectedError((prev) =>
-      prev && prev.id === errorId ? { ...prev, status: newStatus } : prev
-    );
+
+    setIsSheetOpen(false);
 
     setTimeout(() => {
-      setLoadingErrorIds((prev) => prev.filter((id) => id !== errorId));
       onErrorUpdate?.();
+      setLoadingErrorIds([]);
     }, 500);
   };
 
@@ -607,8 +623,10 @@ export default function ErrorsTab({
                 <Input
                   placeholder="Search errors..."
                   className="pl-10 w-full lg:w-64 bg-slate-800/50 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-purple-400/50 focus:ring-purple-400/20"
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  value={filters.inputSearch}
+                  onChange={(e) =>
+                    handleFilterChange("inputSearch", e.target.value)
+                  }
                 />
               </div>
 
@@ -648,7 +666,12 @@ export default function ErrorsTab({
                 </SelectContent>
               </Select>
 
-              <Select value={errorType} onValueChange={setErrorType}>
+              <Select
+                value={filters.errorType}
+                onValueChange={(value) =>
+                  handleFilterChange("errorType", value)
+                }
+              >
                 <SelectTrigger className="w-36 bg-slate-800/50 border-slate-600/50 text-white">
                   <SelectValue placeholder="Error Type" />
                 </SelectTrigger>
@@ -706,76 +729,80 @@ export default function ErrorsTab({
                   key={error.id}
                   className="border-slate-700/50 hover:bg-slate-800/30 group transition-colors"
                 >
-                  <TableCell>
-                    <div className="font-mono text-sm text-purple-300 font-medium">
-                      {error.id}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"
-                    >
-                      <Bug className="h-3 w-3" />
-                      {error.type || "unknown"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    <div className="truncate text-slate-200 group-hover:text-white transition-colors">
-                      {error.message}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {loadingErrorIds.includes(error.id) ? (
-                      <Skeleton className="h-6 w-16 bg-slate-700/50" />
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className={
-                          error.status === "ACTIVE"
-                            ? "bg-red-500/20 text-red-400 border-red-500/30"
-                            : "bg-green-500/20 text-green-400 border-green-500/30"
-                        }
-                      >
-                        {error.status === "ACTIVE" ? "Active" : "Resolved"}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-slate-300 font-medium">
-                    {error.count}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="bg-blue-500/20 text-blue-400 border-blue-500/30"
-                    >
-                      {error.environment}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-slate-400">
-                    {format(new Date(error.lastSeen), "MMM d, yyyy, ha")}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="bg-slate-700/50 text-slate-300 border-slate-600/50 max-w-[250px]"
-                    >
-                      <span className="truncate block">{error.source}</span>
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-slate-400 hover:text-white hover:bg-slate-700/50 group-hover:translate-x-1 transition-all duration-200"
-                      onClick={() => handleErrorClick(error)}
-                      disabled={loadingErrorIds.includes(error.id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                      <ChevronRight className="h-3 w-3" />
-                    </Button>
-                  </TableCell>
+                  {loadingErrorIds.includes(error.id) ? (
+                    <TableCell colSpan={9}>
+                      <Skeleton className="h-6 w-full bg-slate-700/50" />
+                    </TableCell>
+                  ) : (
+                    <>
+                      <TableCell>
+                        <div className="font-mono text-sm text-purple-300 font-medium">
+                          {error.id}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"
+                        >
+                          <Bug className="h-3 w-3" />
+                          {error.type || "unknown"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <div className="truncate text-slate-200 group-hover:text-white transition-colors">
+                          {error.message}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            error.status === "ACTIVE"
+                              ? "bg-red-500/20 text-red-400 border-red-500/30"
+                              : "bg-green-500/20 text-green-400 border-green-500/30"
+                          }
+                        >
+                          {error.status === "ACTIVE" ? "Active" : "Resolved"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-300 font-medium">
+                        {error.count}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-500/20 text-blue-400 border-blue-500/30"
+                        >
+                          {error.environment}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-400">
+                        {format(new Date(error.lastSeen), "MMM d, yyyy, ha")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="bg-slate-700/50 text-slate-300 border-slate-600/50 max-w-[250px]"
+                        >
+                          <span className="truncate block">{error.source}</span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                          onClick={() => handleErrorClick(error)}
+                          disabled={loadingErrorIds.includes(error.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View
+                          <ChevronRight className="h-3 w-3" />
+                        </Button>
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -803,10 +830,10 @@ export default function ErrorsTab({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={filters.page <= 1}
+                disabled={config.page <= 1}
                 className="bg-slate-800/30 border-slate-600/50"
                 onClick={() =>
-                  handleFilterChange("page", Math.max(1, filters.page - 1))
+                  handleConfig("page", Math.max(1, config.page - 1))
                 }
               >
                 Previous
@@ -814,9 +841,9 @@ export default function ErrorsTab({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleFilterChange("page", filters.page + 1)}
+                onClick={() => handleConfig("page", config.page + 1)}
                 className="bg-slate-800/30 border-slate-600/50 hover:bg-slate-700/50"
-                disabled={filteredErrors.length < filters.limit}
+                disabled={filteredErrors.length < config.limit}
               >
                 Next
               </Button>

@@ -32,7 +32,7 @@ func WithProjectID(ctx context.Context, projectID string) context.Context {
 }
 
 // GetProjectIDFromContext retrieves the stored project_id from the context
-func GetProjectIDFromContext(ctx context.Context) (string, bool) { // Fixed signature
+func GetProjectIDFromContext(ctx context.Context) (string, bool) {
 	projectID, ok := ctx.Value(projectIDKey).(string)
 	return projectID, ok
 }

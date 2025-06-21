@@ -354,29 +354,7 @@ const ErrorMonitoringDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-indigo-950 to-purple-900 text-white p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent mb-2">
-              Error Monitoring Dashboard
-            </h1>
-            <p className="text-purple-300">
-              Real-time application health and error tracking
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button className="p-2 bg-purple-800/50 hover:bg-purple-700/50 rounded-lg transition-colors">
-              <Settings className="w-5 h-5" />
-            </button>
-            <button className="p-2 bg-purple-800/50 hover:bg-purple-700/50 rounded-lg transition-colors">
-              <Eye className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen text-white p-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-6">
@@ -526,71 +504,6 @@ const ErrorMonitoringDashboard = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="bg-gray-900/40 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-purple-200 mb-4">
-            Response Times
-          </h3>
-          <div ref={barChartRef} className="h-32" />
-        </div>
-
-        <div className="bg-gray-900/40 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-purple-200 mb-4">
-            Alert Status
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Critical Alerts</span>
-              <span className="text-red-400 font-bold">3</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Warnings</span>
-              <span className="text-yellow-400 font-bold">12</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Info</span>
-              <span className="text-blue-400 font-bold">28</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gray-900/40 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-purple-200 mb-4">
-            System Health
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">CPU Usage</span>
-              <div className="flex items-center">
-                <div className="w-16 h-2 bg-gray-700 rounded-full mr-2">
-                  <div className="w-12 h-2 bg-green-500 rounded-full"></div>
-                </div>
-                <span className="text-green-400 text-sm">75%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Memory</span>
-              <div className="flex items-center">
-                <div className="w-16 h-2 bg-gray-700 rounded-full mr-2">
-                  <div className="w-10 h-2 bg-yellow-500 rounded-full"></div>
-                </div>
-                <span className="text-yellow-400 text-sm">62%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Disk I/O</span>
-              <div className="flex items-center">
-                <div className="w-16 h-2 bg-gray-700 rounded-full mr-2">
-                  <div className="w-6 h-2 bg-green-500 rounded-full"></div>
-                </div>
-                <span className="text-green-400 text-sm">38%</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

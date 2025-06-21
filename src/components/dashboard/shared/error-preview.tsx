@@ -1,9 +1,20 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, AlertTriangle, Eye } from "lucide-react";
+import { AlertCircle, AlertTriangle, Bug, Eye, Clock } from "lucide-react";
 import { useOverviewContext } from "@/context/overview-context";
 import { formatDistanceToNow } from "date-fns";
+
+const getErrorSeverityColor = (severity: string) => {
+  switch (severity) {
+    case "active":
+      return "text-red-400 bg-red-500/20";
+    case "resolved":
+      return "text-green-400 bg-green-500/20";
+    default:
+      return "text-yellow-400 bg-yellow-500/20";
+  }
+};
 
 export default function ErrorPreview() {
   const { errors, setActiveTab } = useOverviewContext();
@@ -49,22 +60,23 @@ export default function ErrorPreview() {
                       {error.type || "RuntimeError"}
                     </h3>
                     <Badge
-                      variant={
-                        error.status === "ACTIVE" ? "secondary" : "outline"
-                      }
+                      className={`text-xs px-2 py-1 rounded-full ${getErrorSeverityColor(
+                        error.status.toLowerCase()
+                      )}`}
                     >
-                      {error.status}
+                      {error.status.toLowerCase()}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-400 mt-1 w-3/4 truncate text-ellipsis">
                     {error.message}
                   </p>
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span>{error.count} occurrences</span>
-                    <span className="truncate text-ellipsis w-3/5">
-                      <b>Source:</b> {error.source}
+                    <span className="flex items-center">
+                      <Bug className="w-3 h-3 mr-1" />
+                      {error.count} occurrences
                     </span>
-                    <span className="ml-auto">
+                    <span className="flex items-center m">
+                      <Clock className="w-3 h-3 mr-1" />
                       {formatDistanceToNow(new Date(error.lastSeen), {
                         addSuffix: true,
                       })}

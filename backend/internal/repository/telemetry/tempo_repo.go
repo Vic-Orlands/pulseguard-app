@@ -1,9 +1,11 @@
 package telemetry
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"pulseguard/internal/models"
 	"strconv"
@@ -22,6 +24,78 @@ func NewTempoRepository(baseURL string) *TempoClient {
 	}
 }
 
+// SearchTraces fetches all traces within a time range for a project
+func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, end time.Time) ([]*models.TraceSummary, error) {
+	url := fmt.Sprintf("%s/api/search", c.baseURL)
+	payload := map[string]interface{}{
+		"start": start.UnixNano(),
+		"end":   end.UnixNano(),
+		"query": fmt.Sprintf(`service.name="pulseguard" && project_id="%s"`, projectID),
+	}
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal search payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search traces: %w", err)
+	}
+	defer res.Body.Close()
+
+	bodyBytes, err = io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tempo search failed: %d - %s", res.StatusCode, string(bodyBytes))
+	}
+
+	// Response parsing
+	var searchResult struct {
+		Traces []struct {
+			TraceID           string `json:"traceID"`
+			RootServiceName   string `json:"rootServiceName"`
+			RootTraceName     string `json:"rootTraceName"`
+			StartTimeUnixNano string `json:"startTimeUnixNano"`
+			DurationMs        int64  `json:"durationMs"`
+		} `json:"traces"`
+	}
+
+	if err := json.Unmarshal(bodyBytes, &searchResult); err != nil {
+		return nil, fmt.Errorf("failed to decode search response: %w", err)
+	}
+
+	var summaries []*models.TraceSummary
+	for _, t := range searchResult.Traces {
+		// Parse startTime from string -> int64 -> time.Time
+		startNano, err := strconv.ParseInt(t.StartTimeUnixNano, 10, 64)
+		if err != nil {
+			fmt.Printf("invalid startTimeUnixNano: %s", err)
+			continue
+		}
+
+		summaries = append(summaries, &models.TraceSummary{
+			TraceID:     t.TraceID,
+			Name:        t.RootTraceName,
+			ServiceName: t.RootServiceName,
+			StartTime:   time.Unix(0, startNano),
+			DurationMs:  float64(t.DurationMs),
+		})
+	}
+
+	// fmt.Printf("Found %d trace summaries for project_id=%s", len(summaries), projectID)
+	return summaries, nil
+}
+
+// GetTrace fetches single trace by ID
 func (c *TempoClient) GetTrace(ctx context.Context, traceID string) (*models.Trace, error) {
 	url := fmt.Sprintf("%s/api/traces/%s", c.baseURL, traceID)
 

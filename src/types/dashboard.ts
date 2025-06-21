@@ -1,6 +1,8 @@
+export type TimeProp = string | "1h" | "6h" | "24h" | "7d" | "30d";
+
 export type NavItem =
   | "overview"
-  | "sessions"
+  | "metrics"
   | "errors"
   | "logs"
   | "traces"
@@ -113,3 +115,11 @@ export type Integration = {
   lastSync: string;
   status: "connected" | "disconnected";
 };
+
+export interface Metric {
+  ID: string;
+  ProjectID: string;
+  Name: string;
+  Value: string;
+  Timestamp: string;
+}

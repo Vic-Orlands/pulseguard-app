@@ -148,7 +148,6 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 			errorMessage = "No user found with that email"
 		} else if strings.Contains(err.Error(), "invalid password") {
 			errorType = "invalid_password"
-			// Leave message generic to avoid info leaks
 		}
 
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(

@@ -43,13 +43,6 @@ export interface ErrorListResponse {
 
 export interface ErrorFilterProps {
   project_id: string;
-  environment?: string;
-  status?: string;
-  search?: string;
-  userId?: string;
-  sessionId?: string;
-  startDate?: string;
-  endDate?: string;
   page?: number;
   limit?: number;
 }

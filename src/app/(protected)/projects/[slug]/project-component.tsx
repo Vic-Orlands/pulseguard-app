@@ -7,16 +7,14 @@ import { HelpCircle, Plus } from "lucide-react";
 
 import Navbar from "@/components/dashboard/shared/navbar";
 import OverviewTab from "@/components/dashboard/tabs/overview";
-import SessionsTab from "@/components/dashboard/tabs/sessions";
 import ErrorsTab from "@/components/dashboard/tabs/errors";
 import LogsTab from "@/components/dashboard/tabs/logs";
-import TracesTab from "@/components/dashboard/tabs/traces";
+import TracesTab from "@/components/dashboard/tabs/traces/page";
 import AlertsTab from "@/components/dashboard/tabs/alerts";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
-import SettingsTab from "@/components/dashboard/tabs/settings";
+import SettingsTab from "@/components/dashboard/tabs/settings/page";
 import HelpButton from "@/components/dashboard/shared/help-button";
 import type {
-  Trace,
   Alert,
   NavItem,
   Platform,
@@ -30,7 +28,7 @@ import { fetchErrors } from "@/lib/api/error-api";
 import type { ErrorListResponse, Error } from "@/types/error";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
-import Loading from "./loading";
+import MetricsTab from "@/components/dashboard/tabs/metrics";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();
@@ -39,15 +37,11 @@ export default function DashboardComponent({ project }: { project: Project }) {
 
   const [total, setTotal] = useState<number>(0);
   const [errors, setErrors] = useState<Error[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<NavItem>(defaultTab);
-  const [filters, setFilters] = useState({
-    project_id: project.id,
-    environment: "",
-    status: "",
-    search: "",
-    page: 1,
-    limit: 10,
+  const [errorsConfig, setErrorsConfig] = useState({
+    project_id: project.id as string,
+    page: 1 as number,
+    limit: 20 as number,
   });
 
   // Update URL when tab changes
@@ -59,24 +53,21 @@ export default function DashboardComponent({ project }: { project: Project }) {
 
   // fetch all errors for specific project
   const fetchErrorData = async () => {
-    setLoading(true);
     try {
-      const response: ErrorListResponse = await fetchErrors(filters);
+      const response: ErrorListResponse = await fetchErrors(errorsConfig);
       setErrors(response.errors);
       setTotal(response.total);
     } catch (err) {
       console.log("Error fetching all errors:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchErrorData();
-  }, [filters]);
+  }, [errorsConfig.page, errorsConfig.limit]);
 
-  const handleFilterChange = (key: string, value: string | number) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleConfig = (key: string, value: string | number) => {
+    setErrorsConfig((prev) => ({ ...prev, [key]: value }));
   };
 
   // Dummy Data
@@ -162,8 +153,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
   ];
 
   const renderActiveTab = () => {
-    if (loading) return <Loading />;
-
     switch (activeTab) {
       case "overview":
         return (
@@ -176,15 +165,15 @@ export default function DashboardComponent({ project }: { project: Project }) {
             </OverviewTab>
           </OverviewProvider>
         );
-      case "sessions":
-        return <SessionsTab platforms={platforms} />;
+      case "metrics":
+        return <MetricsTab project={project} />;
       case "errors":
         return (
           <ErrorsTab
             total={total}
             errors={errors}
-            filters={filters}
-            handleFilterChange={handleFilterChange}
+            config={errorsConfig}
+            handleConfig={handleConfig}
             onErrorUpdate={fetchErrorData}
           />
         );
@@ -193,7 +182,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "traces":
         return <TracesTab project={project} />;
       case "alerts":
-        return <AlertsTab alerts={alerts} />;
+        return <AlertsTab />;
       case "integrations":
         return <IntegrationsTab integrations={integrations} />;
       case "settings":

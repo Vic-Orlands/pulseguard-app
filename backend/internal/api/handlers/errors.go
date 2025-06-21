@@ -142,9 +142,9 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		attribute.String("error.message", req.Message),
 		attribute.String("error.source", req.Source),
 		attribute.String("error.type", req.Type),
-		attribute.String("session.id", req.SessionID),
-		attribute.String("user.id", req.UserID),
-		attribute.String("project.id", projectUUID.String()),
+		attribute.String("session_id", req.SessionID),
+		attribute.String("user_id", req.UserID),
+		attribute.String("project_id", projectUUID.String()),
 		attribute.String("environment", req.Environment),
 		attribute.String("url", req.URL),
 	)

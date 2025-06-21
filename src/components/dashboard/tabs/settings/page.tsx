@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { DeleteProjectDialog } from "../shared/delete-project-dialog";
+import { DeleteProjectDialog } from "../../shared/delete-project-dialog";
 import { updateProject } from "@/lib/api/projects-api";
 import type { Project } from "@/types/dashboard";
 

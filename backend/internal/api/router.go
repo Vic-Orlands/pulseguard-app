@@ -48,7 +48,7 @@ func NewRouter(
 	userHandler := handlers.NewUserHandler(userSvc, metrics, tokenSvc, logger)
 	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
 
-	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, metrics, tracer)
+	// dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, metrics, tracer)
 	errorHandler := handlers.NewErrorHandler(errorSvc, metrics, logger, tracer)
 	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics, tracer)
 	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics, tracer)
@@ -93,8 +93,9 @@ func NewRouter(
 		// otlp
 		r.Get("/api/metrics", metricsHandler.GetMetrics)
 		r.Get("/api/logs", logsHandler.GetLogsByProjectID)
-		r.Get("/api/traces", tracesHandler.GetTraceByID)
-		r.Get("/api/dashboard", dashboardHandler.GetDashboard)
+		r.Get("/api/traces", tracesHandler.ListTracesByProject)
+		r.Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
+		// r.Get("/api/dashboard", dashboardHandler.GetDashboard)
 	})
 
 	return r
