@@ -56,3 +56,13 @@ func (s *ErrorService) GetErrorByID(ctx context.Context, id string) (*models.Err
 func (s *ErrorService) UpdateErrorStatus(ctx context.Context, id, status string) (*models.Error, error) {
 	return s.errorRepo.UpdateErrorStatus(ctx, id, status)
 }
+
+// gets recent errors...type 3
+func (s *ErrorService) ListRecentByProject(ctx context.Context, projectID string, limit int) ([]*models.Error, error) {
+    return s.errorRepo.ListRecentByProject(ctx, projectID, limit)
+}
+
+// counts total errors...type 3
+func (s *ErrorService) CountByProject(ctx context.Context, projectID string) (int64, error) {
+    return s.errorRepo.CountByProject(ctx, projectID)
+}

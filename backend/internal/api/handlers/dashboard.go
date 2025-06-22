@@ -2,68 +2,63 @@ package handlers
 
 import (
 	"net/http"
-
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
-	"pulseguard/internal/util/spanutil"
-	"pulseguard/pkg/otel"
+	"pulseguard/pkg/logger"
 
-	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type DashboardHandler struct {
-	dashboardService *service.DashboardService
-	metrics          *otel.Metrics
-	tracer           trace.Tracer
+    dashboardService *service.DashboardService
+    logger           *logger.Logger
+    tracer           trace.Tracer
 }
 
 func NewDashboardHandler(
-	dashboardService *service.DashboardService,
-	metrics *otel.Metrics,
-	tracer trace.Tracer,
+    dashboardService *service.DashboardService,
+    logger *logger.Logger,
+    tracer trace.Tracer,
 ) *DashboardHandler {
-	return &DashboardHandler{
-		dashboardService: dashboardService,
-		metrics:          metrics,
-		tracer:           tracer,
-	}
+    return &DashboardHandler{
+        dashboardService: dashboardService,
+        logger:           logger,
+        tracer:           tracer,
+    }
 }
 
-func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
-	ctx, span := spanutil.StartSpanFromRequest(h.tracer, r, "DashboardHandler.GetDashboard")
-	defer span.End()
+func (h *DashboardHandler) GetDashboardData(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+    _, span := h.tracer.Start(ctx, "GetDashboardData")
+    defer span.End()
 
-	projectID := chi.URLParam(r, "project_id")
-	if projectID == "" {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
-			attribute.String("error_type", "missing_project_id"),
-		))
-		util.WriteError(w, http.StatusBadRequest, "project_id query param is required")
-		return
-	}
+    projectID := r.URL.Query().Get("project_id")
+    if projectID == "" {
+        h.logger.Error(ctx, "Missing project_id in dashboard data request", nil)
+        span.SetStatus(codes.Error, "Missing project_id")
+        util.WriteError(w, http.StatusBadRequest, "Missing project_id")
+        return
+    }
 
-	data, err := h.dashboardService.GetDashboardData(ctx, projectID)
-	if err != nil {
-		span.RecordError(err)
-		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("error_type", "fetch_dashboard_failed"),
-		))
-        util.WriteError(w, http.StatusInternalServerError, "internal server error")
-		return
-	}
+    data, err := h.dashboardService.GetDashboardData(ctx, projectID)
+    if err != nil {
+        h.logger.Error(ctx, "Failed to fetch dashboard data", err)
+        span.SetStatus(codes.Error, "Failed to fetch dashboard data")
+        span.RecordError(err)
+        util.WriteError(w, http.StatusInternalServerError, "Failed to fetch dashboard data")
+        return
+    }
 
-	h.metrics.PageViewsTotal.Add(ctx, 1, metric.WithAttributes(
-		attribute.String("page", "dashboard"),
-		attribute.String("project_id", projectID),
-	))
+    h.logger.Info(ctx, "Dashboard data fetched", "project_id", projectID)
+    span.SetStatus(codes.Ok, "Dashboard data fetched successfully")
+    span.SetAttributes(
+        attribute.String("project_id", projectID),
+        attribute.Int("alerts_count", len(data.Alerts)),
+        attribute.Int("errors_count", len(data.Errors)),
+        attribute.Int("sessions_count", len(data.Sessions)),
+    )
 
-	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
-		attribute.String("activity_type", "view_dashboard"),
-		attribute.String("project_id", projectID),
-	))
-
-	util.WriteJSON(w, http.StatusOK, data)
+    util.WriteJSON(w, http.StatusOK, data)
 }

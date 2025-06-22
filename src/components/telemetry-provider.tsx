@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
+  endSession,
   getSessionId,
   setupClientErrorTracking,
   updateClientErrorTracking,
@@ -19,6 +20,7 @@ interface TelemetryContextType {
   setUserId: (userId: string) => void;
   reportError: (error: Error | string, componentStack?: string) => void;
   reportEvent: (eventName: string, eventData: Record<string, unknown>) => void;
+  logout: () => Promise<void>;
 }
 
 const TelemetryContext = createContext<TelemetryContextType | null>(null);
@@ -96,12 +98,22 @@ export function TelemetryProvider({
     };
   }, [userId, projectId, issueTrackerUrl]);
 
+  const logout = async () => {
+    endSession();
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(console.error);
+    setUserId(undefined);
+  };
+
   return (
     <TelemetryContext.Provider
       value={{
         setUserId,
         reportError: (error, stack) => reporter?.reportError(error, stack),
         reportEvent: (event, data) => reporter?.reportCustomEvent(event, data),
+        logout,
       }}
     >
       <TelemetryErrorBoundary userId={userId} projectId={projectId}>

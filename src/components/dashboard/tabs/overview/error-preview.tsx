@@ -2,8 +2,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, AlertTriangle, Bug, Eye, Clock } from "lucide-react";
-import { useOverviewContext } from "@/context/overview-context";
 import { formatDistanceToNow } from "date-fns";
+import { RecentError } from "@/types/dashboard";
 
 const getErrorSeverityColor = (severity: string) => {
   switch (severity) {
@@ -16,9 +16,15 @@ const getErrorSeverityColor = (severity: string) => {
   }
 };
 
-export default function ErrorPreview() {
-  const { errors, setActiveTab } = useOverviewContext();
+interface ErrorPreviewProps {
+  errors: RecentError[];
+  setActiveTab: (key: string) => void;
+}
 
+export default function ErrorPreview({
+  errors,
+  setActiveTab,
+}: ErrorPreviewProps) {
   return (
     <Card className="bg-black/30 border border-blue-900/40 relative">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -40,13 +46,13 @@ export default function ErrorPreview() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {errors === null ? (
+          {errors === null || errors.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[330px] p-8 text-gray-400">
               <AlertTriangle className="w-12 h-12 mb-2" />
               <p>No errors in this project</p>
             </div>
           ) : (
-            errors.slice(0, 3).map((error) => (
+            errors.map((error) => (
               <div
                 key={error.id}
                 className="flex items-start gap-4 p-4 rounded-lg border border-blue-900 bg-grday-900/50 bg-blue-900/10"

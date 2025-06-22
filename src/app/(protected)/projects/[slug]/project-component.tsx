@@ -4,30 +4,23 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Plus } from "lucide-react";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 
-import Navbar from "@/components/dashboard/shared/navbar";
-import OverviewTab from "@/components/dashboard/tabs/overview";
-import ErrorsTab from "@/components/dashboard/tabs/errors";
 import LogsTab from "@/components/dashboard/tabs/logs";
-import TracesTab from "@/components/dashboard/tabs/traces/page";
+import Navbar from "@/components/dashboard/shared/navbar";
+import ErrorsTab from "@/components/dashboard/tabs/errors";
 import AlertsTab from "@/components/dashboard/tabs/alerts";
-import IntegrationsTab from "@/components/dashboard/tabs/integrations";
+import OverviewTab from "@/components/dashboard/tabs/overview/page";
+import TracesTab from "@/components/dashboard/tabs/traces/page";
 import SettingsTab from "@/components/dashboard/tabs/settings/page";
+import IntegrationsTab from "@/components/dashboard/tabs/integrations";
+import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 import HelpButton from "@/components/dashboard/shared/help-button";
-import type {
-  Alert,
-  NavItem,
-  Platform,
-  Integration,
-  Project,
-} from "@/types/dashboard";
-import ErrorPreview from "@/components/dashboard/shared/error-preview";
-import AlertPreview from "@/components/dashboard/shared/alert-preview";
-import { OverviewProvider } from "@/context/overview-context";
+
+import type { Alert, NavItem, Project, Integration } from "@/types/dashboard";
 import { fetchErrors } from "@/lib/api/error-api";
 import type { ErrorListResponse, Error } from "@/types/error";
-import { CardDescription, CardTitle } from "@/components/ui/card";
-import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
+import SessionsTab from "@/components/dashboard/tabs/sessions";
 import MetricsTab from "@/components/dashboard/tabs/metrics";
 
 export default function DashboardComponent({ project }: { project: Project }) {
@@ -69,37 +62,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const handleConfig = (key: string, value: string | number) => {
     setErrorsConfig((prev) => ({ ...prev, [key]: value }));
   };
-
-  // Dummy Data
-  const platforms: Platform[] = [
-    {
-      id: "VxC1",
-      name: "Next.js Production",
-      type: "Next.js",
-      version: "14.1.0",
-      status: "healthy",
-      sessions: 1245,
-      errors: 12,
-    },
-    {
-      id: "VxC2",
-      name: "Next.js Staging",
-      type: "Next.js",
-      version: "14.1.0",
-      status: "warning",
-      sessions: 342,
-      errors: 27,
-    },
-    {
-      id: "VxC3",
-      name: "Node.js API",
-      type: "Node.js",
-      version: "18.16.0",
-      status: "critical",
-      sessions: 0,
-      errors: 143,
-    },
-  ];
 
   const alerts: Alert[] = [
     {
@@ -155,18 +117,9 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "overview":
-        return (
-          <OverviewProvider {...{ alerts, errors, setActiveTab }}>
-            <OverviewTab platforms={platforms}>
-              {/* Recent Errors */}
-              <ErrorPreview />
-              {/* Recent Alerts */}
-              <AlertPreview />
-            </OverviewTab>
-          </OverviewProvider>
-        );
-      case "metrics":
-        return <MetricsTab project={project} />;
+        return <OverviewTab {...{ project, setActiveTab }} />;
+      case "sessions":
+        return <SessionsTab project={project} />;
       case "errors":
         return (
           <ErrorsTab
@@ -181,8 +134,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
         return <LogsTab project={project} />;
       case "traces":
         return <TracesTab project={project} />;
+      case "metrics":
+        return <MetricsTab project={project} />;
       case "alerts":
-        return <AlertsTab />;
+        return <AlertsTab project={project} />;
       case "integrations":
         return <IntegrationsTab integrations={integrations} />;
       case "settings":
@@ -190,7 +145,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "connect-platform":
         return <ConnectPlatformPage />;
       default:
-        return <OverviewTab {...{ platforms, errors, alerts }} />;
+        return <OverviewTab {...{ project, setActiveTab }} />;
     }
   };
 

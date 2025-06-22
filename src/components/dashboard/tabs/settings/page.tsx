@@ -29,7 +29,7 @@ import { DeleteProjectDialog } from "../../shared/delete-project-dialog";
 import { updateProject } from "@/lib/api/projects-api";
 import type { Project } from "@/types/dashboard";
 
-export default function PulseGuardSettings({ project }: { project: Project }) {
+export default function SettingsTab({ project }: { project: Project }) {
   const { id, slug, name, description } = project;
 
   const [projectSlug, setProjectSlug] = useState<string>(slug || "");
@@ -146,15 +146,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
       }
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Project Settings
-          </h1>
-          <p className="text-slate-400 text-md mt-1">
-            Manage your PulseGuard monitoring configuration
-          </p>
-        </div>
+      {/* <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           {hasUnsavedChanges && (
             <div className="flex items-center gap-2 text-amber-400 text-sm">
@@ -180,19 +172,18 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
             )}
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Main Settings */}
         <div className="xl:col-span-2 space-y-6">
           {/* Project Information */}
-          <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+          <Card className="bg-slate-900/50 border border-slate-700/50">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-blue-400" />
                 <CardTitle className="text-xl">Project Information</CardTitle>
               </div>
-              <CardDescription>
+              <CardDescription className="text-slate-400">
                 Basic configuration for your monitoring project
               </CardDescription>
             </CardHeader>
@@ -205,7 +196,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                   <Input
                     value={projectName}
                     onChange={(e) => handleProjectNameChange(e.target.value)}
-                    className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors"
+                    className="bg-slate-900/50 border-slate-600 text-slate-300 focus:border-blue-400 transition-colors"
                     placeholder="Enter project name"
                   />
                 </div>
@@ -240,97 +231,16 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                     setProjectDescription(e.target.value);
                     setHasUnsavedChanges(true);
                   }}
-                  className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors resize-none"
+                  className="bg-slate-900/50 border-slate-600 text-slate-300 focus:border-blue-400 transition-colors resize-none"
                   rows={3}
                   placeholder="Describe your project..."
                 />
               </div>
-              {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
-                    Error Retention (days)
-                  </label>
-                  <Input
-                    value={projectSettings.errorRetention}
-                    onChange={(e) => {
-                      setProjectSettings((prev) => ({
-                        ...prev,
-                        errorRetention: e.target.value,
-                      }));
-                      setHasUnsavedChanges(true);
-                    }}
-                    className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors"
-                    type="number"
-                    min="1"
-                    max="365"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
-                    Alert Threshold (errors/min)
-                  </label>
-                  <Input
-                    value={projectSettings.alertThreshold}
-                    onChange={(e) => {
-                      setProjectSettings((prev) => ({
-                        ...prev,
-                        alertThreshold: e.target.value,
-                      }));
-                      setHasUnsavedChanges(true);
-                    }}
-                    className="bg-slate-900/50 border-slate-600 focus:border-blue-400 transition-colors"
-                    type="number"
-                    min="1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-slate-300">
-                      Auto-resolve Issues
-                    </label>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Automatically resolve issues when error rate drops
-                    </p>
-                  </div>
-                  <Switch
-                    checked={projectSettings.autoResolve}
-                    onCheckedChange={(checked) => {
-                      setProjectSettings((prev) => ({
-                        ...prev,
-                        autoResolve: checked,
-                      }));
-                      setHasUnsavedChanges(true);
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-slate-300">
-                      Public Dashboard
-                    </label>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Allow public access to project status page
-                    </p>
-                  </div>
-                  <Switch
-                    checked={projectSettings.publicDashboard}
-                    onCheckedChange={(checked) => {
-                      setProjectSettings((prev) => ({
-                        ...prev,
-                        publicDashboard: checked,
-                      }));
-                      setHasUnsavedChanges(true);
-                    }}
-                  />
-                </div> 
-              </div>*/}
             </CardContent>
           </Card>
 
           {/* Team Management */}
-          <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+          <Card className="bg-slate-900/50 border border-slate-700/50">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -442,12 +352,38 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
               </Button> */}
             </CardContent>
           </Card>
+
+          <div className="flex items-center justify-end gap-3">
+            {hasUnsavedChanges && (
+              <div className="flex items-center gap-2 text-amber-400 text-sm">
+                <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                Unsaved changes
+              </div>
+            )}
+            <Button
+              onClick={handleSaveChanges}
+              disabled={!hasUnsavedChanges || isSaving}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           {/* API Configuration */}
-          <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+          <Card className="bg-slate-900/50 border border-slate-700/50">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-green-400" />
@@ -495,7 +431,11 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
                   </Button>
                 </div>
               </div>
-              <Button variant="outline" className="w-full border-slate-600">
+              <Button
+                disabled
+                variant="outline"
+                className="w-full border-slate-600"
+              >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Regenerate Key
               </Button>
@@ -503,7 +443,7 @@ export default function PulseGuardSettings({ project }: { project: Project }) {
           </Card>
 
           {/* Notifications */}
-          <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+          <Card className="bg-slate-900/50 border border-slate-700/50">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-yellow-400" />

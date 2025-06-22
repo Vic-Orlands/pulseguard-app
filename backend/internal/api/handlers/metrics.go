@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"pulseguard/internal/service"
-	"pulseguard/pkg/logger"
+	"pulseguard/internal/util"
 	"pulseguard/pkg/otel"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -13,36 +14,46 @@ import (
 )
 
 type MetricsHandler struct {
-	metricsService *service.MetricsService
-	metrics        *otel.Metrics
+    metricsService *service.MetricsService
+    metrics        *otel.Metrics
 }
 
 func NewMetricsHandler(metricsService *service.MetricsService, metrics *otel.Metrics) *MetricsHandler {
-	return &MetricsHandler{metricsService: metricsService, metrics: metrics}
+    return &MetricsHandler{metricsService: metricsService, metrics: metrics}
 }
 
 func (h *MetricsHandler) GetMetrics(w http.ResponseWriter, r *http.Request) {
-	projectID, ok := logger.GetProjectIDFromContext(r.Context())
-	if !ok {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
-			attribute.String("error_type", "missing_project_id"),
-		))
-		http.Error(w, "Missing project_id in context", http.StatusUnauthorized)
-		return
-	}
+    ctx := r.Context()
 
-	metricsData, err := h.metricsService.GetMetrics(r.Context(), projectID)
-	if err != nil {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "fetch_metrics_failed")))
-		http.Error(w, "Failed to fetch metrics", http.StatusInternalServerError)
-		return
-	}
+    // Extract project ID from context
+    projectID := r.URL.Query().Get("project_id")
+    if projectID == "" {
+        h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+            attribute.String("error_type", "missing_project_id"),
+        ))
+        util.WriteError(w, http.StatusBadRequest, "Missing project ID")
+        return
+    }
 
-	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
-		attribute.String("activity_type", "get_metrics"),
-		attribute.String("project_id", projectID),
-	))
+    metricsData, err := h.metricsService.GetMetrics(ctx, projectID)
+    if err != nil {
+        h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
+            attribute.String("error_type", "fetch_metrics_failed"),
+            attribute.String("error_message", err.Error()),
+        ))
+        log.Printf("Failed to fetch metrics for project %s: %v", projectID, err)
+        util.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to fetch metrics: %v", err))
+        return
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(metricsData)
+    if len(metricsData) == 0 {
+        log.Printf("No metrics found for project %s", projectID)
+    }
+
+    h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+        attribute.String("activity_type", "get_metrics"),
+        attribute.String("project_id", projectID),
+    ))
+
+    util.WriteJSON(w, http.StatusOK, metricsData)
 }

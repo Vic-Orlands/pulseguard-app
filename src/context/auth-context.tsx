@@ -24,9 +24,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<UserProps | null>(null);
-  const router = useRouter();
 
   // fetch user func
   const fetchUser = useCallback(async () => {

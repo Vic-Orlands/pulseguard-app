@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"pulseguard/internal/models"
@@ -37,21 +38,21 @@ type prometheusResult struct {
 }
 
 func (r *PrometheusRepository) QueryMetrics(ctx context.Context, projectID string) ([]*models.Metric, error) {
-	// Define all metrics to query based on otel.Metrics
 	queries := map[string]string{
-		"http_requests_total":      `http_requests_total{project_id="%s"}`,
-		"http_request_duration_ms": `http_request_duration_ms{project_id="%s"}`,
-		"http_errors_total":        `http_errors_total{project_id="%s"}`,
-		"app_errors_total":         `app_errors_total{project_id="%s"}`,
-		"user_activity_total":      `user_activity_total{project_id="%s"}`,
-		"user_sessions_active":     `user_sessions_active{project_id="%s"}`,
-		"page_views_total":         `page_views_total{project_id="%s"}`,
+		"http_requests_total":      `pulseguard_http_requests_total`,
+		"http_request_duration_ms": `pulseguard_http_request_duration_ms`,
+		"http_errors_total":        `pulseguard_http_errors_total`,
+		"app_errors_total":         `pulseguard_app_errors_total`,
+		"user_activity_total":      `pulseguard_user_activity_total`,
+		"user_sessions_active":     `pulseguard_user_sessions_active`,
+		"page_views_total":         `pulseguard_page_views_total`,
 	}
 
-	var metrics []*models.Metric
+	metrics := make([]*models.Metric, 0)
 
 	for metricName, queryTemplate := range queries {
-		query := fmt.Sprintf(queryTemplate, projectID)
+		query := queryTemplate
+		// query := fmt.Sprintf(`%s{project_id="%s"}`, queryTemplate, projectID)
 		u, err := url.Parse(fmt.Sprintf("%s/api/v1/query?query=%s", r.baseURL, url.QueryEscape(query)))
 		if err != nil {
 			return nil, fmt.Errorf("parse query URL for %s: %w", metricName, err)
@@ -79,21 +80,27 @@ func (r *PrometheusRepository) QueryMetrics(ctx context.Context, projectID strin
 
 		for _, result := range promResp.Data.Result {
 			if len(result.Value) < 2 {
-				continue // Skip invalid results
+				continue
 			}
 			timestamp, ok := result.Value[0].(float64)
 			if !ok {
-				continue // Skip if timestamp is not a float64
+				continue
 			}
-			value, ok := result.Value[1].(string)
-			if !ok {
-				continue // Skip if value is not a string
+			// Handle value as float64 and convert to string
+			var valueStr string
+			switch v := result.Value[1].(type) {
+			case string:
+				valueStr = v
+			case float64:
+				valueStr = strconv.FormatFloat(v, 'f', -1, 64)
+			default:
+				continue
 			}
 			metrics = append(metrics, &models.Metric{
 				ID:        fmt.Sprintf("%d-%s", int64(timestamp), metricName),
 				ProjectID: projectID,
 				Name:      metricName,
-				Value:     value,
+				Value:     valueStr,
 				Timestamp: time.Unix(int64(timestamp), 0),
 			})
 		}

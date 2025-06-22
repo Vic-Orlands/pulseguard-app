@@ -2,11 +2,12 @@ export type TimeProp = string | "1h" | "6h" | "24h" | "7d" | "30d";
 
 export type NavItem =
   | "overview"
-  | "metrics"
+  | "sessions"
   | "errors"
   | "logs"
   | "traces"
   | "alerts"
+  | "metrics"
   | "integrations"
   | "settings"
   | "connect-platform";
@@ -21,28 +22,6 @@ export type Project = {
   updatedAt: string;
   errorCount: number;
   memberCount?: number;
-};
-
-export type Error = {
-  id: string;
-  type: string;
-  source: string;
-  message: string;
-  timestamp: string;
-  occurrences: number;
-  affectedUsers: number;
-  lastOccurrence: string;
-  status: "active" | "resolved";
-};
-
-export type Platform = {
-  id: string;
-  name: string;
-  type: string;
-  errors: number;
-  version: string;
-  sessions: number;
-  status: "healthy" | "warning" | "critical";
 };
 
 export type Log = {
@@ -99,6 +78,25 @@ export interface Span {
   traceId: string;
 }
 
+export interface Metric {
+  id: string;
+  name: string;
+  value: string;
+  project_id: string;
+  timestamp: string;
+}
+
+export interface Session {
+  session_id: string;
+  project_id: string;
+  user_id: string;
+  start_time: string;
+  end_time?: string;
+  duration_ms?: number;
+  error_count: number;
+  created_at: string;
+}
+
 export type Alert = {
   id: string;
   name: string;
@@ -116,10 +114,22 @@ export type Integration = {
   status: "connected" | "disconnected";
 };
 
-export interface Metric {
-  ID: string;
-  ProjectID: string;
-  Name: string;
-  Value: string;
-  Timestamp: string;
+export type RecentError = {
+  id: string;
+  type: string;
+  count: number;
+  message: string;
+  lastSeen: string;
+  sessionId: string;
+  projectId: string;
+  status: "active" | "resolved";
+};
+
+export interface DashboardData {
+  alerts: Alert[];
+  metrics: Metric[];
+  errors: RecentError[];
+  total_errors: number;
+  error_rate: number;
+  sessions: Session[];
 }

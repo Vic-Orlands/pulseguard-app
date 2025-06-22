@@ -1,4 +1,4 @@
-import { Log, Trace } from "@/types/dashboard";
+import { DashboardData, Log, Trace } from "@/types/dashboard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -9,6 +9,10 @@ interface TimeRange {
 
 // fetch all metrics
 export async function fetchMetrics(projectId: string) {
+  if (!projectId) {
+    throw new Error("Missing projectId in fetchLogs");
+  }
+
   const url = new URL(`${API_URL}/api/metrics`);
   url.searchParams.set("project_id", projectId);
 
@@ -25,7 +29,13 @@ export async function fetchMetrics(projectId: string) {
       );
     }
 
-    return res.json();
+    const metrics = await res.json();
+    if (!Array.isArray(metrics)) {
+      throw new Error(
+        "Expected an array of metrics, received: " + JSON.stringify(metrics)
+      );
+    }
+    return metrics;
   } catch (error) {
     console.error("Error fetching logs:", error);
     throw error;
@@ -109,11 +119,79 @@ export async function fetchLogToTrace(traceId: string): Promise<Trace> {
   }
 }
 
-export async function fetchDashboard(projectId: string) {
-  const res = await fetch(`${API_URL}/api/dashboard?project_id=${projectId}`, {
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
+// fetch user sessions
+export async function fetchSessions(
+  projectId: string,
+  start: string,
+  end: string
+) {
+  if (!projectId) {
+    throw new Error("Missing projectId in fetchSessions");
+  }
 
-  return res.json();
+  const url = new URL(`${API_URL}/api/sessions`);
+  url.searchParams.set("project_id", projectId);
+  url.searchParams.set("start", start);
+  url.searchParams.set("end", end);
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(
+        `Failed to fetch sessions: ${errorText || res.statusText} (Status: ${
+          res.status
+        })`
+      );
+    }
+
+    const sessions = await res.json();
+    if (!Array.isArray(sessions)) {
+      throw new Error(
+        `Expected an array of sessions, received: ${JSON.stringify(sessions)}`
+      );
+    }
+    return sessions;
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    throw error;
+  }
+}
+
+// fetch all overview data
+export async function fetchDashboardData(
+  projectId: string
+): Promise<DashboardData> {
+  const url = new URL(`${API_URL}/api/dashboard`);
+  url.searchParams.set("project_id", projectId);
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch dashboard data: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return (
+      data || {
+        alerts: [],
+        metrics: [],
+        errors: [],
+        total_errors: 0,
+        error_rate: 0,
+        sessions: [],
+      }
+    );
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    throw error;
+  }
 }

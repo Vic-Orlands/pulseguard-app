@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   X,
   Activity,
+  Layers,
   ChartSpline,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -47,6 +48,11 @@ const navItems = [
   },
   {
     id: "sessions",
+    icon: <Layers className="h-4 w-4" />,
+    label: "Sessions",
+  },
+  {
+    id: "metrics",
     icon: <ChartSpline className="h-4 w-4" />,
     label: "Metrics",
   },
@@ -232,7 +238,7 @@ function NavButton({
   return (
     <Button
       variant="ghost"
-      className={`rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors ${
+      className={`rounded-none flex items-center px-1 mx-1 text-sm font-medium border-b-2 transition-all duration-75 ${
         activeTab === item.id
           ? "border-b-[2px] border-transparent border-b-blue-400 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
           : "border-b border-transparent text-gray-400 hover:text-white/80"

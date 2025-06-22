@@ -25,6 +25,7 @@ func NewRouter(
 	alertSvc *service.AlertService,
 	projectSvc *service.ProjectService,
 	errorSvc *service.ErrorService,
+	sessionSvc *service.SessionService,
 	metrics *otel.Metrics,
 	tokenSvc *auth.TokenService,
 	logger *logger.Logger,
@@ -45,13 +46,14 @@ func NewRouter(
 	r.Use(middleware.ProjectIDMiddleware)
 
 	// Handlers
-	userHandler := handlers.NewUserHandler(userSvc, metrics, tokenSvc, logger)
+	userHandler := handlers.NewUserHandler(userSvc, sessionSvc, metrics, tokenSvc, logger, tracer)
 	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
 
-	// dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, metrics, tracer)
-	errorHandler := handlers.NewErrorHandler(errorSvc, metrics, logger, tracer)
+	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, logger, tracer)
+	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, metrics, logger, tracer)
 	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics, tracer)
 	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics, tracer)
+	sessionHandler := handlers.NewSessionHandler(sessionSvc, metrics, logger, tracer)
 
 	metricsHandler := handlers.NewMetricsHandler(metricsSvc, metrics)
 	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
@@ -91,11 +93,14 @@ func NewRouter(
 		r.Get("/api/alerts/{project_id}", alertHandler.ListByProject)
 
 		// otlp
+		r.Get("/api/sessions", sessionHandler.GetSessions)
+		r.Post("/api/sessions/start", sessionHandler.StartSession)
+		r.Post("/api/sessions/end", sessionHandler.EndSession)
 		r.Get("/api/metrics", metricsHandler.GetMetrics)
 		r.Get("/api/logs", logsHandler.GetLogsByProjectID)
 		r.Get("/api/traces", tracesHandler.ListTracesByProject)
 		r.Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
-		// r.Get("/api/dashboard", dashboardHandler.GetDashboard)
+		r.Get("/api/dashboard", dashboardHandler.GetDashboardData)
 	})
 
 	return r

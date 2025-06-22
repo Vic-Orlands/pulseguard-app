@@ -26,10 +26,11 @@ import {
   ChevronDown,
   Check,
 } from "lucide-react";
+import { Project } from "@/types/dashboard";
 
-import AlertConfiguration from "./settings/config";
+// import AlertConfiguration from "./settings/config";
 
-const AlertPage = () => {
+const AlertPage = ({ project }: { project: Project }) => {
   const [view, setView] = useState("grid");
   const [selectedAlerts, setSelectedAlerts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

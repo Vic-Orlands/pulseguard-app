@@ -20,6 +20,44 @@ export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
       `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     localStorage.setItem("pulseguard_session_id", sessionId);
   }
+
+  if (config.projectId && validateUUID(config.projectId)) {
+    fetch("/api/telemetry/session/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-project-id": config.projectId,
+      },
+      body: JSON.stringify({
+        sessionId,
+        projectId: config.projectId,
+        userId: userConfig.userId || "anonymous",
+        timestamp: Date.now(),
+      }),
+    }).catch((err) =>
+      console.error("PulseGuard SDK: Failed to start session:", err)
+    );
+  }
+}
+
+export function endSession(): void {
+  if (sessionId) {
+    fetch("/api/telemetry/session/end", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-project-id": config.projectId,
+      },
+      body: JSON.stringify({
+        sessionId,
+        timestamp: Date.now(),
+      }),
+    }).catch((err) =>
+      console.error("PulseGuard SDK: Failed to end session:", err)
+    );
+    localStorage.removeItem("pulseguard_session_id");
+    sessionId = "";
+  }
 }
 
 export function updateClientErrorTracking(

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"pulseguard/internal/models"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/auth"
@@ -18,14 +19,18 @@ import (
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type UserHandler struct {
-	metrics      *otel.Metrics
-	userService  *service.UserService
-	tokenService *auth.TokenService
-	logger       *logger.Logger
+	metrics        *otel.Metrics
+	userService    *service.UserService
+	tokenService   *auth.TokenService
+	sessionService *service.SessionService
+	logger         *logger.Logger
+	tracer         trace.Tracer
 }
 
 type registerRequest struct {
@@ -62,20 +67,28 @@ func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 	http.SetCookie(w, cookie)
 }
 
-func NewUserHandler(userService *service.UserService, metrics *otel.Metrics, tokenService *auth.TokenService, logger *logger.Logger) *UserHandler {
+func NewUserHandler(userService *service.UserService, sessionService *service.SessionService, metrics *otel.Metrics, tokenService *auth.TokenService, logger *logger.Logger, tracer trace.Tracer) *UserHandler {
 	return &UserHandler{
-		metrics:      metrics,
-		userService:  userService,
-		tokenService: tokenService,
-		logger:       logger,
+		metrics:        metrics,
+		userService:    userService,
+		sessionService: sessionService,
+		tokenService:   tokenService,
+		logger:         logger,
+		tracer:         tracer,
 	}
 }
 
 // Register handles user registration
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, span := h.tracer.Start(ctx, "UserRegister")
+	defer span.End()
+
 	var req registerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "invalid_body")))
+		span.SetStatus(codes.Error, "Invalid request body")
+		span.RecordError(err)
 		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -93,37 +106,48 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		invalidFields = append(invalidFields, "name")
 	}
 	if len(invalidFields) > 0 {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "invalid_fields")))
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "invalid_fields")))
+		span.SetStatus(codes.Error, "Missing or invalid fields")
 		util.WriteErrorFields(w, "Missing or invalid fields", invalidFields)
 		return
 	}
 
-	// Hash the password
 	hashedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "password_hashing_failed")))
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "password_hashing_failed")))
+		span.SetStatus(codes.Error, "Failed to hash password")
+		span.RecordError(err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
-	user, err := h.userService.Register(r.Context(), req.Email, req.Name, hashedPassword)
+	user, err := h.userService.Register(ctx, req.Email, req.Name, hashedPassword)
 	if err != nil {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("error_type", "registration_failed")))
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "registration_failed")))
+		span.SetStatus(codes.Error, "Failed to create user")
+		span.RecordError(err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to create user: "+err.Error())
 		return
 	}
 
 	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("activity_type", "register"), attribute.String("user_id", user.ID.String())))
+	span.SetStatus(codes.Ok, "User registered successfully")
 	h.logger.Info(r.Context(), "User registered", "user_id", user.ID.String(), "email", user.Email, "name", user.Name)
 	util.WriteJSON(w, http.StatusCreated, user)
 }
 
 // Login handles user login
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, span := h.tracer.Start(ctx, "UserLogin")
+	defer span.End()
+
 	var req loginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
 			attribute.String("error_type", "invalid_body"),
 		))
+		span.SetStatus(codes.Error, "Invalid request body")
+		span.RecordError(err)
 		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -133,6 +157,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_fields"),
 		))
+		span.SetStatus(codes.Error, "Email and password are required")
 		util.WriteError(w, http.StatusBadRequest, "Email and password are required")
 		return
 	}
@@ -154,6 +179,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 			attribute.String("error_type", errorType),
 		))
 
+		span.SetStatus(codes.Error, errorMessage)
+		span.RecordError(err)
+
 		util.WriteError(w, http.StatusUnauthorized, errorMessage)
 		return
 	}
@@ -164,14 +192,37 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
 			attribute.String("error_type", "jwt_creation_failed"),
 		))
+		span.SetStatus(codes.Error, "Failed to generate token")
+		span.RecordError(err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to generate token")
 		return
 	}
 
+	// Create session
+	sessionID := uuid.New().String()
+	session := &models.Session{
+		SessionID:     sessionID,
+		ProjectID:     r.URL.Query().Get("project_id"), // Adjust if project_id is sent differently
+		UserID:        user.ID.String(),
+		StartTime:     time.Now(),
+		ErrorCount:    0,
+		EventCount:    0,
+		PageviewCount: 0,
+		CreatedAt:     time.Now(),
+	}
+	if session.ProjectID != "" {
+		if err := h.sessionService.CreateSession(ctx, session); err != nil {
+			h.logger.Error(ctx, "Failed to create session during login", err)
+		} else {
+			h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
+				attribute.String("user_id", user.ID.String()),
+				attribute.String("session_id", sessionID),
+				attribute.String("project_id", session.ProjectID),
+			))
+		}
+	}
+
 	// Metrics
-	h.metrics.ActiveSessions.Add(r.Context(), 1, metric.WithAttributes(
-		attribute.String("user_id", user.ID.String()),
-	))
 	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
 		attribute.String("activity_type", "login"),
 		attribute.String("user_id", user.ID.String()),
@@ -180,19 +231,46 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Set cookie in response
 	handleSetCookie(w, token, 86400)
 
+	span.SetStatus(codes.Ok, "Login successful")
+	span.SetAttributes(
+		attribute.String("user_id", user.ID.String()),
+		attribute.String("session_id", sessionID),
+	)
+
 	// Return success response
-	util.WriteJSON(w, http.StatusOK, map[string]string{"message": "Login successful"})
+	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"message":    "Login successful",
+		"session_id": sessionID,
+	})
 }
 
 // Logout handles user logout
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Expire the auth_token cookie
+	ctx := r.Context()
+	_, span := h.tracer.Start(ctx, "UserLogout")
+	defer span.End()
+
+	// Get session_id from request (e.g., header or body)
+	var req struct {
+		SessionID string `json:"sessionId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err == nil && req.SessionID != "" {
+		if err := h.sessionService.EndSession(ctx, req.SessionID, time.Now()); err != nil {
+			h.logger.Error(ctx, "Failed to end session during logout", err)
+		} else {
+			h.metrics.ActiveSessions.Add(ctx, -1, metric.WithAttributes(
+				attribute.String("session_id", req.SessionID),
+			))
+		}
+	}
+
 	handleSetCookie(w, "", -1)
 
-	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "logout"),
 	))
 
+	span.SetStatus(codes.Ok, "Logged out successfully")
 	util.WriteJSON(w, http.StatusOK, map[string]string{
 		"message": "Logged out successfully",
 	})

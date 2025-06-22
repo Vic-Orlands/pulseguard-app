@@ -93,23 +93,25 @@ func main() {
 
 	 // Init repositories
 	userRepo := postgres.NewUserRepository(conn)
-	projectRepo := postgres.NewProjectRepository(conn)
 	errorRepo := postgres.NewErrorRepository(conn)
 	alertRepo := postgres.NewAlertRepository(conn)
-	prometheusRepo := telemetry.NewPrometheusRepository(prometheusURL)
 	lokiRepo := telemetry.NewLokiRepository(lokiURL)
+	projectRepo := postgres.NewProjectRepository(conn)
 	tempoRepo := telemetry.NewTempoRepository(tempoURL)
-	
+	sessionRepo := telemetry.NewSessionRepository(conn)
+	prometheusRepo := telemetry.NewPrometheusRepository(prometheusURL)
+
 	// Init services
 	tokenService := auth.NewTokenService(jwtSecret)
+	logsService := service.NewLogsService(lokiRepo)
 	userService := service.NewUserService(userRepo)
-	projectService := service.NewProjectService(projectRepo)
 	errorService := service.NewErrorService(errorRepo)
 	alertService := service.NewAlertService(alertRepo)
-	metricsService := service.NewMetricsService(prometheusRepo)
-	logsService := service.NewLogsService(lokiRepo)
 	tracesService := service.NewTracesService(tempoRepo)
-	dashboardService := service.NewDashboardService(alertService, metricsService, logsService, tracesService)
+	projectService := service.NewProjectService(projectRepo)
+	sessionService := service.NewSessionService(sessionRepo)
+	metricsService := service.NewMetricsService(prometheusRepo)
+	dashboardService := service.NewDashboardService(alertService, metricsService, errorService, sessionService)
 
 	// Start HTTP server
 	server := api.NewServer(
@@ -121,6 +123,7 @@ func main() {
 		logsService,
 		tracesService,
 		dashboardService,
+		sessionService,
 		port,
 		appLogger,
 		metrics,

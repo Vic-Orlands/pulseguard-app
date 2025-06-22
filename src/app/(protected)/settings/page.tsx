@@ -21,7 +21,6 @@ import {
   Camera,
   Download,
   Search,
-  Filter,
   Calendar,
   Zap,
   Database,
@@ -360,10 +359,10 @@ export default function UserSettingsNew() {
   const renderProfileTab = () => (
     <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
       <CardHeader className="gap-0">
-        <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
           Profile Information
         </CardTitle>
-        <CardDescription className="text-slate-400 text-md">
+        <CardDescription>
           Update your personal details and avatar
         </CardDescription>
       </CardHeader>
@@ -471,10 +470,10 @@ export default function UserSettingsNew() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Your Projects
               </CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription>
                 Manage all your monitoring projects
               </CardDescription>
             </div>
@@ -501,9 +500,8 @@ export default function UserSettingsNew() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" className="border-slate-600">
-                    <Filter className="h-4 w-4 mr-2" />
                     {projectFilter}
-                    <ChevronDown className="h-4 w-4 ml-2" />
+                    <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-slate-800 border-slate-700">
@@ -533,7 +531,7 @@ export default function UserSettingsNew() {
                   size="sm"
                   className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4" />
                   Delete Selected
                 </Button>
               </div>
@@ -547,7 +545,7 @@ export default function UserSettingsNew() {
                 projects.length === 0 && "cursor-not-allowed"
               )}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4" />
               Delete All
             </Button>
           </div>
@@ -640,47 +638,48 @@ export default function UserSettingsNew() {
   const renderDangerZoneTab = () => (
     <Card className="bg-red-950/20 border border-red-900/50 backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="text-2xl text-red-400 flex items-center gap-2">
-          <AlertTriangle className="h-6 w-6" />
-          Danger Zone
-        </CardTitle>
-        <CardDescription className="text-red-400/80 text-lg">
+        <CardTitle className="text-red-400">Danger Zone</CardTitle>
+        <CardDescription className="text-red-400/80">
           Irreversible and destructive actions
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
-            <h4 className="font-medium text-red-300">Delete All Projects</h4>
-            <p className="text-sm text-red-400/80 mt-1">
-              Permanently delete all your projects and their data. This cannot
-              be undone.
-            </p>
+          <div className="p-4 flex items-center justify-between bg-red-950/30 rounded-lg border border-red-900/30">
+            <div>
+              <h4 className="font-medium text-red-300">Delete All Projects</h4>
+              <p className="text-sm text-red-400/80 mt-1">
+                Permanently delete all your projects and their data. This cannot
+                be undone.
+              </p>
+            </div>
             <Button
               onClick={() => setDeleteAllProjectsDialog(true)}
               variant="destructive"
               disabled={projects.length === 0}
               className={clsx(
-                "mt-3 bg-red-600 hover:bg-red-700",
+                "bg-red-600 hover:bg-red-700",
                 projects.length === 0 && "cursor-not-allowed"
               )}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4" />
               Delete All Projects
             </Button>
           </div>
-          <div className="p-4 bg-red-950/30 rounded-lg border border-red-900/30">
-            <h4 className="font-medium text-red-300">Delete Account</h4>
-            <p className="text-sm text-red-400/80 mt-1">
-              Permanently delete your account and all associated data. This
-              action is irreversible.
-            </p>
+          <div className="p-4 flex items-center justify-between bg-red-950/30 rounded-lg border border-red-900/30">
+            <div>
+              <h4 className="font-medium text-red-300">Delete Account</h4>
+              <p className="text-sm text-red-400/80 mt-1">
+                Permanently delete your account and all associated data. This
+                action is irreversible.
+              </p>
+            </div>
             <Button
               onClick={() => setDeleteAccountDialog({ open: true, step: 1 })}
               variant="destructive"
-              className="mt-3 bg-red-700 hover:bg-red-800"
+              className="bg-red-700 hover:bg-red-800"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4" />
               Delete Account
             </Button>
           </div>
@@ -751,7 +750,7 @@ export default function UserSettingsNew() {
         </DialogHeader>
         <DialogFooter className="flex gap-2">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() =>
               setDeleteProjectDialog({ open: false, project: null })
             }
@@ -764,7 +763,7 @@ export default function UserSettingsNew() {
             onClick={() => handleDeleteProject(deleteProjectDialog.project)}
             className="bg-red-600 hover:bg-red-700"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4" />
             Delete Project
           </Button>
         </DialogFooter>
@@ -798,7 +797,7 @@ export default function UserSettingsNew() {
             onClick={handleBatchDelete}
             className="bg-red-600 hover:bg-red-700"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4" />
             Delete {selectedProjects.size} Projects
           </Button>
         </DialogFooter>
@@ -814,23 +813,23 @@ export default function UserSettingsNew() {
       <DialogContent className="bg-slate-800 border-slate-700">
         <DialogHeader>
           <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
             Delete All Projects
           </DialogTitle>
           <DialogDescription>
-            This will permanently delete ALL {projects.length} of your projects
-            and their data. This action cannot be undone.
+            This will permanently delete{" "}
+            <b className="text-white/75">ALL {projects.length}</b> of your
+            projects and their data. This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-red-400/80 bg-red-950/30 p-3 rounded-lg border border-red-900/30">
-            ⚠️ This is a destructive action that will remove all monitoring
-            data, configurations, and history for all projects.
+            This is a destructive action that will remove all monitoring data,
+            configurations, and history for all projects.
           </p>
         </div>
         <DialogFooter className="flex gap-2">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => setDeleteAllProjectsDialog(false)}
             className="border-slate-600"
           >
@@ -841,7 +840,7 @@ export default function UserSettingsNew() {
             onClick={handleDeleteAllProjects}
             className="bg-red-700 hover:bg-red-800"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4" />
             Delete All Projects
           </Button>
         </DialogFooter>
@@ -879,7 +878,7 @@ export default function UserSettingsNew() {
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
         >
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
               Account Settings
             </h1>
             <p className="text-gray-400 text-sm">
@@ -923,26 +922,25 @@ export default function UserSettingsNew() {
           </div>
         </motion.div>
 
-        <div className="flex items-center justify-between bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm border border-slate-700/50 mb-4">
-          <div className="flex space-x-2">
+        <div className="flex items-center justify-between border-b-2 border-slate-700/50 mb-4">
+          <div className="flex space-x-6">
             {[
               { id: "profile", label: "Profile", icon: User },
               { id: "projects", label: "Projects", icon: Database },
               { id: "danger", label: "Danger Zone", icon: AlertTriangle },
             ].map((tab) => (
-              <Button
-                variant="secondary"
+              <h2
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 border-none font-medium h-8 transition-all duration-200 ${
+                className={`flex items-center gap-2 border-transparent border-b-2 cursor-pointer py-2 px-1 text-sm transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                    ? "border-b-2 border-b-blue-600 text-white"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 <tab.icon className="h-4 w-4" />
                 {tab.label}
-              </Button>
+              </h2>
             ))}
           </div>
           <Button

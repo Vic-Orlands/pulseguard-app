@@ -20,19 +20,21 @@ import (
 )
 
 type ErrorHandler struct {
-	metrics      *otel.Metrics
-	errorService *service.ErrorService
-	logger       *logger.Logger
-	tracer       trace.Tracer
+	metrics        *otel.Metrics
+    errorService   *service.ErrorService
+    sessionService *service.SessionService
+    logger         *logger.Logger
+    tracer         trace.Tracer
 }
 
-func NewErrorHandler(errorService *service.ErrorService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
-	return &ErrorHandler{
-		metrics:      metrics,
-		errorService: errorService,
-		logger:       logger,
-		tracer:       tracer,
-	}
+func NewErrorHandler(errorService *service.ErrorService, sessionService *service.SessionService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
+    return &ErrorHandler{
+        metrics:        metrics,
+        errorService:   errorService,
+        sessionService: sessionService,
+        logger:         logger,
+        tracer:         tracer,
+    }
 }
 
 type trackErrorRequest struct {
@@ -96,6 +98,33 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
+
+	// Handle session
+    if req.SessionID != "" {
+        err := h.sessionService.IncrementErrorCount(ctx, req.SessionID)
+        if err != nil {
+            // Session doesn't exist, create it
+            session := &models.Session{
+                SessionID:     req.SessionID,
+                ProjectID:     req.ProjectID,
+                UserID:        req.UserID,
+                StartTime:     time.Now(),
+                ErrorCount:    1,
+                EventCount:    0,
+                PageviewCount: 0,
+                CreatedAt:     time.Now(),
+            }
+            if err := h.sessionService.CreateSession(ctx, session); err != nil {
+                h.logger.Error(ctx, "Failed to create session", err)
+            } else {
+                h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
+                    attribute.String("user_id", req.UserID),
+                    attribute.String("project_id", req.ProjectID),
+                    attribute.String("session_id", req.SessionID),
+                ))
+            }
+        }
+    }
 
 	errorData := &models.Error{
 		ProjectID:      projectUUID.String(),

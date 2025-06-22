@@ -313,6 +313,42 @@ func (r *ErrorRepository) UpdateErrorStatus(ctx context.Context, id, status stri
 	return &e, nil
 }
 
+func (r *ErrorRepository) ListRecentByProject(ctx context.Context, projectID string, limit int) ([]*models.Error, error) {
+    query := `
+        SELECT id, project_id, message, last_seen, count, type, session_id, status
+        FROM errors
+        WHERE project_id = $1
+        ORDER BY occurred_at DESC
+        LIMIT $2
+    `
+    rows, err := r.db.QueryContext(ctx, query, projectID, limit)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    errors := make([]*models.Error, 0)
+    for rows.Next() {
+        var e models.Error
+        if err := rows.Scan(&e.ID, &e.ProjectID, &e.Message, &e.LastSeen, &e.Count, &e.Type, &e.SessionID, &e.Status); err != nil {
+            return nil, err
+        }
+        errors = append(errors, &e)
+    }
+    return errors, rows.Err()
+}
+
+func (r *ErrorRepository) CountByProject(ctx context.Context, projectID string) (int64, error) {
+    var count int64
+    query := `SELECT COUNT(*) FROM errors WHERE project_id = $1`
+    err := r.db.QueryRowContext(ctx, query, projectID).Scan(&count)
+    return count, err
+}
+
+// <-
+//  @utilities
+//  ->
+
 func generateErrorFingerprint(errorData *models.Error) string {
 	components := []string{errorData.Message, errorData.Source, errorData.Type}
 	data := strings.Join(components, "|")

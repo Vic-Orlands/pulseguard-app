@@ -11,6 +11,6 @@ BACKUP_FILE="$BACKUP_DIR/pg_backup_$DATE.sql"
 
 mkdir -p "$BACKUP_DIR"
 
-docker exec "$CONTAINER_NAME" pg_dump -U "$DB_USER" "$DB_NAME" > "$BACKUP_FILE"
+docker exec -t "$CONTAINER_NAME" pg_dump -U "$DB_USER" "$DB_NAME" > "$BACKUP_FILE"
 
 echo "✅ Backup complete: $BACKUP_FILE"
