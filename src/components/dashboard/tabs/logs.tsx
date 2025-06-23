@@ -610,7 +610,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     {logs.length}
                   </p>
                 </div>
-                <div className="p-3 bg-green-500/20 rounded-lg">
+                <div className="p-2 bg-green-500/20 rounded-lg">
                   <Activity className="w-6 h-6 text-green-400" />
                 </div>
               </CardContent>
@@ -624,7 +624,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     {logs.filter((log) => log.level === 50).length}
                   </p>
                 </div>
-                <div className="p-3 bg-red-500/20 rounded-lg">
+                <div className="p-2 bg-red-500/20 rounded-lg">
                   <Bug className="w-6 h-6 text-red-400" />
                 </div>
               </CardContent>
@@ -640,7 +640,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     {logs.filter((log) => log.level === 40).length}
                   </p>
                 </div>
-                <div className="p-3 bg-yellow-500/20 rounded-lg">
+                <div className="p-2 bg-yellow-500/20 rounded-lg">
                   <AlertTriangle className="w-6 h-6 text-yellow-400" />
                 </div>
               </CardContent>
@@ -654,7 +654,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     {logs.filter((log) => log.level === 30).length}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-500/20 rounded-lg">
+                <div className="p-2 bg-blue-500/20 rounded-lg">
                   <Info className="w-6 h-6 text-blue-400" />
                 </div>
               </CardContent>

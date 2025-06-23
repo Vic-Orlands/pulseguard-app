@@ -1,30 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { PulseGuardLogo } from "@/components/Icons";
 import { motion, AnimatePresence } from "motion/react";
 import AnimatedBackground from "@/components/background-color";
-import { PulseGuardLogo } from "@/components/Icons";
+
+import { useHydrated } from "./shared";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
-import { useHydrated } from "./shared";
+import type { FormMode } from "@/types/form";
+import ForgotPassword from "./forgot-password";
 
 // Logo component
 const Logo = () => (
-  <div className="flex items-center justify-center mb-6 rounded-full backdrop-blur-sm">
+  <div className="flex items-center justify-center rounded-full backdrop-blur-sm">
     <PulseGuardLogo />
-    <Link href="/" className="hidden md:block">
-      <span className="text-2xl font-bold text-white">PulseGuard</span>
-    </Link>
   </div>
 );
 
 export default function AuthPage() {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState<FormMode>("login");
   const hydrated = useHydrated();
 
-  const toggleMode = () => {
-    setMode((prev) => (prev === "login" ? "signup" : "login"));
+  const toggleMode = (mode: FormMode) => {
+    setMode(mode);
   };
 
   if (!hydrated) return null;
@@ -44,6 +43,8 @@ export default function AuthPage() {
         <AnimatePresence mode="wait">
           {mode === "login" ? (
             <LoginForm key="login" onToggleMode={toggleMode} />
+          ) : mode === "forgot-password" ? (
+            <ForgotPassword key="forgot-password" onToggleMode={toggleMode} />
           ) : (
             <SignupForm key="signup" onToggleMode={toggleMode} />
           )}

@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormField, InputWithIcon } from "./shared";
 import { loginUser } from "@/lib/api/user-api";
 import { useAuth } from "@/context/auth-context";
+import { FormProps } from "@/types/form";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -22,7 +23,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
+export const LoginForm = ({ onToggleMode }: FormProps) => {
   const { fetchUser } = useAuth();
   const router = useRouter();
 
@@ -135,9 +136,12 @@ export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
               Remember me
             </label>
           </div>
-          <a href="#" className="text-sm text-blue-400 hover:text-blue-300">
+          <p
+            onClick={() => onToggleMode("forgot-password")}
+            className="text-sm text-blue-400 hover:text-blue-300 cursor-pointer"
+          >
             Forgot password?
-          </a>
+          </p>
         </div>
 
         <motion.button
@@ -210,8 +214,10 @@ export const LoginForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
         <p className="text-gray-400">
           Don&apos;t have an account?{" "}
           <button
-            onClick={onToggleMode}
-            className="text-blue-400 hover:text-blue-300 hover:underline"
+            type="button"
+            aria-label="Sign up"
+            onClick={() => onToggleMode("signup")}
+            className="text-blue-400 hover:text-blue-300 cursor-pointer hover:underline"
           >
             Sign up
           </button>

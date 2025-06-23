@@ -26,6 +26,7 @@ import {
 import { FormField, InputWithIcon } from "./shared";
 import { registerUser } from "@/lib/api/user-api";
 import { toast } from "sonner";
+import type { FormProps } from "@/types/form";
 
 // Validation schemas
 const signupStep1Schema = z.object({
@@ -63,7 +64,7 @@ const fullSignupSchema = signupStep1Schema
 
 type SignupFormData = z.infer<typeof fullSignupSchema>;
 
-export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
+export const SignupForm = ({ onToggleMode }: FormProps) => {
   const [step, setStep] = useState<number>(1);
   const [error, setError] = useState<string>("");
   const [isPending, startTransition] = useTransition();
@@ -128,7 +129,7 @@ export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
         }
 
         toast("Registration successful");
-        onToggleMode();
+        onToggleMode("login");
       } catch (error) {
         setError(
           error instanceof Error ? error.message : "Registration failed"
@@ -426,8 +427,10 @@ export const SignupForm = ({ onToggleMode }: { onToggleMode: () => void }) => {
         <p className="text-gray-400">
           Already have an account?{" "}
           <button
-            onClick={onToggleMode}
-            className="text-blue-400 hover:text-blue-300 hover:underline"
+            type="button"
+            aria-label="Sign in"
+            onClick={() => onToggleMode("login")}
+            className="text-blue-400 cursor-pointer hover:text-blue-300 hover:underline"
           >
             Sign in
           </button>

@@ -82,6 +82,9 @@ const SessionsTab = ({ project }: { project: Project }) => {
       case "7d":
         start = subDays(end, 7);
         break;
+      case "30d":
+        start = subDays(end, 30);
+        break;
       default:
         start = subHours(end, 24);
     }

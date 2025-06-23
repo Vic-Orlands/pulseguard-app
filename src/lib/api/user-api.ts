@@ -48,6 +48,26 @@ export const loginUser = async (data: LoginFormData) => {
   }
 };
 
+// forgot password
+export const sendResetPasswordEmail = async (email: string) => {
+  try {
+    const response = await fetch(`${url}/api/users/forgot-password`, {
+      method: "POST",
+      ...headerConfig,
+      body: email,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return error;
+    }
+
+    return response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
 // logs out user
 export const logoutUser = async () => {
   try {
@@ -66,6 +86,7 @@ export const logoutUser = async () => {
   }
 };
 
+// get current user
 export const getCurrentUser = async () => {
   try {
     const res = await fetch(`${url}/api/users/me`, {
@@ -82,6 +103,7 @@ export const getCurrentUser = async () => {
   }
 };
 
+// update user
 export const updateUser = async (userData: UpdateUserData) => {
   try {
     const res = await fetch(`${url}/api/users/me`, {
@@ -99,6 +121,7 @@ export const updateUser = async (userData: UpdateUserData) => {
   }
 };
 
+// delete user
 export const deleteUser = async () => {
   try {
     const res = await fetch(`${url}/api/users/me`, {

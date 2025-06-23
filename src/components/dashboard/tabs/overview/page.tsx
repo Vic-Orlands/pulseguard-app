@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
@@ -14,9 +8,15 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Server, Activity, AlertCircle, Users } from "lucide-react";
+import {
+  Server,
+  Activity,
+  AlertCircle,
+  Users,
+  Zap,
+  AlertTriangle,
+} from "lucide-react";
 import type { Project, DashboardData, NavItem } from "@/types/dashboard";
-// import ErrorMonitoringDashboard from "./overview-scope";
 import { fetchDashboardData } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../../shared/error-message";
 import ErrorPreview from "./error-preview";
@@ -57,55 +57,69 @@ export default function OverviewTab({
     getDashboardData();
   }, [project.id]);
 
-  // return <ErrorMonitoringDashboard />
-
   return (
     <>
       {error && <CustomErrorMessage error={error} />}
 
+      {/* Stats Cards */}
       <div className="space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-black/30 border border-blue-900/40">
-            <CardHeader>
-              <CardTitle className="text-lg">Active Errors</CardTitle>
-              <CardDescription>
-                Critical issues needing attention
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* <div className="text-3xl font-bold">{criticalErrors}</div> */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/20">
+            <CardContent className="flex items-center h-full justify-between">
+              <div>
+                <p className="text-red-300 text-sm font-medium">
+                  Total Errors (per session)
+                </p>
+                <p className="text-2xl font-bold text-red-400">
+                  {data.total_errors}
+                </p>
+              </div>
+              <div className="p-2 bg-red-500/20 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/30 border border-blue-900/40">
-            <CardHeader>
-              <CardTitle className="text-lg">Total Sessions</CardTitle>
-              <CardDescription>Last 24 hours</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{data.sessions.length}</div>
+          <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
+            <CardContent className="flex items-center h-full justify-between">
+              <div>
+                <p className="text-blue-300 text-sm font-medium">Uptime</p>
+                <p className="text-2xl font-bold text-blue-400">98.7%</p>
+              </div>
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Activity className="w-5 h-5 text-blue-400" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/30 border border-blue-900/40">
-            <CardHeader>
-              <CardTitle className="text-lg">Total Errors</CardTitle>
-              <CardDescription>(per session)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{data.total_errors}</div>
+          <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20">
+            <CardContent className="flex items-center h-full justify-between">
+              <div>
+                <p className="text-green-300 text-sm font-medium">
+                  Total Sessions (Last 24 hours)
+                </p>
+                <p className="text-2xl font-bold text-green-400">
+                  {data.sessions.length}
+                </p>
+              </div>
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-green-400" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/30 border border-blue-900/40">
-            <CardHeader>
-              <CardTitle className="text-lg">Error Rate</CardTitle>
-              <CardDescription>(per session)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {data.error_rate.toFixed(2)}%
+          <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/20">
+            <CardContent className="flex items-center h-full justify-between">
+              <div>
+                <p className="text-purple-300 text-sm font-medium">
+                  Error Rate (per session)
+                </p>
+                <p className="text-2xl font-bold text-purple-400">
+                  {data.error_rate.toFixed(2)}%
+                </p>
+              </div>
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <Zap className="w-5 h-5 text-purple-400" />
               </div>
             </CardContent>
           </Card>
@@ -188,7 +202,7 @@ export default function OverviewTab({
                 </span>
               </div>
               <div className="text-gray-400 text-sm">
-                Date: {new Date().toLocaleTimeString()}
+                {new Date().toDateString()}
               </div>
             </div>
             <div className="flex items-center space-x-6 text-sm">

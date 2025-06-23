@@ -106,14 +106,6 @@ export type Alert = {
   type: "error" | "performance" | "custom";
 };
 
-export type Integration = {
-  id: string;
-  name: string;
-  type: string;
-  lastSync: string;
-  status: "connected" | "disconnected";
-};
-
 export type RecentError = {
   id: string;
   type: string;

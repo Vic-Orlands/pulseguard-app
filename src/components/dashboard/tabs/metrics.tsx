@@ -160,7 +160,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
           stats.pageViewsTotal += value;
           break;
         case "user_sessions_active":
-          stats.activeSessions = value; // Use latest value for gauge-like metrics
+          stats.activeSessions = value;
           break;
         case "user_activity_total":
           stats.userActivityTotal += value;
@@ -266,33 +266,35 @@ const MetricsTab = ({ project }: { project: Project }) => {
       <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
         <CardHeader>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <section className="flex flex-wrap gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search metrics, IDs, values..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-800 border-slate-600 text-gray-300 placeholder-gray-500"
-                />
+            <section className="flex items-center justify-between flex-wrap gap-3 w-full">
+              <div className="flex gap-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search metrics, IDs, values..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-slate-800 border-slate-600 text-gray-300 placeholder-gray-500"
+                  />
+                </div>
+
+                <Select
+                  value={timeRange}
+                  onValueChange={(value: TimeProp) => setTimeRange(value)}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-600 text-gray-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-600">
+                    <SelectItem value="1h">Last 1 Hour</SelectItem>
+                    <SelectItem value="6h">Last 6 Hours</SelectItem>
+                    <SelectItem value="24h">Last 24 Hours</SelectItem>
+                    <SelectItem value="7d">Last 7 Days</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={timeRange}
-                onValueChange={(value: TimeProp) => setTimeRange(value)}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-gray-300">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="1h">Last 1 Hour</SelectItem>
-                  <SelectItem value="6h">Last 6 Hours</SelectItem>
-                  <SelectItem value="24h">Last 24 Hours</SelectItem>
-                  <SelectItem value="7d">Last 7 Days</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button
                   variant={chartType === "bar" ? "default" : "outline"}
                   size="sm"
@@ -303,7 +305,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                       : "border-slate-600 text-gray-300"
                   }
                 >
-                  <BarChart2 className="w-4 h-4 mr-2" />
+                  <BarChart2 className="w-4 h-4" />
                   Bar
                 </Button>
                 <Button
@@ -316,11 +318,78 @@ const MetricsTab = ({ project }: { project: Project }) => {
                       : "border-slate-600 text-gray-300"
                   }
                 >
-                  <LineChart className="w-4 h-4 mr-2" />
+                  <LineChart className="w-4 h-4" />
                   Line
                 </Button>
               </div>
             </section>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+            <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
+              <CardContent className="flex items-center h-full justify-between">
+                <div>
+                  <p className="text-blue-300 text-sm font-medium">
+                    HTTP Requests
+                  </p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {summaryStats.httpRequestsTotal}
+                  </p>
+                </div>
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <Activity className="w-5 h-5 text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/20">
+              <CardContent className="flex items-center h-full justify-between">
+                <div>
+                  <p className="text-red-300 text-sm font-medium">
+                    HTTP Errors
+                  </p>
+                  <p className="text-2xl font-bold text-red-400">
+                    {summaryStats.httpErrorsTotal}
+                  </p>
+                </div>
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <XCircle className="w-5 h-5 text-red-400" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20">
+              <CardContent className="flex items-center h-full justify-between">
+                <div>
+                  <p className="text-green-300 text-sm font-medium">
+                    Page Views
+                  </p>
+                  <p className="text-2xl font-bold text-green-400">
+                    {summaryStats.pageViewsTotal}
+                  </p>
+                </div>
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <BarChart2 className="w-5 h-5 text-green-400" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/20">
+              <CardContent className="flex items-center h-full justify-between">
+                <div>
+                  <p className="text-yellow-300 text-sm font-medium">
+                    Active Sessions
+                  </p>
+                  <p className="text-2xl font-bold text-yellow-400">
+                    {summaryStats.activeSessions}
+                  </p>
+                </div>
+                <div className="p-2 bg-yellow-500/20 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Chart Visualization */}
@@ -400,73 +469,6 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-            <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-blue-300 text-sm font-medium">
-                    HTTP Requests
-                  </p>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {summaryStats.httpRequestsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Activity className="w-5 h-5 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-red-300 text-sm font-medium">
-                    HTTP Errors
-                  </p>
-                  <p className="text-2xl font-bold text-red-400">
-                    {summaryStats.httpErrorsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-red-500/20 rounded-lg">
-                  <XCircle className="w-5 h-5 text-red-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-green-300 text-sm font-medium">
-                    Page Views
-                  </p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {summaryStats.pageViewsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <BarChart2 className="w-5 h-5 text-green-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-yellow-300 text-sm font-medium">
-                    Active Sessions
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-400">
-                    {summaryStats.activeSessions}
-                  </p>
-                </div>
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </CardHeader>
 

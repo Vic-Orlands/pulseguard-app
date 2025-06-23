@@ -943,6 +943,7 @@ export default function UserSettingsNew() {
               </h2>
             ))}
           </div>
+
           <Button
             variant="ghost"
             onClick={() => window.history.back()}

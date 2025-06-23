@@ -202,7 +202,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	sessionID := uuid.New().String()
 	session := &models.Session{
 		SessionID:     sessionID,
-		ProjectID:     r.URL.Query().Get("project_id"), // Adjust if project_id is sent differently
+		ProjectID:     r.URL.Query().Get("project_id"),
 		UserID:        user.ID.String(),
 		StartTime:     time.Now(),
 		ErrorCount:    0,

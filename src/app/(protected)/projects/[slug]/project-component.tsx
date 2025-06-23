@@ -5,23 +5,23 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Plus } from "lucide-react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
+import HelpButton from "@/components/dashboard/shared/help-button";
 
 import LogsTab from "@/components/dashboard/tabs/logs";
 import Navbar from "@/components/dashboard/shared/navbar";
 import ErrorsTab from "@/components/dashboard/tabs/errors";
 import AlertsTab from "@/components/dashboard/tabs/alerts";
-import OverviewTab from "@/components/dashboard/tabs/overview/page";
+import MetricsTab from "@/components/dashboard/tabs/metrics";
+import SessionsTab from "@/components/dashboard/tabs/sessions";
 import TracesTab from "@/components/dashboard/tabs/traces/page";
 import SettingsTab from "@/components/dashboard/tabs/settings/page";
+import OverviewTab from "@/components/dashboard/tabs/overview/page";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
-import HelpButton from "@/components/dashboard/shared/help-button";
 
-import type { Alert, NavItem, Project, Integration } from "@/types/dashboard";
 import { fetchErrors } from "@/lib/api/error-api";
+import type { Alert, NavItem, Project } from "@/types/dashboard";
 import type { ErrorListResponse, Error } from "@/types/error";
-import SessionsTab from "@/components/dashboard/tabs/sessions";
-import MetricsTab from "@/components/dashboard/tabs/metrics";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();
@@ -90,30 +90,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
     },
   ];
 
-  const integrations: Integration[] = [
-    {
-      id: "INT-1",
-      name: "Slack",
-      type: "notification",
-      status: "connected",
-      lastSync: "2 minutes ago",
-    },
-    {
-      id: "INT-2",
-      name: "GitHub",
-      type: "source-control",
-      status: "connected",
-      lastSync: "5 minutes ago",
-    },
-    {
-      id: "INT-3",
-      name: "AWS CloudWatch",
-      type: "logs",
-      status: "disconnected",
-      lastSync: "Never",
-    },
-  ];
-
   const renderActiveTab = () => {
     switch (activeTab) {
       case "overview":
@@ -139,7 +115,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "alerts":
         return <AlertsTab project={project} />;
       case "integrations":
-        return <IntegrationsTab integrations={integrations} />;
+        return <IntegrationsTab project={project} />;
       case "settings":
         return <SettingsTab project={project} />;
       case "connect-platform":

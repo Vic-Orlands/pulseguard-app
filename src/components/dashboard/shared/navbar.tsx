@@ -92,10 +92,7 @@ export default function Header({
     <header className="sticky top-0 z-10 backdrop-blur-sm bg-black/30 border-b border-blue-900/40">
       {/* Top Bar */}
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center">
-          <PulseGuardLogo />
-          <span className="text-xl font-bold">PulseGuard</span>
-        </div>
+        <PulseGuardLogo />
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative">
