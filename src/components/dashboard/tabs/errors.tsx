@@ -49,31 +49,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { format } from "date-fns";
-import type { Error } from "@/types/error";
 import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSeverityColor } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface ErrorsTabProps {
-  total: number;
-  errors: Error[] | null;
-  onErrorUpdate?: () => void;
-  config: {
-    project_id: string;
-    page: number;
-    limit: number;
-  };
-  handleConfig: (key: string, value: number) => void;
-}
-
-interface ErrorMetaRowProps {
-  label: string;
-  value: string | number | null | undefined | React.ReactElement;
-  badge?: boolean;
-  monospace?: boolean;
-  isLoading?: boolean;
-}
+import type { Error, ErrorMetaRowProps, ErrorsTabProps } from "@/types/error";
 
 // Component Stack Sheet Component
 function ComponentStackSheet({ componentStack }: { componentStack: string }) {

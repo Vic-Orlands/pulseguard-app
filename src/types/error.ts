@@ -46,3 +46,23 @@ export interface ErrorFilterProps {
   page?: number;
   limit?: number;
 }
+
+export interface ErrorsTabProps {
+  total: number;
+  errors: Error[] | null;
+  onErrorUpdate?: () => void;
+  config: {
+    project_id: string;
+    page: number;
+    limit: number;
+  };
+  handleConfig: (key: string, value: number) => void;
+}
+
+export interface ErrorMetaRowProps {
+  label: string;
+  value: string | number | null | undefined | React.ReactElement;
+  badge?: boolean;
+  monospace?: boolean;
+  isLoading?: boolean;
+}

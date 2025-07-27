@@ -1,3 +1,4 @@
+import type { PostgresNotNullString } from "@/types/user";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -28,3 +29,20 @@ export const getGreeting = () => {
   if (hour >= 12 && hour < 17) return "Good afternoon";
   return "Good evening";
 };
+
+// normalize PostgresNotNullString to string
+export function normalizePostgresString(
+  field: PostgresNotNullString
+): string | null {
+  return field.Valid ? field.String : null;
+}
+
+// reverse string to PostgresNotNullString
+export function wrapAsPostgresString(
+  str: string | undefined
+): PostgresNotNullString {
+  return {
+    String: str ?? "",
+    Valid: str !== undefined && str !== "",
+  };
+}

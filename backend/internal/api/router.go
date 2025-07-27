@@ -48,6 +48,7 @@ func NewRouter(
 	// Handlers
 	userHandler := handlers.NewUserHandler(userSvc, sessionSvc, metrics, tokenSvc, logger, tracer)
 	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
+	oauthHandler := handlers.NewOAuthHandler(userSvc, sessionSvc, metrics, tokenSvc, logger, tracer)
 
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, logger, tracer)
 	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, metrics, logger, tracer)
@@ -62,6 +63,9 @@ func NewRouter(
 	r.Post("/api/users/register", userHandler.Register)
 	r.Post("/api/users/login", userHandler.Login)
 	r.Post("/api/users/logout", userHandler.Logout)
+	// social sign-in
+	r.Get("/api/auth/{provider}", oauthHandler.BeginAuth)
+	r.Get("/api/auth/{provider}/callback", oauthHandler.CompleteAuth)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {

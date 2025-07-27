@@ -6,14 +6,14 @@ import (
 
 // HashPassword hashes a password using bcrypt
 func HashPassword(password string) (string, error) {
-    hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-    if err != nil {
-        return "", err
-    }
-    return string(hashed), nil
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashed), nil
 }
 
-// ComparePassword compares a password with its hash
+// ComparePassword compares a plain password with a hash one
 func ComparePassword(hashedPassword, password string) error {
-    return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }

@@ -37,6 +37,7 @@ type registerRequest struct {
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
+	Avatar   string `json:"avatar"`
 }
 
 type loginRequest struct {
@@ -47,6 +48,7 @@ type loginRequest struct {
 type updateUserRequest struct {
 	Name     string `json:"name,omitempty"`
 	Password string `json:"password,omitempty"`
+	Avatar   string `json:"avatar,omitempty"`
 }
 
 func handleSetCookie(w http.ResponseWriter, token string, timer int) {
@@ -105,6 +107,9 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if req.Name == "" {
 		invalidFields = append(invalidFields, "name")
 	}
+	if req.Avatar == "" {
+		invalidFields = append(invalidFields, "image")
+	}
 	if len(invalidFields) > 0 {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "invalid_fields")))
 		span.SetStatus(codes.Error, "Missing or invalid fields")
@@ -120,7 +125,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
-	user, err := h.userService.Register(ctx, req.Email, req.Name, hashedPassword)
+	user, err := h.userService.Register(ctx, req.Email, req.Name, req.Avatar, hashedPassword)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "registration_failed")))
 		span.SetStatus(codes.Error, "Failed to create user")
@@ -143,7 +148,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var req loginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "invalid_body"),
 		))
 		span.SetStatus(codes.Error, "Invalid request body")
@@ -154,7 +159,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Validate required fields
 	if req.Email == "" || req.Password == "" {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_fields"),
 		))
 		span.SetStatus(codes.Error, "Email and password are required")
@@ -163,7 +168,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authenticate user
-	user, err := h.userService.Login(r.Context(), req.Email, req.Password)
+	user, err := h.userService.Login(ctx, req.Email, req.Password)
+
 	if err != nil {
 		errorType := "login_failed"
 		errorMessage := "Invalid email or password"
@@ -175,7 +181,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 			errorType = "invalid_password"
 		}
 
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", errorType),
 		))
 
@@ -189,7 +195,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Generate JWT token
 	token, err := h.tokenService.GenerateToken(user.ID.String(), user.Email)
 	if err != nil {
-		h.metrics.AppErrorsTotal.Add(r.Context(), 1, metric.WithAttributes(
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "jwt_creation_failed"),
 		))
 		span.SetStatus(codes.Error, "Failed to generate token")
@@ -209,6 +215,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		EventCount:    0,
 		PageviewCount: 0,
 		CreatedAt:     time.Now(),
+		OAuthData:     "",
 	}
 	if session.ProjectID != "" {
 		if err := h.sessionService.CreateSession(ctx, session); err != nil {
@@ -223,7 +230,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Metrics
-	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "login"),
 		attribute.String("user_id", user.ID.String()),
 	))
@@ -316,7 +323,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" && req.Password == "" {
+	if req.Name == "" && req.Password == "" && req.Avatar == "" {
 		util.WriteError(w, http.StatusBadRequest, "No update fields provided")
 		return
 	}
@@ -337,7 +344,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated, err := h.userService.Update(r.Context(), userUUID, req.Name, hashed)
+	updated, err := h.userService.Update(r.Context(), userUUID, req.Name, req.Avatar, hashed)
 	if err != nil {
 		h.logger.Error(r.Context(), "Failed to update user", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to update user")

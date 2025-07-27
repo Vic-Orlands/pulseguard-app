@@ -8,8 +8,9 @@ import AnimatedBackground from "@/components/background-color";
 import { useHydrated } from "./shared";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
-import type { FormMode } from "@/types/form";
 import ForgotPassword from "./forgot-password";
+
+import type { FormMode } from "@/types/form";
 
 // Logo component
 const Logo = () => (

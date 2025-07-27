@@ -20,6 +20,9 @@ import (
 	"pulseguard/pkg/otel"
 
 	"github.com/joho/godotenv"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/github"
+	"github.com/markbates/goth/providers/google"
 )
 
 func getEnvOrFail(key string, log *logger.Logger) string {
@@ -53,9 +56,9 @@ func main() {
 	lokiURL := getEnvOrFail("LOKI_URL", appLogger)
 	otlpEndpoint := getEnvOrFail("OTLP_ENDPOINT", appLogger)
 	jwtSecret := getEnvOrFail("JWT_SECRET", appLogger)
-    
-    prometheusURL := getEnvOrDefault("PROMETHEUS_URL", "http://prometheus:9090")
-    tempoURL := getEnvOrDefault("TEMPO_URL", "http://tempo:3200")
+
+	prometheusURL := getEnvOrDefault("PROMETHEUS_URL", "http://prometheus:9090")
+	tempoURL := getEnvOrDefault("TEMPO_URL", "http://tempo:3200")
 	portStr := getEnvOrDefault("PORT", "8081")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
@@ -91,7 +94,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	 // Init repositories
+	// social-signin
+	goth.UseProviders(
+		github.New(
+			os.Getenv("GITHUB_CLIENT_ID"),
+			os.Getenv("GITHUB_CLIENT_SECRET"),
+			"http://localhost:8081/api/auth/github/callback",
+		),
+		google.New(
+			os.Getenv("GOOGLE_CLIENT_ID"),
+			os.Getenv("GOOGLE_CLIENT_SECRET"),
+			"http://localhost:8081/api/auth/google/callback",
+			"email", "profile",
+		),
+	)
+
+	// Init repositories
 	userRepo := postgres.NewUserRepository(conn)
 	errorRepo := postgres.NewErrorRepository(conn)
 	alertRepo := postgres.NewAlertRepository(conn)
@@ -129,8 +147,8 @@ func main() {
 		metrics,
 		tokenService,
 	)
-	
-    // Prepare graceful shutdown
+
+	// Prepare graceful shutdown
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: server.Router(),
@@ -156,12 +174,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-    // Shutdown OTEL client
-    if err := otelClient.Shutdown(ctx, appLogger); err != nil {
-        appLogger.Error(ctx, "Failed to shutdown OTEL client", err)
-    }
+	// Shutdown OTEL client
+	if err := otelClient.Shutdown(ctx, appLogger); err != nil {
+		appLogger.Error(ctx, "Failed to shutdown OTEL client", err)
+	}
 
-    // Shutdown HTTP server
+	// Shutdown HTTP server
 	if err := srv.Shutdown(ctx); err != nil {
 		appLogger.Error(ctx, "Server forced to shutdown", err)
 	} else {

@@ -22,12 +22,21 @@ func NewUserService(userRepo *postgres.UserRepository) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
+// helper to wrap string to NullString
+func toNullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
+}
+
 // Register creates a new user in the system.
-func (s *UserService) Register(ctx context.Context, email, name, hashedPassword string) (*models.User, error) {
+func (s *UserService) Register(ctx context.Context, email, name, image, hashedPassword string) (*models.User, error) {
 	user := &models.User{
 		ID:        uuid.New(),
 		Email:     email,
 		Name:      name,
+		Image:     toNullString(image),
 		Password:  hashedPassword,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -70,8 +79,19 @@ func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*models.Us
 }
 
 // updates user details
-func (s *UserService) Update(ctx context.Context, userID uuid.UUID, name string, hashedPassword string) (*models.User, error) {
-	return s.userRepo.Update(ctx, userID, name, hashedPassword)
+func (s *UserService) Update(ctx context.Context, userID uuid.UUID, name string, image, hashedPassword string) (*models.User, error) {
+	return s.userRepo.Update(ctx, userID, name, image, hashedPassword)
+}
+
+// social-signin
+func (s *UserService) UpsertOAuthUser(ctx context.Context, email, name, provider, providerID, image string) (*models.User, error) {
+	existing, err := s.userRepo.GetByEmail(ctx, email)
+	if err == nil && existing != nil {
+		return existing, nil
+	}
+
+	// Create user if doesn't exist
+	return s.userRepo.CreateOAuthUser(ctx, email, name, provider, providerID, image)
 }
 
 // Delete removes a user from the system.

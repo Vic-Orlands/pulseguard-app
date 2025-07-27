@@ -21,8 +21,6 @@ import {
   Cog,
   Settings,
   Save,
-  UserPlus,
-  UserMinus,
   ChevronDown,
   Check,
 } from "lucide-react";

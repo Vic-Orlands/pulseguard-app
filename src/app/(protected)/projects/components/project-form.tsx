@@ -17,15 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type ProjectFormProps = {
-  onSubmit: (data: {
-    name: string;
-    description: string;
-    platform: string;
-  }) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-};
+import type { ProjectFormProps } from "@/types/project";
 
 export default function ProjectForm({
   onSubmit,

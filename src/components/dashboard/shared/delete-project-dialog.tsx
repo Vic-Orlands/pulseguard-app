@@ -7,11 +7,7 @@ import { deleteProject } from "@/lib/api/projects-api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-interface DeleteProjectDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: { slug: string; name: string };
-}
+import type { DeleteProjectDialogProps } from "@/types/project";
 
 export const DeleteProjectDialog = ({
   isOpen,

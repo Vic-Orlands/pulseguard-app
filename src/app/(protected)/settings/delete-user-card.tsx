@@ -8,10 +8,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 
-interface DeleteAccountDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { DeleteAccountDialogProps } from "@/types/settings";
 
 export const RenderDeleteAccountDialogComp = ({
   isOpen,

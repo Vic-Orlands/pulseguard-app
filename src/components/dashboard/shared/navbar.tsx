@@ -32,7 +32,7 @@ import { PulseGuardLogo } from "../../Icons";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import Image from "next/image";
-import { getGreeting } from "@/lib/utils";
+import { getGreeting, normalizePostgresString } from "@/lib/utils";
 
 interface HeaderProps {
   alerts: Alert[];
@@ -88,6 +88,8 @@ export default function Header({
     router.push("/projects");
   };
 
+  const curentUser = user && normalizePostgresString(user.avatar);
+
   return (
     <header className="sticky top-0 z-10 backdrop-blur-sm bg-black/30 border-b border-blue-900/40">
       {/* Top Bar */}
@@ -118,10 +120,10 @@ export default function Header({
             >
               <DropdownMenuLabel className="font-normal p-4">
                 <div className="flex items-center space-x-3">
-                  {user?.avatar ? (
+                  {curentUser ? (
                     <Image
                       className="h-12 w-12 rounded-full object-cover border-2 border-gray-600"
-                      src={user.avatar}
+                      src={curentUser}
                       alt={user.name}
                       width={48}
                       height={48}

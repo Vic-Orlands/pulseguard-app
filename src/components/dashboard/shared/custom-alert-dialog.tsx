@@ -9,14 +9,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ReactNode } from "react";
 
-interface CustomAlertDialogProps {
-  trigger: ReactNode;
-  title: string;
-  description: string;
-  onConfirm: () => void;
-}
+import type { CustomAlertDialogProps } from "@/types/project";
 
 export function CustomAlertDialog({
   trigger,

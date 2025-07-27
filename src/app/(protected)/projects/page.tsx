@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
@@ -17,8 +18,8 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -29,20 +30,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ProjectCard from "./components/project-card";
 import ProjectForm from "./components/project-form";
-import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
-import { toast } from "sonner";
-import { Project } from "@/types/dashboard";
 import CustomErrorMessage from "@/components/dashboard/shared/error-message";
+import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
+
+import type { Project } from "@/types/dashboard";
+import type { CreateProjectDialogProps } from "@/types/project";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
-
-// Create Project Dialog Component
-interface CreateProjectDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  projectName: string;
-  status: "creating" | "complete";
-}
 
 const CreateProjectDialog = ({
   isOpen,
@@ -546,12 +540,12 @@ export default function ProjectSelectionPage() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200 bg-gradient-to-br from-blue-500 to-purple-600"
+                    className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200 bg-gradient-to-br from-blue-500 to-purple-600"
                   >
-                    {user?.avatar ? (
+                    {user?.avatar?.Valid ? (
                       <Image
-                        className="h-10 w-10 rounded-full object-cover border-2 border-gray-700 hover:border-blue-400 transition-colors duration-200"
-                        src={user.avatar}
+                        className="h-full w-full absolute object-cover"
+                        src={user.avatar.String.replace("svg", "png")}
                         alt={user.name}
                         width={50}
                         height={50}
@@ -568,10 +562,10 @@ export default function ProjectSelectionPage() {
                 >
                   <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex items-center space-x-3">
-                      {user?.avatar ? (
+                      {user?.avatar?.Valid ? (
                         <Image
                           className="h-12 w-12 rounded-full object-cover border-2 border-gray-600"
-                          src={user.avatar}
+                          src={user.avatar.String.replace("svg", "png")}
                           alt={user.name}
                           width={48}
                           height={48}

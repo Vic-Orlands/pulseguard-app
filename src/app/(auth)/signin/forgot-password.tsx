@@ -1,20 +1,18 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormField, InputWithIcon } from "./shared";
 import { sendResetPasswordEmail } from "@/lib/api/user-api";
-import type { FormProps } from "@/types/form";
 
-const forgotPasswordSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+import {
+  type FormProps,
+  forgotPasswordSchema,
+  type ForgotPasswordFormData,
+} from "@/types/form";
 
 export default function ForgotPassword({ onToggleMode }: FormProps) {
   const [isPending, startTransition] = useTransition();

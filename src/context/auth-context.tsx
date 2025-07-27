@@ -9,10 +9,9 @@ import React, {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/api/user-api";
+import { getCurrentUser, logoutUser } from "@/lib/api/user-api";
 
 import type { UserProps } from "@/types/user";
-import { logoutUser } from "@/lib/api/user-api";
 
 interface AuthContextType {
   user: UserProps | null;

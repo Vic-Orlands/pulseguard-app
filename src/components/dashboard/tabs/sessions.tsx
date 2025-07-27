@@ -55,8 +55,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { fetchSessions } from "@/lib/api/otlp-api";
-import type { Project, Session, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
+
+import type { Project, Session, TimeProp } from "@/types/dashboard";
 
 const SessionsTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;

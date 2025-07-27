@@ -1,8 +1,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { Github, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
@@ -10,22 +9,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormField, InputWithIcon } from "./shared";
 import { loginUser } from "@/lib/api/user-api";
 import { useAuth } from "@/context/auth-context";
-import { FormProps } from "@/types/form";
 
-// Validation schemas
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { loginSchema, type FormProps, type LoginFormData } from "@/types/form";
 
 export const LoginForm = ({ onToggleMode }: FormProps) => {
   const { fetchUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [isPending, startTransition] = useTransition();
   const [rememberMe, setRememberMe] = useState(false);
@@ -38,6 +28,23 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      startTransition(async () => {
+        try {
+          await fetchUser();
+          router.push("/projects");
+          toast("Login successful!");
+        } catch (error) {
+          console.log("Error fetching user:", error);
+          setError("Failed to authenticate");
+        }
+      });
+    }
+  }, [searchParams, fetchUser, router]);
 
   const onSubmit = (data: LoginFormData) => {
     startTransition(async () => {
@@ -61,6 +68,10 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         setError(error instanceof Error ? error.message : "Login failed");
       }
     });
+  };
+
+  const handleOAuthLogin = async (provider: string) => {
+    window.location.href = `/api/auth/${provider}`;
   };
 
   // prefetch projects page
@@ -174,6 +185,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <motion.button
             type="button"
+            onClick={() => handleOAuthLogin("github")}
             className="w-full flex items-center justify-center gap-2 bg-black/30 border border-blue-900/40 py-2 px-4 rounded-md hover:bg-black/50 transition"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -183,6 +195,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           </motion.button>
           <motion.button
             type="button"
+            onClick={() => handleOAuthLogin("google")}
             className="w-full flex items-center justify-center gap-2 bg-black/30 border border-blue-900/40 py-2 px-4 rounded-md hover:bg-black/50 transition"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

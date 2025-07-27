@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -25,6 +24,7 @@ import {
   Zap,
   Database,
   Loader2,
+  BadgeCheckIcon,
 } from "lucide-react";
 import {
   Card,
@@ -58,59 +58,18 @@ import { deleteAllProjects, deleteProject } from "@/lib/api/projects-api";
 import CustomErrorMessage from "@/components/dashboard/shared/error-message";
 import { RenderDeleteAccountDialogComp } from "./delete-user-card";
 import { updateUser } from "@/lib/api/user-api";
+import { availableAvatars } from "@/components/avatars";
+import { normalizePostgresString, wrapAsPostgresString } from "@/lib/utils";
+
+import { UserFormSchema, type UserFormType } from "@/types/settings";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
-
-const availableAvatars = [
-  "None",
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=face",
-  "https://api.dicebear.com/7.x/big-ears/svg?seed=user1&w=64&h=64",
-  "https://api.dicebear.com/7.x/pixel-art/svg?seed=gamer1&w=64&h=64",
-  "https://api.dicebear.com/7.x/pixel-art/svg?seed=gamer2&w=64&h=64",
-  "https://api.dicebear.com/7.x/fun-emoji/svg?seed=happy&w=64&h=64",
-  "https://api.dicebear.com/7.x/fun-emoji/svg?seed=cool&w=64&h=64",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael&w=64&h=64",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna&w=64&h=64",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Max&w=64&h=64",
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=Rio&w=64&h=64",
-];
-
-// Zod Schema for UserForm
-const UserFormSchema = z
-  .object({
-    name: z.string().min(1, "Full name is required"),
-    currentPassword: z.string().optional(),
-    newPassword: z
-      .string()
-      .optional()
-      .refine(
-        (val) => !val || val.length >= 8,
-        "New password must be at least 8 characters long"
-      ),
-    confirmPassword: z.string().optional(),
-    avatar: z.string().optional(),
-  })
-  .refine(
-    (data) => !data.newPassword || data.newPassword === data.confirmPassword,
-    {
-      message: "New password and confirmation do not match",
-      path: ["confirmPassword"],
-    }
-  )
-  .refine(
-    (data) => !data.newPassword || data.currentPassword !== data.newPassword,
-    {
-      message: "New password cannot be the same as current password",
-      path: ["newPassword"],
-    }
-  );
-
-type UserFormType = z.infer<typeof UserFormSchema>;
 
 export default function UserSettingsNew() {
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const curentUser = user && normalizePostgresString(user.avatar);
+  const curentUserDetails = user && normalizePostgresString(user.provider);
 
   // State
   const [userForm, setUserForm] = useState<UserFormType>({
@@ -167,10 +126,10 @@ export default function UserSettingsNew() {
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-        avatar: user.avatar || "",
+        avatar: curentUser || "",
       });
     }
-  }, [user]);
+  }, [user, curentUser]);
 
   useEffect(() => {
     const nameChanged = userForm.name === user?.name;
@@ -178,8 +137,9 @@ export default function UserSettingsNew() {
       userForm.currentPassword === "" &&
       userForm.newPassword === "" &&
       userForm.confirmPassword === "";
-    setHasUnsavedChanges(!nameChanged || !passwordChanged);
-  }, [userForm, user]);
+    const avatarChanged = userForm.avatar === curentUser;
+    setHasUnsavedChanges(!nameChanged || !passwordChanged || !avatarChanged);
+  }, [userForm, user, curentUser]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -225,8 +185,10 @@ export default function UserSettingsNew() {
         return;
       }
 
-      const { name, newPassword } = validation.data;
-      const updateData = { name, password: newPassword || undefined };
+      const { name, newPassword, avatar } = validation.data;
+      const updateData = { name, password: newPassword, avatar };
+
+      console.log("data:", updateData);
 
       const res = await updateUser(updateData);
       if (!res) {
@@ -235,7 +197,11 @@ export default function UserSettingsNew() {
         return;
       }
 
-      setUser({ ...user!, name, avatar: userForm.avatar });
+      setUser({
+        ...user!,
+        name,
+        avatar: wrapAsPostgresString(userForm.avatar),
+      });
       setHasUnsavedChanges(false);
       toast.success("Changes saved successfully!");
     } catch (error) {
@@ -408,7 +374,9 @@ export default function UserSettingsNew() {
               Email Address
             </label>
             <Input
-              value={user?.email}
+              value={
+                curentUserDetails ? "GitHub has no email address" : user?.email
+              }
               disabled
               type="email"
               className="bg-slate-900/50 border-slate-600 focus:border-blue-400"
@@ -965,7 +933,7 @@ export default function UserSettingsNew() {
               <CardContent className="p-6">
                 <div className="text-center space-y-4">
                   <Avatar className="h-20 w-20 mx-auto ring-4 ring-blue-400/20">
-                    <AvatarImage src={user?.avatar} />
+                    <AvatarImage src={user?.avatar.String} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold text-2xl">
                       {user?.name
                         ?.split(" ")
@@ -977,12 +945,19 @@ export default function UserSettingsNew() {
                     <h3 className="font-semibold text-slate-200 text-xl">
                       {user?.name}
                     </h3>
-                    <p className="text-slate-400">{user?.email}</p>
+                    <p className="text-slate-400 text-xs mb-2 mt-1">
+                      Signed in with {curentUserDetails || "password"}
+                    </p>
                     <Badge
                       variant="outline"
-                      className="border-purple-400/30 text-purple-400 mt-2"
+                      className={
+                        user?.avatar.Valid
+                          ? "text-green-400 border-green-900/30"
+                          : "border-purple-400/30 text-purple-400"
+                      }
                     >
-                      Free Plan
+                      <BadgeCheckIcon />
+                      {user?.avatar.Valid ? "Verified" : "Unverified"}
                     </Badge>
                   </div>
                 </div>

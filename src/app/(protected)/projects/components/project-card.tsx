@@ -4,23 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
-type Project = {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  platform: string;
-  createdAt: string;
-  errorCount: number;
-  memberCount?: number;
-};
-
-interface ProjectCardProps {
-  index: number;
-  project: Project;
-  href: string;
-  viewMode?: "grid" | "list";
-}
+import type { ProjectCardProps } from "@/types/project";
 
 export default function ProjectCard({
   index,

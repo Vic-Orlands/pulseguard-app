@@ -20,8 +20,9 @@ import IntegrationsTab from "@/components/dashboard/tabs/integrations";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 
 import { fetchErrors } from "@/lib/api/error-api";
-import type { Alert, NavItem, Project } from "@/types/dashboard";
+
 import type { ErrorListResponse, Error } from "@/types/error";
+import type { Alert, NavItem, Project } from "@/types/dashboard";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();

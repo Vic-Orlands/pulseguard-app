@@ -1,10 +1,6 @@
-import {
-  ForwardRefExoticComponent,
-  RefAttributes,
-  useState,
-  useEffect,
-} from "react";
-import { EyeOff, Eye, LucideProps } from "lucide-react";
+import { useState, useEffect } from "react";
+import { EyeOff, Eye } from "lucide-react";
+import type { FormFieldProps, InputWithIconProps } from "@/types/form";
 
 export function useHydrated() {
   const [hydrated, setHydrated] = useState(false);
@@ -17,15 +13,7 @@ export function useHydrated() {
 }
 
 // Form field component
-export const FormField = ({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) => (
+export const FormField = ({ label, error, children }: FormFieldProps) => (
   <div className="space-y-2 mb-4">
     <label className="block text-sm font-medium text-gray-300">{label}</label>
     {children}
@@ -41,16 +29,7 @@ export const InputWithIcon = ({
   error,
   showPasswordToggle = false,
   ...props
-}: {
-  icon: ForwardRefExoticComponent<
-    Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
-  >;
-  type?: string;
-  placeholder: string;
-  error?: string;
-  showPasswordToggle?: boolean;
-  [key: string]: unknown;
-}) => {
+}: InputWithIconProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputType = showPasswordToggle
     ? showPassword
