@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 
@@ -14,6 +13,7 @@ import (
 	"pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/lib/pq"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -191,11 +191,15 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Updating project slug from", oldSlug, "to", req.Slug)
-
-
 	project, err := h.projectService.UpdateProject(ctx, oldSlug, req.Name, req.Description, req.Slug)
 	if err != nil {
+		var pqe *pq.Error
+		// if project name already exists for user
+        if errors.As(err, &pqe) && pqe.Code == "23505" {
+            util.WriteError(w, http.StatusConflict, "Name or slug already exists")
+            return
+        }
+		
 		if errors.Is(err, sql.ErrNoRows) {
 			util.WriteError(w, http.StatusNotFound, "Project not found")
 			return

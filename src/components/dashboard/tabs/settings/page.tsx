@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Trash2,
   Users,
@@ -27,10 +28,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { DeleteProjectDialog } from "../../shared/delete-project-dialog";
 import { updateProject } from "@/lib/api/projects-api";
+
+import { HttpError } from "@/lib/utils";
 import type { Project } from "@/types/dashboard";
 
 export default function SettingsTab({ project }: { project: Project }) {
   const { id, slug, name, description } = project;
+  const router = useRouter();
 
   const [projectSlug, setProjectSlug] = useState<string>(slug || "");
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -102,17 +106,38 @@ export default function SettingsTab({ project }: { project: Project }) {
         description: projectDescription,
       });
 
-      if (!res || res == null) {
-        toast.error("Failed to save changes. Please try again.");
-        setIsSaving(false);
-        return;
+      // If backend returned a new slug, navigate
+      if (res.slug && res.slug !== slug) {
+        router.replace(`/projects/${res.slug}?tab=settings`);
       }
 
-      setHasUnsavedChanges(false);
+      toast.success("Changes saved!");
+    } catch (err: unknown) {
+      if (err instanceof HttpError) {
+        if (err.status === 409 || err.message.includes("Conflict")) {
+          toast.error("Name already exists. Please choose another name.");
+        } else if (err.status === 400) {
+          toast.error(err.body || "Invalid input.");
+        } else if (err.status === 404) {
+          toast.error("Project not found.");
+        } else {
+          toast.error("Failed to save changes. Please try again.");
+        }
+        console.error("Update failed:", {
+          status: err.status,
+          message: err.message,
+          body: err.body,
+        });
+      } else if (err instanceof Error) {
+        toast.error(err.message || "Failed to save changes.");
+        console.error("Update failed:", err);
+      } else {
+        toast.error("Failed to save changes.");
+        console.error("Update failed (unknown):", err);
+      }
+    } finally {
       setIsSaving(false);
-      toast.success("Changes saved successfully!");
-    } catch (error) {
-      console.error("Error saving changes:", error);
+      setHasUnsavedChanges(false);
     }
   };
 

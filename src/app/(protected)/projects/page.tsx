@@ -35,6 +35,7 @@ import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-di
 
 import type { Project } from "@/types/dashboard";
 import type { CreateProjectDialogProps } from "@/types/project";
+import { normalizePostgresString } from "@/lib/utils";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -279,6 +280,7 @@ const CreateProjectDialog = ({
 export default function ProjectSelectionPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const curentUser = user && normalizePostgresString(user.avatar);
 
   const [error, setError] = useState<string>("");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -542,10 +544,10 @@ export default function ProjectSelectionPage() {
                     variant="ghost"
                     className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200 bg-gradient-to-br from-blue-500 to-purple-600"
                   >
-                    {user?.avatar?.Valid ? (
+                    {curentUser ? (
                       <Image
                         className="h-full w-full absolute object-cover"
-                        src={user.avatar.String.replace("svg", "png")}
+                        src={curentUser}
                         alt={user.name}
                         width={50}
                         height={50}
@@ -562,10 +564,10 @@ export default function ProjectSelectionPage() {
                 >
                   <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex items-center space-x-3">
-                      {user?.avatar?.Valid ? (
+                      {curentUser ? (
                         <Image
                           className="h-12 w-12 rounded-full object-cover border-2 border-gray-600"
-                          src={user.avatar.String.replace("svg", "png")}
+                          src={curentUser}
                           alt={user.name}
                           width={48}
                           height={48}

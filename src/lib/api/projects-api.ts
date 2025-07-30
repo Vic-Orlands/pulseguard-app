@@ -1,3 +1,5 @@
+import { HttpError } from "../utils";
+
 export interface Project {
   slug: string;
   name: string;
@@ -13,20 +15,33 @@ const headerConfig = {
 
 // SETTINGS - PROJECT API FUNCTIONS
 export const updateProject = async (slug: string, data: Project) => {
-  try {
-    const res = await fetch(`${url}/api/projects/${slug}`, {
-      method: "PUT",
-      ...headerConfig,
-      body: JSON.stringify(data),
-    });
+  const res = await fetch(`${url}/api/projects/${slug}`, {
+    method: "PUT",
+    ...headerConfig,
+    body: JSON.stringify(data),
+  });
 
-    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+  if (!res.ok) {
+    // Try to extract server error message (JSON or text)
+    const contentType = res.headers.get("content-type") || "";
+    let bodyText = "";
+    try {
+      if (contentType.includes("application/json")) {
+        const e = await res.json();
+        bodyText = e?.error || e?.message || JSON.stringify(e);
+      } else {
+        bodyText = await res.text();
+      }
+    } catch (error) {
+      console.error("Error updating project:", error);
+    }
 
-    return await res.json();
-  } catch (error) {
-    console.error("Error updating project:", error);
-    return null;
+    // Construct a meaningful error
+    const message = bodyText || res.statusText || `HTTP ${res.status}`;
+    throw new HttpError(message, res.status, bodyText);
   }
+
+  return res.json();
 };
 
 export const deleteProject = async (slug: string) => {
