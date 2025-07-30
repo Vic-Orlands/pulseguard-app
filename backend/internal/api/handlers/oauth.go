@@ -75,8 +75,6 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Print("user details:", dbUser)
-
 	// Generate JWT token
 	token, err := h.tokenService.GenerateToken(dbUser.ID.String(), dbUser.Email)
 	if err != nil {
@@ -123,13 +121,7 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 		attribute.String("session_id", sessionID),
 	)
 
-	// Return success response
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"message":    "Login successful",
-		"session_id": sessionID,
-	})
-
 	// Redirect to frontend with token
 	redirectURL := fmt.Sprintf("%s/projects?token=%s", os.Getenv("FRONTEND_URL"), token)
-	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }

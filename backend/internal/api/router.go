@@ -63,6 +63,8 @@ func NewRouter(
 	r.Post("/api/users/register", userHandler.Register)
 	r.Post("/api/users/login", userHandler.Login)
 	r.Post("/api/users/logout", userHandler.Logout)
+	r.Post("/api/forgot-password", userHandler.ForgotPassword)
+
 	// social sign-in
 	r.Get("/api/auth/{provider}", oauthHandler.BeginAuth)
 	r.Get("/api/auth/{provider}/callback", oauthHandler.CompleteAuth)

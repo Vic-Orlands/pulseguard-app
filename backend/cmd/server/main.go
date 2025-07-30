@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"pulseguard/internal/api"
+	"pulseguard/internal/config"
 	"pulseguard/internal/db"
 	"pulseguard/internal/repository/postgres"
 	"pulseguard/internal/repository/telemetry"
@@ -20,9 +21,6 @@ import (
 	"pulseguard/pkg/otel"
 
 	"github.com/joho/godotenv"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/github"
-	"github.com/markbates/goth/providers/google"
 )
 
 func getEnvOrFail(key string, log *logger.Logger) string {
@@ -54,8 +52,8 @@ func main() {
 	// Get all config variables
 	dbURL := getEnvOrFail("DB_URL", appLogger)
 	lokiURL := getEnvOrFail("LOKI_URL", appLogger)
-	otlpEndpoint := getEnvOrFail("OTLP_ENDPOINT", appLogger)
 	jwtSecret := getEnvOrFail("JWT_SECRET", appLogger)
+	otlpEndpoint := getEnvOrFail("OTLP_ENDPOINT", appLogger)
 
 	prometheusURL := getEnvOrDefault("PROMETHEUS_URL", "http://prometheus:9090")
 	tempoURL := getEnvOrDefault("TEMPO_URL", "http://tempo:3200")
@@ -94,20 +92,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// social-signin
-	goth.UseProviders(
-		github.New(
-			os.Getenv("GITHUB_CLIENT_ID"),
-			os.Getenv("GITHUB_CLIENT_SECRET"),
-			"http://localhost:8081/api/auth/github/callback",
-		),
-		google.New(
-			os.Getenv("GOOGLE_CLIENT_ID"),
-			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8081/api/auth/google/callback",
-			"email", "profile",
-		),
-	)
+	// social-signin configuration
+	config.InitSessionStore()
 
 	// Init repositories
 	userRepo := postgres.NewUserRepository(conn)

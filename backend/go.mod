@@ -23,7 +23,6 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -57,6 +56,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/golang-migrate/migrate/v4 v4.18.3
+	github.com/gorilla/sessions v1.4.0
 	github.com/lestrrat-go/jwx/v2 v2.1.3
 	github.com/markbates/goth v1.81.0
 	github.com/prometheus/client_golang v1.22.0

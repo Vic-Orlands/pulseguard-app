@@ -51,6 +51,15 @@ type updateUserRequest struct {
 	Avatar   string `json:"avatar,omitempty"`
 }
 
+type forgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+type resetPasswordRequest struct {
+	Token       string `json:"token"`
+	NewPassword string `json:"new_password"`
+}
+
 func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 	cookie := &http.Cookie{
 		Name:     "auth_token",
@@ -382,4 +391,91 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	handleSetCookie(w, "", -1)
 
 	util.WriteJSON(w, http.StatusOK, map[string]string{"message": "User deleted successfully"})
+}
+
+// ForgotPassword handles password reset initiation
+func (h *UserHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, span := h.tracer.Start(ctx, "ForgotPassword")
+	defer span.End()
+
+	var req forgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if !validator.IsValidEmail(req.Email) {
+		util.WriteError(w, http.StatusBadRequest, "Invalid email")
+		return
+	}
+
+	// Generate a reset token (e.g., UUID or JWT with short expiry)
+	resetToken := uuid.New().String()
+	if err := h.userService.SaveResetToken(ctx, req.Email, resetToken, time.Now().Add(15*time.Minute)); err != nil {
+		h.logger.Error(ctx, "Failed to save reset token", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to generate reset token")
+		return
+	}
+
+	// Compose reset URL (frontend will handle token from query param)
+	resetURL := os.Getenv("FRONTEND_URL") + "/reset-password?token=" + resetToken
+
+	// Send email (assumes you have a mailer utility)
+	if err := util.SendResetEmail(req.Email, resetURL); err != nil {
+		h.logger.Error(ctx, "Failed to send reset email", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to send reset email")
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "If an account with that email exists, you’ll receive a password reset link.",
+	})
+}
+
+// ResetPassword handles actual password update
+func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, span := h.tracer.Start(ctx, "ResetPassword")
+	defer span.End()
+
+	var req resetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Token == "" || req.NewPassword == "" {
+		util.WriteError(w, http.StatusBadRequest, "Token and new password are required")
+		return
+	}
+
+	// Verify token and retrieve associated user
+	user, err := h.userService.VerifyResetToken(ctx, req.Token)
+	if err != nil {
+		h.logger.Error(ctx, "Invalid or expired reset token", err)
+		util.WriteError(w, http.StatusBadRequest, "Invalid or expired token")
+		return
+	}
+
+	// Hash new password
+	hashed, err := auth.HashPassword(req.NewPassword)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, "Failed to hash password")
+		return
+	}
+
+	// Update user password
+	if err := h.userService.UpdatePassword(ctx, user.ID, hashed); err != nil {
+		h.logger.Error(ctx, "Failed to update password", err)
+		util.WriteError(w, http.StatusInternalServerError, "Failed to update password")
+		return
+	}
+
+	// Invalidate token
+	_ = h.userService.InvalidateResetToken(ctx, req.Token)
+
+	util.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "Password updated successfully",
+	})
 }

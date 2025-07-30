@@ -107,3 +107,19 @@ func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	fmt.Printf("✅ User deleted successfully: %s\n", userID.String())
 	return nil
 }
+
+func (s *UserService) SaveResetToken(ctx context.Context, email, token string, expiresAt time.Time) error {
+	return s.userRepo.SaveResetToken(ctx, email, token, expiresAt)
+}
+
+func (s *UserService) VerifyResetToken(ctx context.Context, token string) (*models.User, error) {
+	return s.userRepo.VerifyResetToken(ctx, token)
+}
+
+func (s *UserService) UpdatePassword(ctx context.Context, userID uuid.UUID, hashedPassword string) error {
+	return s.userRepo.UpdatePassword(ctx, userID, hashedPassword)
+}
+
+func (s *UserService) InvalidateResetToken(ctx context.Context, token string) error {
+	return s.userRepo.InvalidateResetToken(ctx, token)
+}
