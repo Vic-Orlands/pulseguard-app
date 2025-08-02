@@ -178,11 +178,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
 
   return (
     <>
-      {error && (
-        <CustomErrorMessage
-          error={`Failed to load sessions: ${error.message}`}
-        />
-      )}
+      {error && <CustomErrorMessage error={error.message} />}
 
       <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
         <CardHeader>

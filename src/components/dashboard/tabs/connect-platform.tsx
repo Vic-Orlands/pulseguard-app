@@ -1,14 +1,18 @@
 import React, { useState } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, Database, Zap, AlertTriangle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Copy, Check, ChevronRight } from "lucide-react";
+
+interface CodeBlockProps {
+  children: string;
+  id: string;
+  language?: string;
+}
 
 const ConnectPlatformPage = () => {
   const [copiedCode, setCopiedCode] = useState("");
+  const [activeSection, setActiveSection] = useState("installation");
 
-  const copyToClipboard = async (
-    text: string,
-    id: React.SetStateAction<string>
-  ) => {
+  const copyToClipboard = async (text: string, id: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedCode(id);
@@ -18,24 +22,13 @@ const ConnectPlatformPage = () => {
     }
   };
 
-  interface CodeBlockProps {
-    id: string;
-    language?: string;
-    children: string | string[];
-  }
-
   const CodeBlock = ({ children, id, language = "bash" }: CodeBlockProps) => (
-    <div className="relative group mb-6">
-      <div className="flex items-center justify-between bg-gray-800 text-gray-100 px-4 py-2 rounded-t-lg border-b border-gray-700">
-        <span className="text-sm font-mono text-gray-400">{language}</span>
+    <div className="relative group mb-4">
+      <div className="flex items-center justify-between bg-slate-900 text-purple-100 px-4 py-2 rounded-t-lg border-b border-slate-700">
+        <span className="text-sm font-mono text-slate-300">{language}</span>
         <button
-          onClick={() =>
-            copyToClipboard(
-              Array.isArray(children) ? children.join("\n") : children,
-              id
-            )
-          }
-          className="flex items-center gap-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
+          onClick={() => copyToClipboard(children, id)}
+          className="flex items-center gap-2 px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-sm transition-colors"
         >
           {copiedCode === id ? (
             <>
@@ -50,309 +43,487 @@ const ConnectPlatformPage = () => {
           )}
         </button>
       </div>
-      <pre className="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto">
+      <pre className="bg-slate-950 text-slate-100 p-4 rounded-b-lg overflow-x-auto">
         <code className="text-sm">{children}</code>
       </pre>
     </div>
   );
 
-  return (
-    <div className="max-w-4xl mx-auto py-12">
-      {/* Installation */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          📦 Installation
-        </h3>
-        <CodeBlock id="npm-install">npm install @pulseguard/sdk</CodeBlock>
-      </div>
+  const navigationItems = [
+    { id: "installation", label: "Installation" },
+    { id: "usage", label: "Usage" },
+    { id: "manual-error", label: "Manual Error Reporting" },
+    { id: "how-it-works", label: "How It Works" },
+    { id: "api-reference", label: "API Reference" },
+    { id: "error-payload", label: "Example Error Payload" },
+    { id: "security", label: "Security" },
+  ];
 
-      {/* Usage */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          ⚙️ Usage
-        </h3>
+  const renderContent = () => {
+    switch (activeSection) {
+      case "installation":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Installation
+            </h2>
+            <p className="text-sm text-slate-300 mb-6">
+              Get started with PulseGuard in seconds
+            </p>
+            <CodeBlock id="npm-install">npm install pulseguard</CodeBlock>
+          </div>
+        );
 
-        <div className="mb-6">
-          <p className="text-gray-300 mb-4">
-            1. Get your <strong>Project ID</strong> from the PulseGuard
-            dashboard.
-            <br />
-            2. Wrap your root layout or app component:
-          </p>
-        </div>
+      case "usage":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Usage
+            </h2>
+            <p className="text-sm text-slate-300 mb-2">
+              Choose your preferred integration method
+            </p>
 
-        <CodeBlock id="usage-code" language="tsx">
-          {`// app/layout.tsx or App.tsx
+            <Tabs defaultValue="react" className="w-full">
+              <TabsList className="bg-slate-900 border border-slate-700 mb-2">
+                <TabsTrigger
+                  value="react"
+                  className="data-[state=active]:bg-purple-600"
+                >
+                  React
+                </TabsTrigger>
+                <TabsTrigger
+                  value="manual"
+                  className="data-[state=active]:bg-purple-600"
+                >
+                  Manual Setup
+                </TabsTrigger>
+                <TabsTrigger
+                  value="error-boundary"
+                  className="data-[state=active]:bg-purple-600"
+                >
+                  Error Boundary
+                </TabsTrigger>
+              </TabsList>
 
-import { TelemetryProvider } from "@pulseguard/sdk";
-export default function RootLayout({ children }) {
-  return (
-    <TelemetryProvider
-      initialProjectId="your-project-id"
-      issueTrackerUrl="https://yourcompany.atlassian.net" // optional
-    >
-      {children}
-    </TelemetryProvider>
-)}`}{" "}
-        </CodeBlock>
+              <TabsContent value="react" className="mt-6">
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-md font-semibold mb-4 text-purple-300">
+                      1. Wrap Your App with TelemetryProvider
+                    </h3>
+                    <CodeBlock
+                      id="react-provider"
+                      language="jsx"
+                    >{`import { TelemetryProvider } from "pulseguard";
 
-        <div className="text-center py-4">
-          <p className="text-lg text-green-400 font-semibold">
-            That&apos;s it — you&apos;re done! ✅
-          </p>
-        </div>
-      </div>
+<TelemetryProvider
+    projectId={currentProjectId}
+    issueTrackerUrl={trackerUrl}
+>
+    <Layout />
+    // {children}
+</TelemetryProvider>`}</CodeBlock>
+                    <p className="text-slate-300 text-sm leading-relaxed">
+                      This enables error tracking, trace/span context, and
+                      pageview tracking automatically.
+                    </p>
+                  </div>
 
-      <div className="space-y-2">
-        <h3 className="font-medium">Installation Guide</h3>
-        <div className="p-4 rounded-lg bg-gray-900/50">
-          <Tabs defaultValue="nextjs" className="w-full">
-            <TabsList className="bg-gray-800 border border-blue-900/40">
-              <TabsTrigger value="nextjs">Next.js</TabsTrigger>
-              <TabsTrigger value="nodejs">Node.js</TabsTrigger>
-              <TabsTrigger value="react">React</TabsTrigger>
-              <TabsTrigger value="other">Other</TabsTrigger>
-            </TabsList>
-            <div className="mt-4">
-              <div className="space-y-3 text-sm">
-                <p>1. Install the npm package:</p>
-                <div className="p-3 rounded bg-gray-800 font-mono text-blue-400">
-                  npm install @pulseguard/nextjs
+                  <div>
+                    <h3 className="text-md font-semibold mb-4 text-purple-300">
+                      2. Track Page-Level Interactions (Optional)
+                    </h3>
+                    <CodeBlock id="use-telemetry" language="jsx">{`"use client";
+import { useTelemetry } from "pulseguard";
+
+useTelemetry({
+    userId: "user-123",
+    pageId: "/dashboard",
+});`}</CodeBlock>
+                    <p className="text-slate-300 text-sm leading-relaxed">
+                      Adds click event tracking, performance metrics (Web
+                      Vitals), and pageview logs.
+                    </p>
+                  </div>
                 </div>
-                <p>2. Initialize the client SDK in your Next.js application:</p>
-                <div className="p-3 rounded bg-gray-800 font-mono text-blue-400">
-                  {`// src/app/layout.tsx\nimport { PulseGuard } from '@pulseguard/nextjs/client';\n\nexport default function RootLayout({\n  children,\n}: {\n  children: React.ReactNode\n}) {\n  return (\n    <html>\n      <body>\n        <PulseGuard projectId="digitalizing" />\n        {children}\n      </body>\n    </html>\n  )\n}`}
+              </TabsContent>
+
+              <TabsContent value="manual" className="mt-6">
+                <div>
+                  <h3 className="text-md font-semibold mb-4 text-purple-300">
+                    Manual Setup (non-React / CLI apps)
+                  </h3>
+                  <CodeBlock
+                    id="manual-init"
+                    language="javascript"
+                  >{`import { initPulseguard } from "pulseguard";
+
+initPulseguard({
+    projectId: "pulseguard-prod",
+    userId: "user-123",
+    issueTrackerUrl: "https://tracker.example.com",
+});`}</CodeBlock>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    Manually initializes telemetry for non-React apps or
+                    environments.
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="error-boundary" className="mt-6">
+                <div>
+                  <h3 className="text-md font-semibold mb-4 text-purple-300">
+                    React Error Boundary (Optional)
+                  </h3>
+                  <CodeBlock
+                    id="error-boundary"
+                    language="jsx"
+                  >{`import { ErrorBoundary } from "pulseguard";
+
+<ErrorBoundary>
+    <App />
+</ErrorBoundary>`}</CodeBlock>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    Captures runtime React errors automatically.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        );
+
+      case "manual-error":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Manually Report Errors
+            </h2>
+            <p className="text-sm text-slate-300 mb-6">
+              Send custom error reports with context
+            </p>
+            <CodeBlock
+              id="manual-error"
+              language="javascript"
+            >{`import { reportError } from "pulseguard";
+
+try {
+    throw new Error("Something broke");
+} catch (err) {
+    reportError(err, { context: "manual trigger" });
+}`}</CodeBlock>
+          </div>
+        );
+
+      case "how-it-works":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              How It Works
+            </h2>
+            <p className="text-sm text-slate-300 mb-2">
+              Under the hood architecture
+            </p>
+            <div className="space-y-2">
+              {[
+                "Leverages @opentelemetry/api for span/trace context",
+                "Uses context to suppress duplicate errors",
+                "Sends errors to /api/telemetry/error",
+                "Enriches with user, session, and route data",
+                "Integrates with OpenTelemetry Collector (Tempo, Loki, Prometheus)",
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-4 bg-slate-900/50 rounded-lg"
+                >
+                  <ChevronRight className="text-purple-400 w-5 h-5" />
+                  <span className="text-slate-200 text-sm">
+                    {item.includes("@opentelemetry/api") ||
+                    item.includes("/api/telemetry/error")
+                      ? item
+                          .split(
+                            /(@opentelemetry\/api|\/api\/telemetry\/error)/
+                          )
+                          .map((part, i) =>
+                            part === "@opentelemetry/api" ||
+                            part === "/api/telemetry/error" ? (
+                              <code
+                                key={i}
+                                className="bg-slate-400 text-slate-900 px-2 py-1 rounded text-sm"
+                              >
+                                {part}
+                              </code>
+                            ) : (
+                              part
+                            )
+                          )
+                      : item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "api-reference":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              API Reference
+            </h2>
+            <p className="text-slate-300 text-sm mb-6">
+              Complete API documentation
+            </p>
+
+            <div className="space-y-12">
+              <div>
+                <h3 className="text-md font-semibold mb-6 text-purple-300">
+                  <code>&lt;TelemetryProvider /&gt;</code>
+                </h3>
+                <div className="overflow-x-auto bg-slate-900/30 rounded-lg">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900">
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Prop
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Type
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Required
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Description
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        {
+                          prop: "projectId",
+                          type: "string",
+                          required: "Yes",
+                          description: "Your PulseGuard project ID",
+                        },
+                        {
+                          prop: "issueTrackerUrl",
+                          type: "string",
+                          required: "No",
+                          description: "Link to your external issue tracker",
+                        },
+                        {
+                          prop: "children",
+                          type: "ReactNode",
+                          required: "Yes",
+                          description: "Your app layout or page",
+                        },
+                      ].map((row, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-slate-800/30 transition-colors"
+                        >
+                          <td className="px-6 py-4 font-mono text-sm text-green-400 border-b border-slate-800">
+                            {row.prop}
+                          </td>
+                          <td className="px-6 py-4 font-mono text-sm text-blue-400 border-b border-slate-800">
+                            {row.type}
+                          </td>
+                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                            {row.required}
+                          </td>
+                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                            {row.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-          </Tabs>
-        </div>
-      </div>
 
-      {/* What It Does */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          ✅ What It Does
-        </h3>
+              <div>
+                <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <code>useTelemetry(options)</code>
+                </h3>
+                <p className="mb-6 text-slate-300 text-sm leading-relaxed">
+                  Tracks pageviews, performance, and user interactions.
+                </p>
+                <div className="overflow-x-auto bg-slate-900/30 rounded-lg">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900">
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Option
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Type
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                          Description
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        {
+                          option: "userId",
+                          type: "string",
+                          description: "Optional user ID",
+                        },
+                        {
+                          option: "pageId",
+                          type: "string",
+                          description: "Optional page route",
+                        },
+                        {
+                          option: "trackInteractions",
+                          type: "boolean",
+                          description: "Enable click tracking (default: true)",
+                        },
+                      ].map((row, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-slate-800/30 transition-colors"
+                        >
+                          <td className="px-6 py-4 font-mono text-sm text-green-400 border-b border-slate-800">
+                            {row.option}
+                          </td>
+                          <td className="px-6 py-4 font-mono text-sm text-blue-400 border-b border-slate-800">
+                            {row.type}
+                          </td>
+                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                            {row.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <AlertTriangle className="text-red-500" size={20} />
-                Automatically captures:
-              </h4>
-              <ul className="space-y-2 text-gray-300">
-                <li>• Uncaught exceptions</li>
-                <li>• Unhandled promise rejections</li>
-                <li>
-                  • Runtime{" "}
-                  <code className="bg-gray-700 px-1 rounded text-sm">
-                    console.error
-                  </code>{" "}
-                  logs
-                </li>
-                <li>• Core user events (e.g., navigation, clicks)</li>
-              </ul>
-            </div>
+              <div>
+                <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <code>initPulseguard(config)</code>
+                </h3>
+                <p className="mb-4 text-slate-300 text-sm">
+                  For non-React usage.
+                </p>
+                <CodeBlock
+                  id="init-config"
+                  language="javascript"
+                >{`initPulseguard({
+    projectId: "pulseguard-prod",
+    userId: "user-123",
+    issueTrackerUrl: "https://tracker.io/..."
+});`}</CodeBlock>
+              </div>
 
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Database className="text-blue-500" size={20} />
-                Enriches data with:
-              </h4>
-              <ul className="space-y-2 text-gray-300">
-                <li>• Browser & OS metadata</li>
-                <li>• Project ID context</li>
-                <li>• Optional issue tracker link</li>
-              </ul>
+              <div>
+                <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <code>reportError(error, extra?)</code>
+                </h3>
+                <p className="mb-4 text-slate-300 text-sm">
+                  Send manual error reports:
+                </p>
+                <CodeBlock
+                  id="report-error"
+                  language="javascript"
+                >{`reportError(new Error("Whoops"), { component: "Header" });`}</CodeBlock>
+              </div>
+
+              <div>
+                <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <code>&lt;ErrorBoundary /&gt;</code>
+                </h3>
+                <p className="text-slate-300 text-sm">
+                  Wraps part of your app to auto-capture uncaught React errors.
+                </p>
+              </div>
             </div>
           </div>
+        );
 
-          <div className="mt-6 pt-6 border-t border-gray-700">
-            <p className="text-gray-300 flex items-center gap-2">
-              <Zap className="text-yellow-500" size={20} />
-              Sends everything to the PulseGuard backend in real time
+      case "error-payload":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Example Error Payload
+            </h2>
+            <p className="text-sm text-slate-300 mb-6">
+              See what data gets sent to your telemetry endpoint
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Props Table */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          🔐 Props for{" "}
-          <code className="bg-gray-800 px-2 py-1 rounded text-sm">
-            &lt;TelemetryProvider /&gt;
-          </code>
-        </h3>
-
-        <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-          <table className="w-full">
-            <thead className="bg-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left text-white font-semibold">
-                  Prop
-                </th>
-                <th className="px-4 py-3 text-left text-white font-semibold">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left text-white font-semibold">
-                  Required
-                </th>
-                <th className="px-4 py-3 text-left text-white font-semibold">
-                  Description
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t border-gray-600">
-                <td className="px-4 py-3 text-blue-400 font-mono text-sm">
-                  initialProjectId
-                </td>
-                <td className="px-4 py-3 text-gray-300 font-mono text-sm">
-                  string
-                </td>
-                <td className="px-4 py-3 text-green-400">✅</td>
-                <td className="px-4 py-3 text-gray-300">
-                  Your PulseGuard Project UUID
-                </td>
-              </tr>
-              <tr className="border-t border-gray-600">
-                <td className="px-4 py-3 text-blue-400 font-mono text-sm">
-                  issueTrackerUrl
-                </td>
-                <td className="px-4 py-3 text-gray-300 font-mono text-sm">
-                  string
-                </td>
-                <td className="px-4 py-3 text-gray-400">❌</td>
-                <td className="px-4 py-3 text-gray-300">
-                  Optional link to your company&apos;s issue tracker
-                </td>
-              </tr>
-              <tr className="border-t border-gray-600">
-                <td className="px-4 py-3 text-blue-400 font-mono text-sm">
-                  initialUserId
-                </td>
-                <td className="px-4 py-3 text-gray-300 font-mono text-sm">
-                  string
-                </td>
-                <td className="px-4 py-3 text-gray-400">❌</td>
-                <td className="px-4 py-3 text-gray-300">
-                  Optional user ID for enhanced session tracking
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Best Practices */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          🧠 Best Practices
-        </h3>
-
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <ul className="space-y-3 text-gray-300">
-            <li className="flex items-start gap-3">
-              <span className="text-blue-400 font-bold">•</span>
-              <span>
-                Place{" "}
-                <code className="bg-gray-700 px-1 rounded text-sm">
-                  &lt;TelemetryProvider /&gt;
-                </code>{" "}
-                as high in your component tree as possible (e.g.,{" "}
-                <code className="bg-gray-700 px-1 rounded text-sm">
-                  _app.tsx
-                </code>
-                ,{" "}
-                <code className="bg-gray-700 px-1 rounded text-sm">
-                  layout.tsx
-                </code>
-                )
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-400 font-bold">•</span>
-              <span>
-                Do <strong>not</strong> manually call error or event APIs —
-                PulseGuard handles everything internally
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-400 font-bold">•</span>
-              <span>
-                Use your dashboard to view telemetry, group issues, and link to
-                tickets
-              </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* OpenTelemetry */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          🧰 Powered by OpenTelemetry
-        </h3>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <p className="text-gray-300">
-            PulseGuard uses OpenTelemetry under the hood with custom transports
-            and error enrichment.
-          </p>
-        </div>
-      </div>
-
-      {/* Privacy */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          🛡️ Privacy
-        </h3>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <p className="text-gray-300">
-            We don&apos;t collect PII unless you explicitly provide a{" "}
-            <code className="bg-gray-700 px-1 rounded text-sm">userId</code>.
-          </p>
-        </div>
-      </div>
-
-      {/* Next.js Example */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          Next.js Example
-        </h3>
-
-        <CodeBlock id="nextjs-example" language="tsx">{`// pages/_app.tsx
-import { TelemetryProvider } from "@pulseguard/sdk";
-import type { AppProps } from "next/app";
-
-export default function App({ Component, pageProps }: AppProps) {
-  return (
-    <TelemetryProvider
-      initialProjectId={process.env.NEXT_PUBLIC_PULSEGUARD_PROJECT_ID!}
-      issueTrackerUrl="https://github.com/myorg/myproject/issues"
-      initialUserId={pageProps.user?.id} // if available
-    >
-      <Component {...pageProps} />
-    </TelemetryProvider>
-  );
+            <CodeBlock id="error-payload" language="json">{`{
+    "message": "TypeError: undefined is not a function",
+    "stack": "...",
+    "user": {
+        "id": "123",
+        "email": "alice@acme.dev"
+    },
+    "traceId": "e40f8b7b46...",
+    "spanId": "0d4f1b...",
+    "timestamp": "2025-07-20T12:34:56.123Z"
 }`}</CodeBlock>
+          </div>
+        );
 
-        <div className="mb-4">
-          <h4 className="text-lg font-semibold text-white mb-2">
-            Environment Variables
-          </h4>
-          <CodeBlock id="env-example" language="bash">{`# .env.local
-NEXT_PUBLIC_PULSEGUARD_PROJECT_ID=your-project-id-from-dashboard`}</CodeBlock>
+      case "security":
+        return (
+          <div>
+            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Security
+            </h2>
+            <p className="text-sm text-slate-300 mb-2">
+              Privacy and security considerations
+            </p>
+            <div className="space-y-4">
+              {[
+                "Errors are sent via HTTPS",
+                "Sensitive fields (e.g., cookies, tokens) are not collected by default",
+                "User info is optional and customizable",
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-4 bg-green-900/20 rounded-lg border border-green-700/30"
+                >
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-slate-200">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="text-white">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex w-[15%] h-[70vh] fixed left-10">
+          <nav>
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`w-full text-sm text-left px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800/50 ${
+                  activeSection === item.id
+                    ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-l-4 border-purple-400 text-purple-300 font-medium"
+                    : "text-slate-300 hover:text-white"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="text-center pt-8 border-t border-gray-700">
-        <p className="text-gray-400">
-          📄 <strong>License:</strong> MIT © PulseGuard
-        </p>
+        {/* Main Content */}
+        <div className="w-[100%] ml-auto">
+          <div className="prose prose-invert max-w-none">{renderContent()}</div>
+        </div>
       </div>
     </div>
   );
