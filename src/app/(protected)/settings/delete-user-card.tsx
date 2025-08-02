@@ -13,6 +13,7 @@ import type { DeleteAccountDialogProps } from "@/types/settings";
 export const RenderDeleteAccountDialogComp = ({
   isOpen,
   onClose,
+  signedInWithGithub,
 }: DeleteAccountDialogProps) => {
   const [step, setStep] = useState<
     "confirm" | "email" | "deleting" | "complete" | "error"
@@ -195,7 +196,9 @@ export const RenderDeleteAccountDialogComp = ({
                             Confirm Account Deletion
                           </h3>
                           <p className="text-sm text-slate-400">
-                            Please confirm by typing your email address.
+                            {signedInWithGithub
+                              ? "We understand all things come to an end..."
+                              : "Please confirm by typing your email address."}
                           </p>
                         </div>
                       </div>
@@ -208,14 +211,21 @@ export const RenderDeleteAccountDialogComp = ({
                     </div>
                     <div className="flex-1 mb-6 space-y-4">
                       <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
-                        <p className="text-sm text-red-300 mb-2">
-                          Type your email address (
-                          <strong>{user?.email}</strong>) to confirm:
-                        </p>
+                        {signedInWithGithub ? (
+                          <p className="text-sm text-red-300 mb-2">
+                            Still, we hate to see you go
+                          </p>
+                        ) : (
+                          <p className="text-sm text-red-300 mb-2">
+                            Type your email address (
+                            <strong>{user?.email}</strong>) to confirm:
+                          </p>
+                        )}
                         <Input
                           value={confirmEmail}
                           onChange={(e) => setConfirmEmail(e.target.value)}
                           className="bg-slate-950 text-slate-300 border-red-700 focus:border-red-500 focus-visible:ring-0"
+                          disabled={signedInWithGithub}
                           placeholder={user?.email}
                           autoFocus
                         />

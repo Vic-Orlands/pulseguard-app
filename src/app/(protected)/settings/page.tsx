@@ -70,8 +70,10 @@ export default function UserSettingsNew() {
   const { user, setUser } = useAuth();
   const curentUser = user && normalizePostgresString(user.avatar);
   const curentUserDetails = user && normalizePostgresString(user.provider);
+  const isOAuthUser =
+    curentUserDetails === "google" || curentUserDetails === "github";
 
-  // State
+  // Form State
   const [userForm, setUserForm] = useState<UserFormType>({
     name: "",
     currentPassword: "",
@@ -375,7 +377,9 @@ export default function UserSettingsNew() {
             </label>
             <Input
               value={
-                curentUserDetails ? "GitHub has no email address" : user?.email
+                curentUserDetails === "github"
+                  ? "GitHub has no email address"
+                  : user?.email
               }
               disabled
               type="email"
@@ -393,7 +397,12 @@ export default function UserSettingsNew() {
               ["currentPassword", "newPassword", "confirmPassword"] as const
             ).map((field) => (
               <div key={field} className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+                <label
+                  className={clsx(
+                    "text-sm font-medium text-slate-300",
+                    isOAuthUser && "text-slate-500"
+                  )}
+                >
                   {field === "currentPassword"
                     ? "Current Password"
                     : field === "newPassword"
@@ -405,6 +414,7 @@ export default function UserSettingsNew() {
                     type={showPassword[field] ? "text" : "password"}
                     value={userForm[field]}
                     placeholder="********"
+                    disabled={isOAuthUser}
                     onChange={(e) => handleFormChange(field, e.target.value)}
                     className="bg-slate-900/50 border-slate-600 text-gray-400 focus:border-blue-400 pr-10"
                   />
@@ -989,6 +999,7 @@ export default function UserSettingsNew() {
 
         <RenderDeleteAccountDialogComp
           isOpen={deleteAccountDialog.open}
+          signedInWithGithub={curentUserDetails === "github"}
           onClose={() => setDeleteAccountDialog({ open: false, step: 1 })}
         />
       </motion.div>

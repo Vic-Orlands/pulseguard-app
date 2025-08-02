@@ -35,4 +35,5 @@ export type UserFormType = z.infer<typeof UserFormSchema>;
 export interface DeleteAccountDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  signedInWithGithub: boolean;
 }
