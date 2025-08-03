@@ -29,19 +29,20 @@ func getEnvOrDefault(key, fallback string) string {
 
 // InitSessionStore configures the session store used by Gothic (OAuth)
 func InitSessionStore() {
-	goth.UseProviders(
-		github.New(
-			os.Getenv("GITHUB_CLIENT_ID"),
-			os.Getenv("GITHUB_CLIENT_SECRET"),
-			"http://localhost:8081/api/auth/github/callback",
-		),
-		google.New(
-			os.Getenv("GOOGLE_CLIENT_ID"),
-			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8081/api/auth/google/callback",
-			"email", "profile",
-		),
+	githubProvider := github.New(
+		os.Getenv("GITHUB_CLIENT_ID"),
+		os.Getenv("GITHUB_CLIENT_SECRET"),
+		"http://localhost:8081/api/auth/github/callback",
 	)
+
+	googleProvider := google.New(
+		os.Getenv("GOOGLE_CLIENT_ID"),
+		os.Getenv("GOOGLE_CLIENT_SECRET"),
+		"http://localhost:8081/api/auth/google/callback",
+		"email", "profile",
+	)
+	googleProvider.SetPrompt("select_account")
+	goth.UseProviders(githubProvider, googleProvider)
 
 	hashKey := getEnvOrDefault("SESSION_HASH_KEY", defaultHashKey)
 	blockKey := getEnvOrDefault("SESSION_BLOCK_KEY", defaultBlockKey)
