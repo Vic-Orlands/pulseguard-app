@@ -237,9 +237,12 @@ const TracesTab = ({ project }: { project: Project }) => {
                     <TableCell className="text-gray-300">
                       {format(new Date(trace.startTime), "PP, h:mmaaa")}
                     </TableCell>
-                    <TableCell className="text-gray-300">
-                      {trace.name || "unnamed"}
+                    <TableCell className="w-[300px] p-2">
+                      <div className="truncate whitespace-nowrap overflow-hidden text-gray-300 w-full">
+                        {trace.name || "unnamed"}
+                      </div>
                     </TableCell>
+
                     <TableCell className="text-gray-300">
                       {trace.duration.toFixed(2)} ms
                     </TableCell>
