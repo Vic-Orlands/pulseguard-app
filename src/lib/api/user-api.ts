@@ -1,4 +1,5 @@
-import { SignupFormData, LoginFormData, UpdateUserData } from "@/types/user";
+import type { UpdateUserData } from "@/types/user";
+import type { LoginFormData, SignupFormData } from "@/types/form";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 

@@ -123,8 +123,8 @@ export type RecentError = {
 export interface DashboardData {
   alerts: Alert[];
   metrics: Metric[];
-  errors: RecentError[];
-  total_errors: number;
   error_rate: number;
   sessions: Session[];
+  total_errors: number;
+  errors: RecentError[];
 }

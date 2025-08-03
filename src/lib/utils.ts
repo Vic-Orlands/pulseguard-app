@@ -1,3 +1,4 @@
+import type { RecentError } from "@/types/dashboard";
 import type { PostgresNotNullString } from "@/types/user";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -57,4 +58,32 @@ export class HttpError extends Error {
     this.status = status;
     this.body = body;
   }
+}
+
+// calculate uptime
+export function getUptime(errors: RecentError[]): string {
+  const activeErrors = errors.filter(
+    (e) => e.status.toLowerCase() === "active"
+  );
+
+  if (activeErrors.length === 0) {
+    return "99.9%";
+  }
+
+  // Get the most recent 'lastSeen' among active errors
+  const lastSeen = activeErrors
+    .map((e) => new Date(e.lastSeen))
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeen.getTime();
+
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays > 0) return `${diffDays} day(s) ago`;
+  if (diffHours > 0) return `${diffHours} hour(s) ago`;
+  if (diffMins > 0) return `${diffMins} minute(s) ago`;
+  return "Just now";
 }

@@ -16,14 +16,15 @@ import {
   Zap,
   AlertTriangle,
 } from "lucide-react";
-import type { Project, DashboardData, NavItem } from "@/types/dashboard";
 import { fetchDashboardData } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../../shared/error-message";
 import ErrorPreview from "./error-preview";
 import AlertPreview from "./alert-preview";
 import { format } from "date-fns";
+import { getUptime } from "@/lib/utils";
 
 import type { Dispatch, SetStateAction } from "react";
+import type { Project, DashboardData, NavItem } from "@/types/dashboard";
 
 interface OverviewTabProps {
   project: Project;
@@ -83,8 +84,12 @@ export default function OverviewTab({
           <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
             <CardContent className="flex items-center h-full justify-between">
               <div>
-                <p className="text-blue-300 text-sm font-medium">Uptime</p>
-                <p className="text-2xl font-bold text-blue-400">98.7%</p>
+                <p className="text-blue-300 text-sm font-medium">
+                  Error Occurence
+                </p>
+                <p className="text-2xl font-bold text-blue-400">
+                  {getUptime(data.errors)}
+                </p>
               </div>
               <div className="p-2 bg-blue-500/20 rounded-lg">
                 <Activity className="w-5 h-5 text-blue-400" />
@@ -212,7 +217,9 @@ export default function OverviewTab({
               </div>
               <div className="flex items-center">
                 <Activity className="w-4 h-4 text-green-400 mr-1" />
-                <span className="text-gray-400">99.8% Uptime</span>
+                <span className="text-gray-400">
+                  Downtime - {getUptime(data.errors)}
+                </span>
               </div>
             </div>
           </div>
