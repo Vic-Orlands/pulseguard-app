@@ -19,14 +19,25 @@ func NewSessionRepository(db *sql.DB) *SessionRepository {
 
 func (r *SessionRepository) CreateSession(ctx context.Context, session *models.Session) error {
 	query := `
-        INSERT INTO sessions (session_id, project_id, user_id, start_time, error_count, event_count, pageview_count, created_at, oauth_data)
+        INSERT INTO sessions (
+			session_id, project_id, user_id, start_time, error_count, event_count, pageview_count, created_at
+		)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (session_id) DO NOTHING
-        ON DUPLICATE KEY UPDATE
-            oauth_data = VALUES(oauth_data),
+        ON CONFLICT (session_id) DO UPDATE
+        SET 
             updated_at = NOW()
     `
-	_, err := r.db.ExecContext(ctx, query, session.SessionID, session.ProjectID, session.UserID, session.StartTime, session.ErrorCount, session.EventCount, session.PageviewCount, session.CreatedAt, session.OAuthData)
+	_, err := r.db.ExecContext(ctx, query,
+		session.SessionID,
+		session.ProjectID,
+		session.UserID,
+		session.StartTime,
+		session.ErrorCount,
+		session.EventCount,
+		session.PageviewCount,
+		session.CreatedAt,
+	)
+
 	if err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
@@ -61,7 +72,7 @@ func (r *SessionRepository) IncrementErrorCount(ctx context.Context, sessionID s
 
 func (r *SessionRepository) GetSessions(ctx context.Context, projectID string, start, end time.Time) ([]*models.Session, error) {
 	query := `
-        SELECT session_id, project_id, user_id, start_time, end_time, duration_ms, error_count, event_count, pageview_count, created_at, oauth_data
+        SELECT session_id, project_id, user_id, start_time, end_time, duration_ms, error_count, event_count, pageview_count, created_at, updated_at
         FROM sessions
         WHERE project_id = $1 AND start_time >= $2 AND start_time <= $3
         ORDER BY start_time DESC
@@ -77,7 +88,7 @@ func (r *SessionRepository) GetSessions(ctx context.Context, projectID string, s
 		var s models.Session
 		var endTime sql.NullTime
 		var durationMs sql.NullInt64
-		if err := rows.Scan(&s.SessionID, &s.ProjectID, &s.UserID, &s.StartTime, &endTime, &durationMs, &s.ErrorCount, &s.EventCount, &s.PageviewCount, &s.CreatedAt, &s.OAuthData); err != nil {
+		if err := rows.Scan(&s.SessionID, &s.ProjectID, &s.UserID, &s.StartTime, &endTime, &durationMs, &s.ErrorCount, &s.EventCount, &s.PageviewCount, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("scan session: %w", err)
 		}
 		if endTime.Valid {

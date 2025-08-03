@@ -194,3 +194,10 @@ Also have a look at the [FAQ](FAQ.md).
 ---
 
 Looking for alternatives? [https://awesome-go.com/#database](https://awesome-go.com/#database).
+
+
+## Postgres
+<!-- download a backup -->
+pg_dump -U postgres -h localhost -p 5432 -d pulseguard -f updated_backup.sql
+
+<!-- enter/access your docker postgres db -->

@@ -13,5 +13,5 @@ type Session struct {
 	EventCount    int        `json:"event_count"`
 	PageviewCount int        `json:"pageview_count"`
 	CreatedAt     time.Time  `json:"created_at"`
-	OAuthData     string     `json:"oauth_data"`
+	UpdatedAt     time.Time  `json:"updated_at"`
 }

@@ -42,6 +42,8 @@ import {
   Calendar,
   Activity,
   Bug,
+  CalendarPlus,
+  Bookmark,
 } from "lucide-react";
 import { format, subHours, subDays } from "date-fns";
 import {
@@ -329,6 +331,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 <TableHead>User ID</TableHead>
                 <TableHead>Start Time</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Page View</TableHead>
                 <TableHead>Errors</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -365,7 +368,10 @@ const SessionsTab = ({ project }: { project: Project }) => {
                     <TableCell className="text-gray-300">
                       {session.duration_ms
                         ? `${(session.duration_ms / 1000).toFixed(2)} s`
-                        : "Active"}
+                        : "Active Session"}
+                    </TableCell>
+                    <TableCell className="text-gray-300">
+                      {session.pageview_count}
                     </TableCell>
                     <TableCell className="text-gray-300">
                       {session.error_count}
@@ -417,37 +423,67 @@ const SessionsTab = ({ project }: { project: Project }) => {
                             </div>
 
                             {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                              {/* Duration */}
-                              <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Clock className="w-6 h-6 text-emerald-400" />
-                                  <span className="text-xs text-gray-400 uppercase tracking-wide">
-                                    Duration
-                                  </span>
-                                </div>
-                                <div className="text-lg font-semibold text-white">
-                                  {session.duration_ms
-                                    ? `${(session.duration_ms / 1000).toFixed(
-                                        1
-                                      )}s`
-                                    : "∞"}
+                            <section className="grid grid-cols-2 gap-4 mb-6">
+                              <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                <Clock className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs text-gray-400 mb-1">
+                                    Session Duration
+                                    <div className="text-lg font-semibold text-gray-200">
+                                      {session.duration_ms
+                                        ? `${(
+                                            session.duration_ms / 1000
+                                          ).toFixed(1)}s`
+                                        : "∞"}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
 
-                              {/* Errors */}
-                              <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Bug className="w-6 h-6 text-red-400" />
-                                  <span className="text-xs text-gray-400 uppercase tracking-wide">
+                              <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                <Bug className="w-6 h-6 text-red-400 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs text-gray-400 mb-1">
                                     Errors
-                                  </span>
-                                </div>
-                                <div className="text-lg font-semibold text-white">
-                                  {session.error_count}
+                                    <div className="text-lg font-semibold text-gray-200">
+                                      {session.error_count}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            </section>
+
+                            <section className="grid grid-cols-2 gap-4 mb-6">
+                              <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                <CalendarPlus className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs text-gray-400 mb-1">
+                                    Event count
+                                    <div className="text-sm text-gray-200">
+                                      {format(
+                                        new Date(session.event_count),
+                                        "PPpp"
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                <Bookmark className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs text-gray-400 mb-1">
+                                    PageView count
+                                    <div className="text-sm text-gray-200">
+                                      {format(
+                                        new Date(session.pageview_count),
+                                        "PPpp"
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </section>
 
                             {/* User & Timing Info */}
                             <div className="space-y-4">
@@ -463,20 +499,37 @@ const SessionsTab = ({ project }: { project: Project }) => {
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
-                                <Calendar className="w-6 h-6 text-cyan-400 flex-shrink-0" />
-                                <div className="min-w-0 flex-1">
-                                  <div className="text-xs text-gray-400 mb-1">
-                                    Started
-                                  </div>
-                                  <div className="text-sm text-gray-200">
-                                    {format(
-                                      new Date(session.start_time),
-                                      "PPpp"
-                                    )}
+                              <section className="grid grid-cols-2 gap-4 mb-6">
+                                <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                  <Calendar className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-xs text-gray-400 mb-1">
+                                      Started
+                                    </div>
+                                    <div className="text-sm text-gray-200">
+                                      {format(
+                                        new Date(session.start_time),
+                                        "PPpp"
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+
+                                <div className="flex items-center gap-3 p-3 bg-slate-800/20 rounded-lg border border-slate-700/20">
+                                  <Calendar className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-xs text-gray-400 mb-1">
+                                      Updated at
+                                      <div className="text-sm text-gray-200">
+                                        {format(
+                                          new Date(session.updated_at),
+                                          "PPpp"
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </section>
                             </div>
 
                             {/* Footer */}

@@ -94,7 +94,10 @@ export interface Session {
   end_time?: string;
   duration_ms?: number;
   error_count: number;
+  event_count: number;
   created_at: string;
+  updated_at: string;
+  pageview_count: string;
 }
 
 export type Alert = {

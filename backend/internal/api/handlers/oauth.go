@@ -98,7 +98,6 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 		EventCount:    0,
 		PageviewCount: 0,
 		CreatedAt:     time.Now(),
-		OAuthData:     "",
 	}
 	if session.ProjectID != "" {
 		if err := h.sessionService.CreateSession(ctx, session); err != nil {
