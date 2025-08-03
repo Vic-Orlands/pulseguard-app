@@ -1,31 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { PulseGuardLogo } from "@/components/Icons";
 import { motion, AnimatePresence } from "motion/react";
 import AnimatedBackground from "@/components/background-color";
 
-import { useHydrated } from "./shared";
+import { useHydrated } from "./user-hydrated";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
 import ForgotPassword from "./forgot-password";
 
-import type { FormMode } from "@/types/form";
-
 // Logo component
-const Logo = () => (
+export const Logo = () => (
   <div className="flex items-center justify-center rounded-full backdrop-blur-sm">
     <PulseGuardLogo />
   </div>
 );
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<FormMode>("login");
-  const hydrated = useHydrated();
-
-  const toggleMode = (mode: FormMode) => {
-    setMode(mode);
-  };
+  const { mode, hydrated, toggleMode } = useHydrated();
 
   if (!hydrated) return null;
 

@@ -52,10 +52,10 @@ export const loginUser = async (data: LoginFormData) => {
 // forgot password
 export const sendResetPasswordEmail = async (email: string) => {
   try {
-    const response = await fetch(`${url}/api/users/forgot-password`, {
+    const response = await fetch(`${url}/api/forgot-password`, {
       method: "POST",
       ...headerConfig,
-      body: email,
+      body: JSON.stringify({ email }),
     });
 
     if (!response.ok) {
@@ -66,6 +66,54 @@ export const sendResetPasswordEmail = async (email: string) => {
     return response.json();
   } catch (error) {
     throw error;
+  }
+};
+
+// reset password
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await fetch(`${url}/api/reset-password`, {
+      method: "POST",
+      ...headerConfig,
+      body: JSON.stringify({
+        token,
+        password: newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return error;
+    }
+
+    return response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Optional: Add token validation function
+export const validateResetToken = async (token: string) => {
+  try {
+    const response = await fetch(`${url}/api/validate-reset-token`, {
+      method: "POST",
+      ...headerConfig,
+      body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { valid: false, error: error.message };
+    }
+
+    const result = await response.json();
+    return { valid: true, ...result };
+  } catch (error) {
+    return {
+      valid: false,
+      error:
+        error instanceof Error ? error.message : "Failed to validate token",
+    };
   }
 };
 

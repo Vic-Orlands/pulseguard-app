@@ -421,7 +421,7 @@ func (h *UserHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	resetURL := os.Getenv("FRONTEND_URL") + "/reset-password?token=" + resetToken
 
 	// Send email (assumes you have a mailer utility)
-	if err := util.SendResetEmail(req.Email, resetURL); err != nil {
+	if err := util.SendPasswordResetEmail(req.Email, resetURL); err != nil {
 		h.logger.Error(ctx, "Failed to send reset email", err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to send reset email")
 		return

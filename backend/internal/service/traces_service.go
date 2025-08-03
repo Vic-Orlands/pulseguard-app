@@ -20,7 +20,7 @@ func (s *TracesService) ListTracesByProject(ctx context.Context, projectID strin
 	return s.TempoClient.GetTraces(ctx, projectID, start, end)
 }
 
-// get trace-to-logs correlation\\
+// get trace-to-logs correlation
 func (s *TracesService) GetTrace(ctx context.Context, traceID string) (*models.Trace, error) {
 	return s.TempoClient.GetTrace(ctx, traceID)
 }

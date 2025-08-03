@@ -64,6 +64,7 @@ func NewRouter(
 	r.Post("/api/users/login", userHandler.Login)
 	r.Post("/api/users/logout", userHandler.Logout)
 	r.Post("/api/forgot-password", userHandler.ForgotPassword)
+	r.Post("/api/reset-password", userHandler.ResetPassword)
 
 	// social sign-in
 	r.Get("/api/auth/{provider}", oauthHandler.BeginAuth)

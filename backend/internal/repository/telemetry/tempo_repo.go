@@ -27,10 +27,10 @@ func NewTempoRepository(baseURL string) *TempoClient {
 // SearchTraces fetches all traces within a time range for a project
 func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, end time.Time) ([]*models.TraceSummary, error) {
 	url := fmt.Sprintf("%s/api/search", c.baseURL)
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"start": start.UnixNano(),
 		"end":   end.UnixNano(),
-		"query": fmt.Sprintf(`service.name="pulseguard" && project_id="%s"`, projectID),
+		"query": fmt.Sprintf(`project_id = "%s" and service.name = "pulseguard"`, projectID),
 	}
 
 	bodyBytes, err := json.Marshal(payload)

@@ -1,6 +1,5 @@
 auth_enabled: false
 multitenancy_enabled: false
-target: all
 
 server:
   http_listen_port: 3200
@@ -51,6 +50,7 @@ metrics_generator:
         - service.name
         - span.name
         - status.code
+        - project_id
     service_graphs:
       max_items: 10000
 

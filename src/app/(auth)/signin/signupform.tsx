@@ -322,7 +322,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         : selectedAvatar.replace("svg", "png")
                     }
                     alt="Current avatar"
-                    className="rounded-full object-contain bg-gray-800"
+                    className="rounded-full h-12 w-12 object-contain bg-gray-800"
                     width={48}
                     height={48}
                     quality={80}

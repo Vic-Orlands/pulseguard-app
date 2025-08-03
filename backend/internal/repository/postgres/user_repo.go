@@ -42,6 +42,7 @@ func (repo *UserRepository) Create(ctx context.Context, user *models.User) error
 	query := `
         INSERT INTO users (name, email, image, password)
         VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at, updated_at
     `
 
 	return repo.db.QueryRowContext(ctx, query,

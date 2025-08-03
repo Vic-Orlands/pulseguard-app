@@ -34,7 +34,7 @@ type prometheusResponse struct {
 
 type prometheusResult struct {
 	Metric map[string]string `json:"metric"`
-	Value  []interface{}     `json:"value"`
+	Value  []any     `json:"value"`
 }
 
 func (r *PrometheusRepository) QueryMetrics(ctx context.Context, projectID string) ([]*models.Metric, error) {

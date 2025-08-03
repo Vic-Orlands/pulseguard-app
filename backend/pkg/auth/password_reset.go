@@ -1,4 +1,4 @@
-package util
+package auth
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 		return err
 	}
 
-	subject := "🔐 Reset Your Pulseguard Password"
+	subject := "🔐 Reset Your Password"
 	html := fmt.Sprintf(`<p>Click below to reset your password:</p><p><a href="%s">%s</a></p>`, resetLink, resetLink)
 
 	emailID, err := m.Send([]string{to}, subject, html)

@@ -1,16 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { EyeOff, Eye } from "lucide-react";
 import type { FormFieldProps, InputWithIconProps } from "@/types/form";
-
-export function useHydrated() {
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  return hydrated;
-}
 
 // Form field component
 export const FormField = ({ label, error, children }: FormFieldProps) => (
