@@ -1,0 +1,137 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "http://*"
+            - "https://*"
+
+  filelog:
+    include: ["/app/logs/*.log"]
+    start_at: beginning
+    include_file_name: false
+    operators:
+      - type: json_parser
+        parse_from: body
+        timestamp:
+          parse_from: attributes.time
+          layout: "%Y-%m-%dT%H:%M:%S.%fZ"
+          timezone: UTC
+        severity:
+          parse_from: attributes.level
+          mapping:
+            10: trace
+            20: debug
+            30: info
+            40: warn
+            50: error
+            60: fatal
+        trace_id:
+          parse_from: attributes.traceId
+        span_id:
+          parse_from: attributes.spanId
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  resourcedetection:
+    detectors: [env, system]
+    timeout: 5s
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1500
+    spike_limit_mib: 512
+
+  attributes:
+    actions:
+      - action: insert
+        key: project_id
+        from_attribute: projectId
+      - action: insert
+        key: trace_id
+        from_attribute: traceId
+      - action: insert
+        key: span_id
+        from_attribute: spanId
+      - action: insert
+        key: service_name
+        value: "pulseguard"
+
+      - action: delete
+        key: traceId
+      - action: delete
+        key: spanId
+      - action: delete
+        key: projectId
+
+  resource/add_service:
+    attributes:
+      - action: insert
+        key: service.name
+        value: pulseguard
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: "pulseguard"
+    const_labels:
+      service: "pulseguard"
+
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 100
+    retry_on_failure:
+      enabled: true
+
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 5m
+
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [otlp/tempo, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [prometheus, debug]
+
+    logs:
+      receivers: [otlp, filelog]
+      processors:
+        [
+          memory_limiter,
+          resource/add_service,
+          attributes,
+          batch,
+          resourcedetection,
+        ]
+      exporters: [otlphttp/loki, debug]
+
+  telemetry:
+    logs:
+      level: "info"

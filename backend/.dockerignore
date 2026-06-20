@@ -1,0 +1,28 @@
+# Ignore build output directories (if any)
+bin
+build
+dist
+
+# Ignore dependencies cached outside the vendor folder
+vendor
+
+# Ignore IDE/editor configs
+.vscode
+.idea
+*.iml
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore OS/system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and temp files
+*.log
+*.tmp
+
+# Ignore environment files (often contain secrets)
+.env
+.env.local

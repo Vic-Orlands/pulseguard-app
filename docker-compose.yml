@@ -1,0 +1,162 @@
+services:
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.131.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./logs:/app/logs
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4319:4317" # OTLP gRPC
+      - "4315:4318" # OTLP HTTP
+      - "8888:8888" # Collector metrics
+      - "8889:8889" # Prometheus metrics
+      - "1313:1313" # Health check
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Loki for log aggregation
+  loki:
+    image: grafana/loki:3.5.1
+    ports:
+      - "3100:3100"
+      - "9096:9096"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/tmp/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+    restart: unless-stopped
+    # user: "1000:1000" # Run as non-root user
+
+  # Tempo for distributed tracing
+  tempo:
+    image: grafana/tempo:2.7.2
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/var/tempo/blocks
+    ports:
+      - "3200:3200" # tempo
+      - "9095:9095" # tempo gRPC (for frontend communication)
+      - "4317:4317" # otlp grpc
+      - "4318:4318" # otlp HTTP
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3200/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus for metrics storage
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:12.0.0
+    ports:
+      - "3101:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    # user: "1000:1000" # Run as non-root user
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15.13-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulseguard_dev_password}
+      POSTGRES_DB: pulseguard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pulseguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Go backend service
+  go-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:-pulseguard_dev_password}@postgres:5432/pulseguard?sslmode=disable
+      PORT: "8081"
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-production}
+      TEMPO_URL: http://tempo:3200
+      OTLP_ENDPOINT: otel-collector:4318
+      LOKI_URL: http://loki:3100
+      PROMETHEUS_URL: http://prometheus:9090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
+    networks:
+      - monitoring
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - monitoring
+  #   depends_on:
+  #     - postgres
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  tempo_data:
+  loki_data:
+  postgres_data: # remove this for production

@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+coverage
+logs
+.env
+.env.*
+*.log
+Dockerfile.frontend
+backend
+docs
+dist_linux
+package-lock.json
