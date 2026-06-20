@@ -135,7 +135,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
         setActiveTab={setActiveTab}
       />
 
-      <main className="px-8 py-6 pb-24 max-w-7xl mx-auto">
+      <main className="px-10 py-6 pb-24">
         {/* header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>

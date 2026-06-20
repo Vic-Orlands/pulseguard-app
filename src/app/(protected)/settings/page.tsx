@@ -853,7 +853,7 @@ export default function UserSettingsNew() {
 
   return (
     <div className="min-h-screen bg-background text-foreground py-10">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-full lg:max-w-10/12 mx-auto">
         {error && <CustomErrorMessage error={error} />}
       </div>
 
@@ -861,7 +861,7 @@ export default function UserSettingsNew() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-5xl mx-auto px-6"
+        className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
       >
         <div
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"

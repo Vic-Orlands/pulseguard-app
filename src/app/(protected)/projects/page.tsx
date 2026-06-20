@@ -482,7 +482,7 @@ export default function ProjectSelectionPage() {
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[480px] bg-transparent border-none text-foreground p-0">
+              <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-foreground p-0">
                 <AnimatePresence>
                   {showForm && (
                     <>
@@ -501,7 +501,7 @@ export default function ProjectSelectionPage() {
                             scale: 1,
                             opacity: 1,
                             y: 0,
-                            width: 440,
+                            width: 480,
                             height: "fit-content",
                           }}
                           exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -754,7 +754,7 @@ export default function ProjectSelectionPage() {
                         New Project
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[480px] bg-transparent border-none text-foreground p-0">
+                    <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-foreground p-0">
                       <AnimatePresence>
                         {showForm && (
                           <>
@@ -773,7 +773,7 @@ export default function ProjectSelectionPage() {
                                   scale: 1,
                                   opacity: 1,
                                   y: 0,
-                                  width: 440,
+                                  width: 480,
                                   height: "fit-content",
                                 }}
                                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
