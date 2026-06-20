@@ -41,6 +41,8 @@ import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSeverityColor } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
+import React, { useEffect } from "react";
 
 import type { Error, ErrorMetaRowProps, ErrorsTabProps } from "@/types/error";
 
@@ -52,18 +54,18 @@ function ComponentStackSheet({ componentStack }: { componentStack: string }) {
         <Button
           variant="outline"
           size="sm"
-          className="self-end px-3 py-2 text-xs bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+          className="self-end text-xs border-border text-foreground hover:bg-muted shadow-none cursor-pointer"
         >
           <HugeiconsIcon icon={CodeIcon} className="h-3 w-3 mr-2" />
           View Component Stack
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:w-[70%] bg-slate-900 border-l border-slate-700 overflow-y-auto">
-        <SheetHeader className="px-6">
-          <SheetTitle className="text-white">Component Stack</SheetTitle>
+      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto">
+        <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+          <SheetTitle className="text-sm font-semibold text-foreground">Component Stack</SheetTitle>
         </SheetHeader>
-        <div className="p-6 pt-0">
-          <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        <div className="pt-0">
+          <pre className="text-xs font-mono text-foreground whitespace-pre-wrap bg-muted p-3 rounded-lg border border-border">
             {componentStack}
           </pre>
         </div>
@@ -113,20 +115,20 @@ export function ErrorDetailsSheet({
     isLoading = false,
   }: ErrorMetaRowProps) {
     return (
-      <div className="flex justify-between items-center">
-        <span className="text-slate-400">{label}:</span>
+      <div className="flex justify-between items-center text-xs">
+        <span className="text-muted-foreground">{label}:</span>
         {isLoading ? (
-          <Skeleton className="h-6 w-24 bg-slate-700/50" />
+          <Skeleton className="h-5 w-24 bg-muted" />
         ) : !badge ? (
           <span
             className={`${
-              monospace ? "font-mono" : ""
-            } text-white text-sm text-right`}
+              monospace ? "font-mono text-[10px]" : ""
+            } text-foreground text-right`}
           >
             {value || "—"}
           </span>
         ) : (
-          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] shadow-none py-0.5">
             {value || "—"}
           </Badge>
         )}
@@ -136,119 +138,109 @@ export function ErrorDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={isStatusLoading ? () => {} : onClose}>
-      <SheetContent className="w-[60%] bg-slate-900 border-l border-slate-700 shadow-2xl overflow-y-auto">
+      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground shadow-2xl overflow-y-auto">
         {selectedError ? (
-          <div className="p-6 space-y-6 pt-0">
+          <div className="space-y-6 text-foreground">
             {/* Header */}
-            <SheetHeader className="border-b border-slate-700 pb-4">
+            <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
               {isStatusLoading ? (
-                <Skeleton className="h-8 w-48 bg-slate-700/50" />
+                <Skeleton className="h-6 w-48 bg-muted" />
               ) : (
-                <SheetTitle className="text-2xl font-bold text-white">
-                  {selectedError.id}
+                <SheetTitle className="text-sm font-semibold text-foreground">
+                  Error Details & Analysis
                 </SheetTitle>
               )}
-              <p className="text-slate-400 mt-1">Error Details & Analysis</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Error ID: {selectedError.id}</p>
             </SheetHeader>
 
             {/* Status and Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardContent className="p-4 flex items-center gap-3">
                   {isStatusLoading ? (
-                    <Skeleton className="h-12 w-full bg-slate-700/50" />
+                    <Skeleton className="h-8 w-full bg-muted" />
                   ) : (
-                    <div className="flex items-center gap-3">
+                    <>
                       <div
                         className={`p-2 ${
                           selectedError.status === "ACTIVE"
-                            ? "bg-red-500/20"
-                            : "bg-green-500/20"
-                        } rounded-lg`}
+                            ? "bg-red-500/10 border border-red-500/20 text-red-500"
+                            : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-500"
+                        } rounded`}
                       >
                         {selectedError.status === "ACTIVE" ? (
-                          <HugeiconsIcon icon={AlertCircleIcon} className="h-5 w-5 text-red-400" />
+                          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
                         ) : (
-                          <HugeiconsIcon icon={Tick01Icon} className="h-5 w-5 text-green-400" />
+                          <HugeiconsIcon icon={Tick01Icon} className="h-4 w-4" />
                         )}
                       </div>
                       <div>
-                        <p className="text-slate-400 text-sm">Status</p>
-                        <p className="text-white font-semibold capitalize">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Status</p>
+                        <p className="text-xs font-bold text-foreground capitalize mt-0.5">
                           {selectedError.status}
                         </p>
                       </div>
-                    </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <HugeiconsIcon icon={Bug01Icon} className="h-5 w-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-slate-400 text-sm">Occurrences</p>
-                      <p className="text-white font-semibold">
-                        {selectedError.count} occurrence
-                        {selectedError.count !== 1 && "s"}
-                      </p>
-                    </div>
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20 text-blue-500">
+                    <HugeiconsIcon icon={Bug01Icon} className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Occurrences</p>
+                    <p className="text-xs font-bold text-foreground mt-0.5">
+                      {selectedError.count} occurrence
+                      {selectedError.count !== 1 && "s"}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/20 rounded-lg">
-                      <HugeiconsIcon icon={Clock01Icon} className="h-5 w-5 text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-slate-400 text-sm">Last Seen</p>
-                      <p className="text-white font-semibold text-xs">
-                        {format(
-                          new Date(selectedError.lastSeen),
-                          "MMM d, yyyy, ha"
-                        )}
-                      </p>
-                    </div>
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20 text-amber-500">
+                    <HugeiconsIcon icon={Clock01Icon} className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Last Seen</p>
+                    <p className="text-xs font-bold text-foreground mt-0.5">
+                      {format(new Date(selectedError.lastSeen), "MMM d, yyyy, ha")}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Error Message */}
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <HugeiconsIcon icon={Bug01Icon} className="h-5 w-5 text-red-400" />
-                    Error Message
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-400 hover:text-white"
-                    onClick={() => {
-                      navigator.clipboard.writeText(selectedError.message);
-                      toast.success("message copied successfully!");
-                    }}
-                    disabled={isStatusLoading}
-                  >
-                    <HugeiconsIcon icon={Copy01Icon} className="h-4 w-4 mr-1" />
-                    Copy
-                  </Button>
-                </div>
+            <Card className="bg-card border border-border shadow-none rounded-lg">
+              <CardHeader className="py-3 px-4 border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <HugeiconsIcon icon={Bug01Icon} className="h-4 w-4 text-red-500" />
+                  Error Message
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedError.message);
+                    toast.success("message copied successfully!");
+                  }}
+                  disabled={isStatusLoading}
+                >
+                  <HugeiconsIcon icon={Copy01Icon} className="h-3.5 w-3.5" />
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 {isStatusLoading ? (
-                  <Skeleton className="h-16 w-full bg-slate-700/50 rounded-lg" />
+                  <Skeleton className="h-16 w-full bg-muted rounded-lg" />
                 ) : (
-                  <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-700">
-                    <p className="text-red-300 font-mono text-sm leading-relaxed">
+                  <div className="bg-muted rounded-lg p-4 border border-border">
+                    <p className="text-red-600 dark:text-red-400 font-mono text-xs leading-relaxed break-all">
                       {selectedError.message}
                     </p>
                   </div>
@@ -257,34 +249,31 @@ export function ErrorDetailsSheet({
             </Card>
 
             {/* Stack Trace */}
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <HugeiconsIcon icon={CodeIcon} className="h-5 w-5 text-purple-400" />
-                    Stack Trace
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-400 hover:text-white"
-                    onClick={() => {
-                      navigator.clipboard.writeText(selectedError.stackTrace);
-                      toast.success("stackTrace copied successfully!");
-                    }}
-                    disabled={isStatusLoading}
-                  >
-                    <HugeiconsIcon icon={Copy01Icon} className="h-4 w-4 mr-1" />
-                    Copy
-                  </Button>
-                </div>
+            <Card className="bg-card border border-border shadow-none rounded-lg">
+              <CardHeader className="py-3 px-4 border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <HugeiconsIcon icon={CodeIcon} className="h-4 w-4 text-primary" />
+                  Stack Trace
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedError.stackTrace);
+                    toast.success("stackTrace copied successfully!");
+                  }}
+                  disabled={isStatusLoading}
+                >
+                  <HugeiconsIcon icon={Copy01Icon} className="h-3.5 w-3.5" />
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 {isStatusLoading ? (
-                  <Skeleton className="h-32 w-full bg-slate-700/50 rounded-lg" />
+                  <Skeleton className="h-32 w-full bg-muted rounded-lg" />
                 ) : (
-                  <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-700 overflow-x-auto">
-                    <pre className="text-purple-300 font-mono text-xs leading-relaxed whitespace-pre-wrap">
+                  <div className="bg-muted rounded-lg p-4 border border-border overflow-x-auto">
+                    <pre className="text-foreground font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
                       {selectedError.stackTrace}
                     </pre>
                   </div>
@@ -293,15 +282,15 @@ export function ErrorDetailsSheet({
             </Card>
 
             {/* Environment Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <HugeiconsIcon icon={GlobeIcon} className="h-5 w-5 text-blue-400" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardHeader className="py-3 px-4 border-b border-border/50">
+                  <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <HugeiconsIcon icon={GlobeIcon} className="h-4 w-4 text-primary" />
                     Environment
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-4 space-y-3">
                   <ErrorMetaRow
                     label="Environment"
                     value={selectedError.environment}
@@ -321,14 +310,14 @@ export function ErrorDetailsSheet({
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <HugeiconsIcon icon={UserGroupIcon} className="h-5 w-5 text-green-400" />
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardHeader className="py-3 px-4 border-b border-border/50">
+                  <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <HugeiconsIcon icon={UserGroupIcon} className="h-4 w-4 text-primary" />
                     Session Info
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-4 space-y-3">
                   <ErrorMetaRow
                     label="User ID"
                     value={selectedError.userId}
@@ -357,19 +346,19 @@ export function ErrorDetailsSheet({
             </div>
 
             {/* URL */}
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <HugeiconsIcon icon={LinkSquare01Icon} className="h-5 w-5 text-yellow-400" />
+            <Card className="bg-card border border-border shadow-none rounded-lg">
+              <CardHeader className="py-3 px-4 border-b border-border/50">
+                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4 text-primary" />
                   URL
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 {isStatusLoading ? (
-                  <Skeleton className="h-12 w-full bg-slate-700/50 rounded-lg" />
+                  <Skeleton className="h-12 w-full bg-muted rounded-lg" />
                 ) : (
-                  <div className="bg-slate-900/80 rounded-lg p-3 border border-slate-700">
-                    <p className="text-yellow-300 font-mono text-sm break-all">
+                  <div className="bg-muted rounded-lg p-3 border border-border">
+                    <p className="text-foreground font-mono text-xs break-all">
                       {selectedError.url}
                     </p>
                   </div>
@@ -379,20 +368,20 @@ export function ErrorDetailsSheet({
 
             {/* Tags */}
             {selectedError.tags.length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <HugeiconsIcon icon={Tag01Icon} className="h-5 w-5 text-orange-400" />
+              <Card className="bg-card border border-border shadow-none rounded-lg">
+                <CardHeader className="py-3 px-4 border-b border-border/50">
+                  <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <HugeiconsIcon icon={Tag01Icon} className="h-4 w-4 text-primary" />
                     Tags
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4">
                   {isStatusLoading ? (
                     <div className="flex flex-wrap gap-2">
                       {[...Array(3)].map((_, i) => (
                         <Skeleton
                           key={i}
-                          className="h-6 w-20 bg-slate-700/50"
+                          className="h-5 w-20 bg-muted"
                         />
                       ))}
                     </div>
@@ -401,7 +390,8 @@ export function ErrorDetailsSheet({
                       {selectedError.tags.map((tag) => (
                         <Badge
                           key={tag.id}
-                          className={getSeverityColor(tag.value)}
+                          variant="outline"
+                          className="bg-muted text-muted-foreground border-border text-[10px] shadow-none py-0.5"
                         >
                           {tag.key}: {tag.value}
                         </Badge>
@@ -413,35 +403,35 @@ export function ErrorDetailsSheet({
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-slate-700">
+            <div className="flex gap-3 pt-4 border-t border-border/50">
               <Button
-                className="bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 shadow-none rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleStatusChange("ACTIVE")}
                 disabled={selectedError.status === "ACTIVE" || isStatusLoading}
               >
                 {isStatusLoading && selectedError.status !== "ACTIVE" ? (
-                  <Skeleton className="h-4 w-20 bg-slate-700/50" />
+                  <Skeleton className="h-4 w-20 bg-muted" />
                 ) : (
                   "Mark as Active"
                 )}
               </Button>
               <Button
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleStatusChange("RESOLVED")}
                 disabled={
                   selectedError.status === "RESOLVED" || isStatusLoading
                 }
               >
                 {isStatusLoading && selectedError.status !== "RESOLVED" ? (
-                  <Skeleton className="h-4 w-20 bg-slate-700/50" />
+                  <Skeleton className="h-4 w-20 bg-muted" />
                 ) : (
                   "Ignore Error"
                 )}
               </Button>
               <Button
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-800"
+                className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none rounded-md cursor-pointer"
                 disabled={isStatusLoading}
               >
                 Create Issue
@@ -449,24 +439,24 @@ export function ErrorDetailsSheet({
             </div>
           </div>
         ) : (
-          <div className="p-6 space-y-6">
-            <Skeleton className="h-8 w-48 bg-slate-700/50" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-6">
+            <Skeleton className="h-6 w-48 bg-muted" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full bg-slate-700/50" />
+                <Skeleton key={i} className="h-12 w-full bg-muted" />
               ))}
             </div>
-            <Skeleton className="h-16 w-full bg-slate-700/50 rounded-lg" />
-            <Skeleton className="h-32 w-full bg-slate-700/50 rounded-lg" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Skeleton className="h-24 w-full bg-slate-700/50" />
-              <Skeleton className="h-24 w-full bg-slate-700/50" />
+            <Skeleton className="h-16 w-full bg-muted rounded-lg" />
+            <Skeleton className="h-32 w-full bg-muted rounded-lg" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Skeleton className="h-24 w-full bg-muted" />
+              <Skeleton className="h-24 w-full bg-muted" />
             </div>
-            <Skeleton className="h-12 w-full bg-slate-700/50 rounded-lg" />
+            <Skeleton className="h-12 w-full bg-muted rounded-lg" />
             <div className="flex gap-3 pt-4">
-              <Skeleton className="h-9 w-24 bg-slate-700/50" />
-              <Skeleton className="h-9 w-24 bg-slate-700/50" />
-              <Skeleton className="h-9 w-24 bg-slate-700/50" />
+              <Skeleton className="h-8 w-24 bg-muted" />
+              <Skeleton className="h-8 w-24 bg-muted" />
+              <Skeleton className="h-8 w-24 bg-muted" />
             </div>
           </div>
         )}
@@ -494,6 +484,13 @@ export default function ErrorsTab({
     page: 1 as number,
     limit: 20 as number,
   });
+
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const isDark = mounted && resolvedTheme === "dark";
 
   useMemo(() => {
     setLocalErrors(errors);
@@ -583,15 +580,15 @@ export default function ErrorsTab({
 
   return (
     <div>
-      <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+      <Card className="bg-card border border-border shadow-none rounded-lg">
         <CardHeader>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               <div className="relative">
-                <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Search errors..."
-                  className="pl-10 w-full lg:w-64 bg-slate-800/50 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-purple-400/50 focus:ring-purple-400/20"
+                  className="pl-9 w-full lg:w-64 bg-card border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground shadow-none"
                   value={filters.inputSearch}
                   onChange={(e) =>
                     handleFilterChange("inputSearch", e.target.value)
@@ -605,13 +602,13 @@ export default function ErrorsTab({
                   handleFilterChange("status", value === "all" ? "" : value)
                 }
               >
-                <SelectTrigger className="w-32 bg-slate-800/50 border-slate-600/50 text-white">
+                <SelectTrigger className="w-32 bg-card border-border text-foreground text-xs h-8 shadow-none">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="RESOLVED">Resolved</SelectItem>
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="all" className="text-xs">All Status</SelectItem>
+                  <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
+                  <SelectItem value="RESOLVED" className="text-xs">Resolved</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -624,14 +621,14 @@ export default function ErrorsTab({
                   )
                 }
               >
-                <SelectTrigger className="w-36 bg-slate-800/50 border-slate-600/50 text-white">
+                <SelectTrigger className="w-36 bg-card border-border text-foreground text-xs h-8 shadow-none">
                   <SelectValue placeholder="Environment" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all">All Envs</SelectItem>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="all" className="text-xs">All Envs</SelectItem>
+                  <SelectItem value="production" className="text-xs">Production</SelectItem>
+                  <SelectItem value="staging" className="text-xs">Staging</SelectItem>
+                  <SelectItem value="development" className="text-xs">Development</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -641,34 +638,34 @@ export default function ErrorsTab({
                   handleFilterChange("errorType", value)
                 }
               >
-                <SelectTrigger className="w-36 bg-slate-800/50 border-slate-600/50 text-white">
+                <SelectTrigger className="w-36 bg-card border-border text-foreground text-xs h-8 shadow-none">
                   <SelectValue placeholder="Error Type" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="error">All Types</SelectItem>
-                  <SelectItem value="ReferenceError">
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="error" className="text-xs">All Types</SelectItem>
+                  <SelectItem value="ReferenceError" className="text-xs">
                     Reference Error
                   </SelectItem>
-                  <SelectItem value="TypeError">Type Error</SelectItem>
-                  <SelectItem value="SyntaxError">Syntax Error</SelectItem>
-                  <SelectItem value="NetworkError">Network Error</SelectItem>
-                  <SelectItem value="PromiseError">Promise Error</SelectItem>
-                  <SelectItem value="CustomError">Custom Error</SelectItem>
+                  <SelectItem value="TypeError" className="text-xs">Type Error</SelectItem>
+                  <SelectItem value="SyntaxError" className="text-xs">Syntax Error</SelectItem>
+                  <SelectItem value="NetworkError" className="text-xs">Network Error</SelectItem>
+                  <SelectItem value="PromiseError" className="text-xs">Promise Error</SelectItem>
+                  <SelectItem value="CustomError" className="text-xs">Custom Error</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <HugeiconsIcon icon={Activity01Icon} className="h-4 w-4 text-red-400" />
-                <span className="text-red-400 text-sm font-medium">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded text-red-600 text-xs font-semibold">
+                <HugeiconsIcon icon={Activity01Icon} className="h-3.5 w-3.5" />
+                <span>
                   {filteredErrors.filter((e) => e.status === "ACTIVE").length}{" "}
                   Active
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <Zap className="h-4 w-4 text-green-400" />
-                <span className="text-green-400 text-sm font-medium">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-600 text-xs font-semibold">
+                <Zap className="h-3.5 w-3.5" />
+                <span>
                   {filteredErrors.filter((e) => e.status === "RESOLVED").length}{" "}
                   Resolved
                 </span>
@@ -677,98 +674,97 @@ export default function ErrorsTab({
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0 border-t border-border/50">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-600/50">
-                <TableHead>ID</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Count</TableHead>
-                <TableHead>Environment</TableHead>
-                <TableHead>Last Seen</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">ID</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Type</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Message</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Status</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Count</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Environment</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Last Seen</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4">Source</TableHead>
+                <TableHead className="text-xs text-muted-foreground h-9 px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="border-b border-slate-700/50">
+            <TableBody>
               {filteredErrors.map((error) => (
                 <TableRow
                   key={error.id}
-                  className="border-slate-700/50 hover:bg-slate-800/30 group transition-colors"
+                  className="border-border hover:bg-muted/50 transition-colors"
                 >
                   {loadingErrorIds.includes(error.id) ? (
                     <TableCell colSpan={9}>
-                      <Skeleton className="h-6 w-full bg-slate-700/50" />
+                      <Skeleton className="h-6 w-full bg-muted" />
                     </TableCell>
                   ) : (
                     <>
-                      <TableCell>
-                        <div className="font-mono text-sm text-purple-300 font-medium">
-                          {error.id}
-                        </div>
+                      <TableCell className="font-mono text-[10px] text-foreground font-medium py-2 px-4">
+                        {error.id}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2 px-4">
                         <Badge
                           variant="outline"
-                          className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1"
+                          className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] font-mono shadow-none border-none py-0.5 flex items-center gap-1"
                         >
                           <HugeiconsIcon icon={Bug01Icon} className="h-3 w-3" />
                           {error.type || "unknown"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="truncate text-slate-200 group-hover:text-white transition-colors">
+                      <TableCell className="max-w-xs py-2 px-4">
+                        <div className="truncate text-foreground text-xs">
                           {error.message}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2 px-4">
                         <Badge
                           variant="outline"
                           className={
                             error.status === "ACTIVE"
-                              ? "bg-red-500/20 text-red-400 border-red-500/30"
-                              : "bg-green-500/20 text-green-400 border-green-500/30"
+                              ? "bg-red-500/10 text-red-600 border-red-500/20 text-[10px] shadow-none border-none py-0.5"
+                              : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] shadow-none border-none py-0.5"
                           }
                         >
                           {error.status === "ACTIVE" ? "Active" : "Resolved"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-slate-300 font-medium">
+                      <TableCell className="text-foreground font-medium text-xs py-2 px-4">
                         {error.count}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2 px-4">
                         <Badge
                           variant="outline"
-                          className="bg-blue-500/20 text-blue-400 border-blue-500/30"
+                          className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] shadow-none border-none py-0.5"
                         >
                           {error.environment}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground text-xs py-2 px-4 whitespace-nowrap">
                         {format(new Date(error.lastSeen), "MMM d, yyyy, ha")}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2 px-4">
                         <Badge
                           variant="outline"
-                          className="bg-slate-700/50 text-slate-300 border-slate-600/50 max-w-[250px]"
+                          className="bg-muted text-muted-foreground border-border text-[10px] shadow-none py-0.5 max-w-[200px] truncate"
                         >
                           <span className="truncate block">{error.source}</span>
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
-                          onClick={() => handleErrorClick(error)}
-                          disabled={loadingErrorIds.includes(error.id)}
-                        >
-                          <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
-                          View
-                          <HugeiconsIcon icon={ArrowRight01Icon} className="h-3 w-3" />
-                        </Button>
+                      <TableCell className="py-2 px-4">
+                        <div className="flex items-center justify-end">
+                          <Button
+                            variant="ghost"
+                            className="text-primary hover:bg-muted hover:text-primary/85 text-xs h-8 shadow-none py-1 px-2.5 cursor-pointer flex items-center gap-1"
+                            onClick={() => handleErrorClick(error)}
+                            disabled={loadingErrorIds.includes(error.id)}
+                          >
+                            <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                            <span>View</span>
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </>
                   )}
@@ -778,12 +774,12 @@ export default function ErrorsTab({
           </Table>
 
           {filteredErrors.length === 0 && (
-            <div className="text-center py-32">
-              <HugeiconsIcon icon={AlertCircleIcon} className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-400 text-lg">
+            <div className="text-center py-16">
+              <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+              <p className="text-muted-foreground text-xs font-semibold">
                 No errors match your filters
               </p>
-              <p className="text-slate-500 text-sm">
+              <p className="text-muted-foreground/60 text-[10px] mt-0.5">
                 Try adjusting your search criteria
               </p>
             </div>
@@ -791,16 +787,16 @@ export default function ErrorsTab({
         </CardContent>
 
         {total > 10 && (
-          <CardFooter className="flex justify-between items-center text-sm text-slate-400">
+          <CardFooter className="flex justify-between items-center p-4 border-t border-border bg-card rounded-b-lg text-xs text-muted-foreground">
             <span>
               Showing {filteredErrors.length} of {total} errors
             </span>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={config.page <= 1}
-                className="bg-slate-800/30 border-slate-600/50"
+                className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
                 onClick={() =>
                   handleConfig("page", Math.max(1, config.page - 1))
                 }
@@ -811,7 +807,7 @@ export default function ErrorsTab({
                 variant="outline"
                 size="sm"
                 onClick={() => handleConfig("page", config.page + 1)}
-                className="bg-slate-800/30 border-slate-600/50 hover:bg-slate-700/50"
+                className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
                 disabled={filteredErrors.length < config.limit}
               >
                 Next

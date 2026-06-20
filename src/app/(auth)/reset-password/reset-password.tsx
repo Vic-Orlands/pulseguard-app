@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
     password: string
   ): { score: number; label: string; color: string } => {
     if (!password)
-      return { score: 0, label: "Enter password", color: "text-gray-400" };
+      return { score: 0, label: "Enter password", color: "text-muted-foreground" };
 
     let score = 0;
     if (password.length >= 8) score++;
@@ -126,12 +126,12 @@ export default function ResetPasswordPage() {
     if (/[@$!%*?&]/.test(password)) score++;
 
     const strengthMap = {
-      0: { label: "Very weak", color: "text-red-500" },
-      1: { label: "Very weak", color: "text-red-500" },
+      0: { label: "Very weak", color: "text-destructive" },
+      1: { label: "Very weak", color: "text-destructive" },
       2: { label: "Weak", color: "text-orange-500" },
       3: { label: "Fair", color: "text-yellow-500" },
       4: { label: "Good", color: "text-blue-500" },
-      5: { label: "Strong", color: "text-green-500" },
+      5: { label: "Strong", color: "text-emerald-500" },
     };
 
     return { score, ...strengthMap[score as keyof typeof strengthMap] };
@@ -143,25 +143,26 @@ export default function ResetPasswordPage() {
   if (tokenValid === false) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md p-6 rounded-xl backdrop-blur-sm bg-black/30 border border-blue-900/40 z-10"
+        transition={{ duration: 0.3 }}
+        className="w-full text-foreground"
       >
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Invalid Reset Link</h1>
-          <p className="text-gray-400">
+        <div className="text-center mb-5">
+          <h1 className="text-lg font-bold text-foreground">Invalid Reset Link</h1>
+          <p className="text-xs text-muted-foreground mt-1">
             This password reset link is invalid or has expired.
           </p>
         </div>
 
         <Alert
           variant="destructive"
-          className="mb-4 bg-red-950/50 border-red-800"
+          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+          </div>
         </Alert>
 
         <motion.button
@@ -170,9 +171,9 @@ export default function ResetPasswordPage() {
             router.push("/signin");
             localStorage.setItem("auth_mode", "forgot-password");
           }}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
         >
           Request New Reset Link
         </motion.button>
@@ -183,46 +184,48 @@ export default function ResetPasswordPage() {
   // Show loading while validating token
   if (tokenValid === null) {
     return (
-      <div className="w-full max-w-md mx-auto text-center">
-        <HugeiconsIcon icon={Loading02Icon} className="h-8 w-8 animate-spin mx-auto text-blue-500" />
-        <p className="text-gray-400 mt-2">Validating reset link...</p>
+      <div className="w-full text-center py-4">
+        <HugeiconsIcon icon={Loading02Icon} className="h-5 w-5 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground mt-2">Validating reset link...</p>
       </div>
     );
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
-      className="w-full max-w-md p-6 rounded-xl backdrop-blur-sm bg-black/30 border border-blue-900/40 z-10"
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3 }}
+      className="w-full text-foreground"
     >
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Reset Your Password</h1>
-        <p className="text-gray-400">Enter your new password below.</p>
+      <div className="text-center mb-5">
+        <h1 className="text-lg font-bold text-foreground">Reset Your Password</h1>
+        <p className="text-xs text-muted-foreground mt-1">Enter your new password below.</p>
       </div>
 
       {error && (
         <Alert
           variant="destructive"
-          className="mb-4 bg-red-950/50 border-red-800"
+          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+          </div>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-4 bg-green-950/50 border-green-800">
-          <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4 w-4 text-green-400" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{success}</AlertDescription>
+        <Alert className="mb-4 border-emerald-500/20 bg-emerald-500/10 text-emerald-500 text-xs py-2 px-3 flex items-center gap-2">
+          <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4 w-4 text-emerald-500 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{success}</AlertDescription>
+          </div>
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <FormField label="New Password" error={errors.password?.message}>
           <div className="relative">
             <InputWithIcon
@@ -234,40 +237,40 @@ export default function ResetPasswordPage() {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
             >
               {showPassword ? (
-                <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
+                <HugeiconsIcon icon={ViewOffIcon} className="h-3.5 w-3.5" />
               ) : (
-                <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                <HugeiconsIcon icon={ViewIcon} className="h-3.5 w-3.5" />
               )}
             </button>
           </div>
 
           {password && (
             <div className="mt-2 space-y-1">
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-[10px]">
                 <span className={passwordStrength.color}>
                   {passwordStrength.label}
                 </span>
-                <span className="text-gray-400">
+                <span className="text-muted-foreground">
                   {passwordStrength.score}/5
                 </span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-1">
+              <div className="w-full bg-muted rounded-full h-1">
                 <div
                   className={`h-1 rounded-full transition-all duration-300 ${
                     passwordStrength.score <= 1
-                      ? "bg-red-500"
+                      ? "bg-destructive"
                       : passwordStrength.score <= 2
                       ? "bg-orange-500"
                       : passwordStrength.score <= 3
                       ? "bg-yellow-500"
                       : passwordStrength.score <= 4
                       ? "bg-blue-500"
-                      : "bg-green-500"
+                      : "bg-emerald-500"
                   }`}
                   style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                 />
@@ -290,14 +293,14 @@ export default function ResetPasswordPage() {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               tabIndex={-1}
             >
               {showConfirmPassword ? (
-                <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
+                <HugeiconsIcon icon={ViewOffIcon} className="h-3.5 w-3.5" />
               ) : (
-                <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                <HugeiconsIcon icon={ViewIcon} className="h-3.5 w-3.5" />
               )}
             </button>
           </div>
@@ -306,15 +309,15 @@ export default function ResetPasswordPage() {
         <motion.button
           type="submit"
           disabled={isPending || success !== ""}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          whileHover={{ scale: isPending ? 1 : 1.02 }}
-          whileTap={{ scale: isPending ? 1 : 0.98 }}
+          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          whileHover={{ scale: isPending ? 1 : 1.01 }}
+          whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
           {isPending ? (
-            <HugeiconsIcon icon={Loading02Icon} className="h-5 w-5 animate-spin" />
+            <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
           ) : success ? (
             <>
-              <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 mr-2" />
+              <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4 w-4 mr-2" />
               Password Reset!
             </>
           ) : (
@@ -323,10 +326,10 @@ export default function ResetPasswordPage() {
         </motion.button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-5 text-center">
         <button
           type="button"
-          className="text-blue-400 hover:underline cursor-pointer text-sm"
+          className="text-primary hover:underline cursor-pointer text-xs"
           onClick={() => {
             router.push("/signin");
             localStorage.setItem("auth_mode", "login");

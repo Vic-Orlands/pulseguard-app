@@ -103,10 +103,10 @@ const AlertPage = ({ project }: { project: Project }) => {
   });
 
   const severityColors = {
-    critical: "bg-red-500/20 text-red-300 border-red-500/30",
-    warning: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    medium: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    low: "bg-green-500/20 text-green-300 border-green-500/30",
+    critical: "bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/20 dark:text-destructive-foreground/90 dark:border-destructive/30",
+    warning: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
+    medium: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+    low: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30",
   };
 
   const typeIcons = {
@@ -210,26 +210,26 @@ const AlertPage = ({ project }: { project: Project }) => {
     const TypeIcon = typeIcons[alert.type] || Bug01Icon;
 
     return (
-      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:border-purple-500/50 transition-all duration-300 group">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
+      <div className="bg-card border border-border rounded-lg p-4 shadow-none hover:border-primary/50 transition-all duration-200 group">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-2.5">
             <input
               type="checkbox"
               checked={selectedAlerts.includes(alert.id)}
               onChange={() => handleSelectAlert(alert.id)}
-              className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+              className="w-3.5 h-3.5 text-primary border-border bg-card rounded focus:ring-primary cursor-pointer"
             />
-            <TypeIcon className="w-5 h-5 text-purple-400" />
+            <HugeiconsIcon icon={TypeIcon} className="w-4 h-4 text-primary" />
             <div>
-              <h3 className="font-semibold text-white group-hover:text-purple-300 transition-colors">
+              <h3 className="text-xs font-semibold text-foreground">
                 {alert.name}
               </h3>
-              <p className="text-sm text-slate-400 capitalize">{alert.type}</p>
+              <p className="text-[10px] text-muted-foreground capitalize">{alert.type}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <span
-              className={`px-2 py-1 rounded-md text-xs font-medium border ${
+              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
                 severityColors[alert.severity]
               }`}
             >
@@ -237,40 +237,40 @@ const AlertPage = ({ project }: { project: Project }) => {
             </span>
             <button
               onClick={() => handleToggleStatus(alert.id)}
-              className={`p-1 rounded ${
+              className={`p-1 rounded cursor-pointer ${
                 alert.status === "active"
-                  ? "text-green-400 hover:bg-green-500/20"
-                  : "text-slate-500 hover:bg-slate-700"
+                  ? "text-emerald-500 hover:bg-emerald-500/10"
+                  : "text-muted-foreground hover:bg-muted"
               }`}
             >
               {alert.status === "active" ? (
-                <HugeiconsIcon icon={ViewIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
               ) : (
-                <HugeiconsIcon icon={ViewOffIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={ViewOffIcon} className="w-3.5 h-3.5" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Notifications</span>
-            <div className="flex items-center space-x-2">
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Notifications</span>
+            <div className="flex items-center space-x-1.5">
               {alert.notifications.email.length > 0 && (
-                <HugeiconsIcon icon={Mail01Icon} className="w-4 h-4 text-blue-400" />
+                <HugeiconsIcon icon={Mail01Icon} className="w-3.5 h-3.5 text-blue-500" />
               )}
               {alert.notifications.slack && (
-                <HugeiconsIcon icon={Message01Icon} className="w-4 h-4 text-green-400" />
+                <HugeiconsIcon icon={Message01Icon} className="w-3.5 h-3.5 text-emerald-500" />
               )}
               {alert.notifications.groups.length > 0 && (
-                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4 text-yellow-400" />
+                <HugeiconsIcon icon={UserGroupIcon} className="w-3.5 h-3.5 text-amber-500" />
               )}
             </div>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-[10px] text-muted-foreground/60">
             Created: {alert.created} • Last: {alert.lastTriggered}
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-[10px] text-muted-foreground/60">
             Alert For: {alert.alertFor} •{" "}
             {alert.alertFor === "error"
               ? `Types: ${alert.errorTypes.join(", ")}`
@@ -278,33 +278,33 @@ const AlertPage = ({ project }: { project: Project }) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2 border-t border-border/50">
           <span
-            className={`px-2 py-1 rounded text-xs ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
               alert.status === "active"
-                ? "bg-green-500/20 text-green-300"
-                : "bg-slate-500/20 text-slate-400"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {alert.status}
           </span>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5">
             <button
               onClick={() => {
                 setEditingAlert(alert);
                 setShowEditModal(true);
               }}
-              className="p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors cursor-pointer"
             >
-              <HugeiconsIcon icon={PencilEdit01Icon} className="w-4 h-4" />
+              <HugeiconsIcon icon={PencilEdit01Icon} className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() =>
                 setAlerts((prev) => prev.filter((a) => a.id !== alert.id))
               }
-              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
             >
-              <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+              <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -316,76 +316,76 @@ const AlertPage = ({ project }: { project: Project }) => {
     const TypeIcon = typeIcons[alert.type] || Bug01Icon;
 
     return (
-      <tr className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors">
-        <td className="px-4 py-3">
+      <tr className="border-b border-border hover:bg-muted/50 transition-colors">
+        <td className="px-4 py-2">
           <input
             type="checkbox"
             checked={selectedAlerts.includes(alert.id)}
             onChange={() => handleSelectAlert(alert.id)}
-            className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+            className="w-3.5 h-3.5 text-primary border-border bg-card rounded focus:ring-primary cursor-pointer"
           />
         </td>
-        <td className="px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <TypeIcon className="w-4 h-4 text-purple-400" />
+        <td className="px-4 py-2">
+          <div className="flex items-center space-x-2.5">
+            <HugeiconsIcon icon={TypeIcon} className="w-3.5 h-3.5 text-primary" />
             <div>
-              <div className="font-medium text-white">{alert.name}</div>
-              <div className="text-sm text-slate-400 capitalize">
+              <div className="font-semibold text-foreground text-xs">{alert.name}</div>
+              <div className="text-[10px] text-muted-foreground capitalize">
                 {alert.type}
               </div>
             </div>
           </div>
         </td>
-        <td className="px-4 py-3">
+        <td className="px-4 py-2">
           <span
-            className={`px-2 py-1 rounded-md text-xs font-medium border ${
+            className={`px-1.5 py-0.5 rounded-md text-[10px] font-semibold border ${
               severityColors[alert.severity]
             }`}
           >
             {alert.severity}
           </span>
         </td>
-        <td className="px-4 py-3">
+        <td className="px-4 py-2">
           <span
-            className={`px-2 py-1 rounded text-xs ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
               alert.status === "active"
-                ? "bg-green-500/20 text-green-300"
-                : "bg-slate-500/20 text-slate-400"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {alert.status}
           </span>
         </td>
-        <td className="px-4 py-3">
-          <div className="flex items-center space-x-2">
+        <td className="px-4 py-2">
+          <div className="flex items-center space-x-1.5">
             {alert.notifications.email.length > 0 && (
-              <HugeiconsIcon icon={Mail01Icon} className="w-4 h-4 text-blue-400" />
+              <HugeiconsIcon icon={Mail01Icon} className="w-3.5 h-3.5 text-blue-500" />
             )}
             {alert.notifications.slack && (
-              <HugeiconsIcon icon={Message01Icon} className="w-4 h-4 text-green-400" />
+              <HugeiconsIcon icon={Message01Icon} className="w-3.5 h-3.5 text-emerald-500" />
             )}
             {alert.notifications.groups.length > 0 && (
-              <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4 text-yellow-400" />
+              <HugeiconsIcon icon={UserGroupIcon} className="w-3.5 h-3.5 text-amber-500" />
             )}
           </div>
         </td>
-        <td className="px-4 py-3 text-sm text-slate-400">
+        <td className="px-4 py-2 text-xs text-muted-foreground">
           {alert.lastTriggered}
         </td>
-        <td className="px-4 py-3">
-          <div className="flex items-center space-x-1">
+        <td className="px-4 py-2">
+          <div className="flex items-center space-x-0.5">
             <button
               onClick={() => handleToggleStatus(alert.id)}
-              className={`p-1 rounded ${
+              className={`p-1 rounded cursor-pointer ${
                 alert.status === "active"
-                  ? "text-green-400 hover:bg-green-500/20"
-                  : "text-slate-500 hover:bg-slate-700"
+                  ? "text-emerald-500 hover:bg-emerald-500/10"
+                  : "text-muted-foreground hover:bg-muted"
               }`}
             >
               {alert.status === "active" ? (
-                <HugeiconsIcon icon={ViewIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
               ) : (
-                <HugeiconsIcon icon={ViewOffIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={ViewOffIcon} className="w-3.5 h-3.5" />
               )}
             </button>
             <button
@@ -393,17 +393,17 @@ const AlertPage = ({ project }: { project: Project }) => {
                 setEditingAlert(alert);
                 setShowEditModal(true);
               }}
-              className="p-1 text-slate-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors cursor-pointer"
             >
-              <HugeiconsIcon icon={PencilEdit01Icon} className="w-4 h-4" />
+              <HugeiconsIcon icon={PencilEdit01Icon} className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() =>
                 setAlerts((prev) => prev.filter((a) => a.id !== alert.id))
               }
-              className="p-1 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
             >
-              <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+              <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
             </button>
           </div>
         </td>
@@ -1318,59 +1318,59 @@ const AlertPage = ({ project }: { project: Project }) => {
   return showConfigPage ? (
     <ConfigurationPage />
   ) : (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-xl">
-            <HugeiconsIcon icon={Notification01Icon} className="w-8 h-8 text-purple-400" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-primary/10 border border-primary/20 rounded-lg text-primary">
+            <HugeiconsIcon icon={Notification01Icon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent">
+            <h1 className="text-lg font-bold text-foreground">
               Alert Management
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {alerts.length} total alerts •{" "}
               {alerts.filter((a) => a.status === "active").length} active
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2.5">
           <button
             onClick={() => setShowConfigPage(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+            className="flex items-center gap-1.5 border border-border bg-card text-foreground hover:bg-muted text-xs h-8 px-3 shadow-none font-medium rounded-md transition-colors cursor-pointer"
           >
-            <HugeiconsIcon icon={Settings01Icon} className="w-5 h-5" />
+            <HugeiconsIcon icon={Settings01Icon} className="w-3.5 h-3.5" />
             <span>Configuration</span>
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-purple-500/25"
+            className="flex items-center gap-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 px-3 font-semibold shadow-none rounded-md transition-colors cursor-pointer"
           >
-            <HugeiconsIcon icon={Add01Icon} className="w-5 h-5" />
+            <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
             <span>New Alert</span>
           </button>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 mb-6">
+      <div className="bg-card border border-border rounded-lg p-4 mb-5 shadow-none">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="relative">
-              <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search alerts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
+                className="pl-9 pr-3 w-full sm:w-64 bg-card border border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground rounded-md"
               />
             </div>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="px-3 bg-card border border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent rounded-md cursor-pointer"
             >
               <option value="all">All Types</option>
               <option value="error">Errors</option>
@@ -1387,38 +1387,38 @@ const AlertPage = ({ project }: { project: Project }) => {
           <div className="flex items-center space-x-4">
             {selectedAlerts.length > 0 && (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-slate-400">
+                <span className="text-xs text-muted-foreground">
                   {selectedAlerts.length} selected
                 </span>
                 <button
                   onClick={handleDeleteSelected}
-                  className="flex items-center space-x-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs h-8 px-3 rounded-md transition-colors font-semibold cursor-pointer"
                 >
-                  <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
-                  <span className="text-sm">Delete</span>
+                  <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
+                  <span>Delete</span>
                 </button>
               </div>
             )}
-            <div className="flex bg-slate-700/50 rounded-lg p-1">
+            <div className="flex bg-muted rounded-md p-1 border border-border">
               <button
                 onClick={() => setView("grid")}
-                className={`p-2 rounded transition-colors ${
+                className={`p-1.5 rounded transition-all cursor-pointer ${
                   view === "grid"
-                    ? "bg-purple-500 text-white"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-background text-foreground font-semibold shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <HugeiconsIcon icon={GridIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={GridIcon} className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setView("list")}
-                className={`p-2 rounded transition-colors ${
+                className={`p-1.5 rounded transition-all cursor-pointer ${
                   view === "list"
-                    ? "bg-purple-500 text-white"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-background text-foreground font-semibold shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <HugeiconsIcon icon={ListViewIcon} className="w-4 h-4" />
+                <HugeiconsIcon icon={ListViewIcon} className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -1433,11 +1433,11 @@ const AlertPage = ({ project }: { project: Project }) => {
           ))}
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-none">
           <table className="w-full">
-            <thead className="bg-slate-800/50">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left">
+                <th className="px-4 py-3 text-left w-10">
                   <input
                     type="checkbox"
                     checked={
@@ -1445,25 +1445,25 @@ const AlertPage = ({ project }: { project: Project }) => {
                       filteredAlerts.length > 0
                     }
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+                    className="w-3.5 h-3.5 text-primary border-border bg-card rounded focus:ring-primary cursor-pointer"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Alert
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Severity
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Notifications
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Last Triggered
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Actions
                 </th>
               </tr>

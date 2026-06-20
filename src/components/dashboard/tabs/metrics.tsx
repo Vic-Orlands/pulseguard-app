@@ -31,6 +31,7 @@ import { format, subHours, subDays } from "date-fns";
 import { fetchMetrics } from "@/lib/api/otlp-api";
 import type { Project, Metric, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
+import { useTheme } from "next-themes";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -64,6 +65,13 @@ const MetricsTab = ({ project }: { project: Project }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
+
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const isDark = mounted && resolvedTheme === "dark";
 
   // Calculate start time
   const start = useMemo(() => {
@@ -259,294 +267,326 @@ const MetricsTab = ({ project }: { project: Project }) => {
     <>
       {error && <CustomErrorMessage error={error} />}
 
-      <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
-        <CardHeader>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <section className="flex items-center justify-between flex-wrap gap-3 w-full">
-              <div className="flex gap-3">
-                <div className="relative">
-                  <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search metrics, IDs, values..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-slate-800 border-slate-600 text-gray-300 placeholder-gray-500"
-                  />
-                </div>
-
-                <Select
-                  value={timeRange}
-                  onValueChange={(value: TimeProp) => setTimeRange(value)}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="1h">Last 1 Hour</SelectItem>
-                    <SelectItem value="6h">Last 6 Hours</SelectItem>
-                    <SelectItem value="24h">Last 24 Hours</SelectItem>
-                    <SelectItem value="7d">Last 7 Days</SelectItem>
-                  </SelectContent>
-                </Select>
+      <div className="space-y-6">
+        {/* Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+            <div className="flex flex-wrap gap-2.5">
+              <div className="relative">
+                <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search metrics, IDs, values..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-card border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground w-64 shadow-none"
+                />
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  variant={chartType === "bar" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setChartType("bar")}
-                  className={
-                    chartType === "bar"
-                      ? "bg-blue-500 text-white"
-                      : "border-slate-600 text-gray-300"
-                  }
-                >
-                  <BarChart2 className="w-4 h-4" />
-                  Bar
-                </Button>
-                <Button
-                  variant={chartType === "line" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setChartType("line")}
-                  className={
-                    chartType === "line"
-                      ? "bg-blue-500 text-white"
-                      : "border-slate-600 text-gray-300"
-                  }
-                >
-                  <HugeiconsIcon icon={ChartLineData01Icon} className="w-4 h-4" />
-                  Line
-                </Button>
-              </div>
-            </section>
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-            <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-blue-300 text-sm font-medium">
-                    HTTP Requests
-                  </p>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {summaryStats.httpRequestsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <HugeiconsIcon icon={Activity01Icon} className="w-5 h-5 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-red-300 text-sm font-medium">
-                    HTTP Errors
-                  </p>
-                  <p className="text-2xl font-bold text-red-400">
-                    {summaryStats.httpErrorsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-red-500/20 rounded-lg">
-                  <HugeiconsIcon icon={CancelCircleIcon} className="w-5 h-5 text-red-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-green-300 text-sm font-medium">
-                    Page Views
-                  </p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {summaryStats.pageViewsTotal}
-                  </p>
-                </div>
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <BarChart2 className="w-5 h-5 text-green-400" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-yellow-300 text-sm font-medium">
-                    Active Sessions
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-400">
-                    {summaryStats.activeSessions}
-                  </p>
-                </div>
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <HugeiconsIcon icon={Alert01Icon} className="w-5 h-5 text-yellow-400" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Chart Visualization */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            {chartData.map((chart, index) => (
-              <Card
-                key={index}
-                className="bg-gradient-to-br from-slate-800/50 to-slate-900/30 border-slate-700/50"
+              <Select
+                value={timeRange}
+                onValueChange={(value: TimeProp) => setTimeRange(value)}
               >
-                <CardHeader>
-                  <h3 className="text-lg font-semibold text-gray-200">
-                    {chart.title}
-                  </h3>
-                </CardHeader>
-                <CardContent>
-                  {chart.data.datasets.length > 0 ? (
-                    chartType === "bar" ? (
-                      <Bar
-                        data={chart.data}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: "top",
-                              labels: { color: "#d1d5db" },
-                            },
-                            tooltip: { backgroundColor: "#1e293b" },
-                          },
-                          scales: {
-                            x: {
-                              ticks: { color: "#9ca3af" },
-                              grid: { display: false },
-                            },
-                            y: {
-                              beginAtZero: true,
-                              ticks: { color: "#9ca3af" },
-                              grid: { color: "#374151" },
-                            },
-                          },
-                        }}
-                        height={200}
-                      />
-                    ) : (
-                      <Line
-                        data={chart.data}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: "top",
-                              labels: { color: "#d1d5db" },
-                            },
-                            tooltip: { backgroundColor: "#1e293b" },
-                          },
-                          scales: {
-                            x: {
-                              ticks: { color: "#9ca3af" },
-                              grid: { display: false },
-                            },
-                            y: {
-                              beginAtZero: true,
-                              ticks: { color: "#9ca3af" },
-                              grid: { color: "#374151" },
-                            },
-                          },
-                        }}
-                        height={200}
-                      />
-                    )
-                  ) : (
-                    <div className="flex items-center justify-center h-48">
-                      <p className="text-slate-400">No data available</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardHeader>
+                <SelectTrigger className="bg-card border-border text-foreground text-xs h-8 w-40 shadow-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="1h" className="text-xs">Last 1 Hour</SelectItem>
+                  <SelectItem value="6h" className="text-xs">Last 6 Hours</SelectItem>
+                  <SelectItem value="24h" className="text-xs">Last 24 Hours</SelectItem>
+                  <SelectItem value="7d" className="text-xs">Last 7 Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-600/50">
-                <TableHead>Metric ID</TableHead>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Value</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="border-b border-slate-700/50">
-              {filteredMetrics.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-32">
-                    <HugeiconsIcon icon={AlertCircleIcon} className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <p className="text-slate-400 text-lg">
-                      No metrics match your filters
-                    </p>
-                    <p className="text-slate-500 text-sm">
-                      Try adjusting your search criteria
-                    </p>
-                  </TableCell>
+            <div className="flex gap-1.5">
+              <Button
+                variant={chartType === "bar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("bar")}
+                className="text-xs h-8 shadow-none border-border cursor-pointer"
+              >
+                <BarChart2 className="w-3.5 h-3.5" />
+                Bar
+              </Button>
+              <Button
+                variant={chartType === "line" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("line")}
+                className="text-xs h-8 shadow-none border-border cursor-pointer"
+              >
+                <HugeiconsIcon icon={ChartLineData01Icon} className="w-3.5 h-3.5" />
+                Line
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  HTTP Requests
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {summaryStats.httpRequestsTotal}
+                </p>
+              </div>
+              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  HTTP Errors
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {summaryStats.httpErrorsTotal}
+                </p>
+              </div>
+              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
+                <HugeiconsIcon icon={CancelCircleIcon} className="w-4 h-4 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Page Views
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {summaryStats.pageViewsTotal}
+                </p>
+              </div>
+              <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
+                <BarChart2 className="w-4 h-4 text-emerald-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Active Sessions
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {summaryStats.activeSessions}
+                </p>
+              </div>
+              <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-amber-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chart Visualization */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
+          {chartData.map((chart, index) => (
+            <Card
+              key={index}
+              className="bg-card border border-border rounded-lg shadow-none"
+            >
+              <CardHeader className="py-3 px-4 border-b border-border/50">
+                <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  {chart.title}
+                </h3>
+              </CardHeader>
+              <CardContent className="p-4">
+                {chart.data.datasets.length > 0 ? (
+                  chartType === "bar" ? (
+                    <Bar
+                      data={chart.data}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: "top",
+                            labels: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                          },
+                          tooltip: { 
+                            backgroundColor: isDark ? "#18181b" : "#ffffff",
+                            borderColor: isDark ? "#27272a" : "#e4e4e7",
+                            borderWidth: 1,
+                            titleColor: isDark ? "#f4f4f5" : "#14171e",
+                            bodyColor: isDark ? "#a1a1aa" : "#7b7d81",
+                            padding: 8,
+                          },
+                        },
+                        scales: {
+                          x: {
+                            ticks: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                            grid: { display: false },
+                          },
+                          y: {
+                            beginAtZero: true,
+                            ticks: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                            grid: { 
+                              color: isDark ? "#27272a" : "#e4e4e7",
+                              drawTicks: false
+                            },
+                          },
+                        },
+                      }}
+                      height={200}
+                    />
+                  ) : (
+                    <Line
+                      data={chart.data}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: "top",
+                            labels: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                          },
+                          tooltip: { 
+                            backgroundColor: isDark ? "#18181b" : "#ffffff",
+                            borderColor: isDark ? "#27272a" : "#e4e4e7",
+                            borderWidth: 1,
+                            titleColor: isDark ? "#f4f4f5" : "#14171e",
+                            bodyColor: isDark ? "#a1a1aa" : "#7b7d81",
+                            padding: 8,
+                          },
+                        },
+                        scales: {
+                          x: {
+                            ticks: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                            grid: { display: false },
+                          },
+                          y: {
+                            beginAtZero: true,
+                            ticks: { 
+                              color: isDark ? "#a1a1aa" : "#7b7d81",
+                              font: { size: 10 }
+                            },
+                            grid: { 
+                              color: isDark ? "#27272a" : "#e4e4e7",
+                              drawTicks: false
+                            },
+                          },
+                        },
+                      }}
+                      height={200}
+                    />
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground text-xs">No data available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Table */}
+        <Card className="bg-card border border-border shadow-none rounded-lg mt-5">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Metric ID</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Timestamp</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Name</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Value</TableHead>
                 </TableRow>
-              ) : (
-                paginatedMetrics.map((metric: Metric, index: number) => (
-                  <TableRow
-                    key={metric.id + index}
-                    className="border-slate-700/30 hover:bg-slate-800/30 group transition-colors"
-                  >
-                    <TableCell className="text-gray-300 font-mono text-xs">
-                      {metric.id || "none"}
-                    </TableCell>
-                    <TableCell className="text-gray-300">
-                      {format(new Date(metric.timestamp), "PP, h:mmaaa")}
-                    </TableCell>
-                    <TableCell className="text-gray-300">
-                      {metric.name || "unknown"}
-                    </TableCell>
-                    <TableCell className="text-gray-300">
-                      {metric.value}
+              </TableHeader>
+              <TableBody>
+                {filteredMetrics.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-16">
+                      <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-muted-foreground text-xs font-semibold">
+                        No metrics match your filters
+                      </p>
+                      <p className="text-muted-foreground/60 text-[10px] mt-0.5">
+                        Try adjusting your search criteria
+                      </p>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  paginatedMetrics.map((metric: Metric, index: number) => (
+                    <TableRow
+                      key={metric.id + index}
+                      className="border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell className="text-foreground font-mono text-[10px] py-2 px-4">
+                        {metric.id || "none"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs py-2 px-4">
+                        {format(new Date(metric.timestamp), "PP, h:mmaaa")}
+                      </TableCell>
+                      <TableCell className="text-foreground text-xs py-2 px-4 font-mono">
+                        {metric.name || "unknown"}
+                      </TableCell>
+                      <TableCell className="text-foreground text-xs py-2 px-4">
+                        {metric.value}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
 
-          {/* Pagination Footer */}
-          {!error && filteredMetrics.length > 0 && (
-            <CardFooter className="flex items-center justify-between mt-4 pl-0">
-              <p className="text-sm text-gray-400">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(currentPage * itemsPerPage, filteredMetrics.length)}{" "}
-                of {filteredMetrics.length} metrics
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  className="border-slate-600 text-gray-300"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="border-slate-600 text-gray-300"
-                >
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-        </CardContent>
-      </Card>
+            {/* Pagination Footer */}
+            {!error && filteredMetrics.length > 0 && (
+              <CardFooter className="flex items-center justify-between p-4 border-t border-border bg-card rounded-b-lg">
+                <p className="text-xs text-muted-foreground">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(currentPage * itemsPerPage, filteredMetrics.length)}{" "}
+                  of {filteredMetrics.length} metrics
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1}
+                    className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 };

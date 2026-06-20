@@ -25,27 +25,27 @@ const ConnectPlatformPage = () => {
 
   const CodeBlock = ({ children, id, language = "bash" }: CodeBlockProps) => (
     <div className="relative group mb-4">
-      <div className="flex items-center justify-between bg-slate-900 text-purple-100 px-4 py-2 rounded-t-lg border-b border-slate-700">
-        <span className="text-sm font-mono text-slate-300">{language}</span>
+      <div className="flex items-center justify-between bg-card text-foreground px-4 py-2 rounded-t-lg border border-border border-b-0">
+        <span className="text-xs font-mono text-muted-foreground">{language}</span>
         <button
           onClick={() => copyToClipboard(children, id)}
-          className="flex items-center gap-2 px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-sm transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-muted hover:bg-muted/80 border border-border rounded text-[10px] text-foreground cursor-pointer transition-colors shadow-none"
         >
           {copiedCode === id ? (
             <>
-              <HugeiconsIcon icon={Tick01Icon} size={16} className="text-green-400" />
-              <span className="text-green-400">Copied!</span>
+              <HugeiconsIcon icon={Tick01Icon} size={12} className="text-emerald-500" />
+              <span className="text-emerald-500 font-medium">Copied!</span>
             </>
           ) : (
             <>
-              <HugeiconsIcon icon={Copy01Icon} size={16} />
+              <HugeiconsIcon icon={Copy01Icon} size={12} className="text-muted-foreground" />
               <span>Copy</span>
             </>
           )}
         </button>
       </div>
-      <pre className="bg-slate-950 text-slate-100 p-4 rounded-b-lg overflow-x-auto">
-        <code className="text-sm">{children}</code>
+      <pre className="bg-muted text-foreground p-4 rounded-b-lg border border-border overflow-x-auto">
+        <code className="text-xs font-mono">{children}</code>
       </pre>
     </div>
   );
@@ -65,10 +65,10 @@ const ConnectPlatformPage = () => {
       case "installation":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               Installation
             </h2>
-            <p className="text-sm text-slate-300 mb-6">
+            <p className="text-xs text-muted-foreground mb-4">
               Get started with PulseGuard in seconds
             </p>
             <CodeBlock id="npm-install">npm install pulseguard</CodeBlock>
@@ -78,45 +78,44 @@ const ConnectPlatformPage = () => {
       case "usage":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               Usage
             </h2>
-            <p className="text-sm text-slate-300 mb-2">
+            <p className="text-xs text-muted-foreground mb-4">
               Choose your preferred integration method
             </p>
 
             <Tabs defaultValue="react" className="w-full">
-              <TabsList className="bg-slate-900 border border-slate-700 mb-2">
+              <TabsList className="bg-muted border border-border shadow-none mb-2">
                 <TabsTrigger
                   value="react"
-                  className="data-[state=active]:bg-purple-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground text-xs"
                 >
                   React
                 </TabsTrigger>
                 <TabsTrigger
                   value="manual"
-                  className="data-[state=active]:bg-purple-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground text-xs"
                 >
                   Manual Setup
                 </TabsTrigger>
                 <TabsTrigger
                   value="error-boundary"
-                  className="data-[state=active]:bg-purple-600"
+                  className="data-[state=active]:bg-card data-[state=active]:text-foreground text-xs"
                 >
                   Error Boundary
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="react" className="mt-6">
-                <div className="space-y-8">
-                  <div>
-                    <h3 className="text-md font-semibold mb-4 text-purple-300">
-                      1. Wrap Your App with TelemetryProvider
-                    </h3>
-                    <CodeBlock
-                      id="react-provider"
-                      language="jsx"
-                    >{`import { TelemetryProvider } from "pulseguard";
+              <TabsContent value="react" className="mt-4 space-y-6">
+                <div>
+                  <h3 className="text-xs font-semibold text-foreground mb-2">
+                    1. Wrap Your App with TelemetryProvider
+                  </h3>
+                  <CodeBlock
+                    id="react-provider"
+                    language="jsx"
+                  >{`import { TelemetryProvider } from "pulseguard";
 
 <TelemetryProvider
     projectId={currentProjectId}
@@ -125,34 +124,33 @@ const ConnectPlatformPage = () => {
     <Layout />
     // {children}
 </TelemetryProvider>`}</CodeBlock>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      This enables error tracking, trace/span context, and
-                      pageview tracking automatically.
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    This enables error tracking, trace/span context, and
+                    pageview tracking automatically.
+                  </p>
+                </div>
 
-                  <div>
-                    <h3 className="text-md font-semibold mb-4 text-purple-300">
-                      2. Track Page-Level Interactions (Optional)
-                    </h3>
-                    <CodeBlock id="use-telemetry" language="jsx">{`"use client";
+                <div>
+                  <h3 className="text-xs font-semibold text-foreground mb-2">
+                    2. Track Page-Level Interactions (Optional)
+                  </h3>
+                  <CodeBlock id="use-telemetry" language="jsx">{`"use client";
 import { useTelemetry } from "pulseguard";
 
 useTelemetry({
     userId: "user-123",
     pageId: "/dashboard",
 });`}</CodeBlock>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      Adds click event tracking, performance metrics (Web
-                      Vitals), and pageview logs.
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Adds click event tracking, performance metrics (Web
+                    Vitals), and pageview logs.
+                  </p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="manual" className="mt-6">
+              <TabsContent value="manual" className="mt-4">
                 <div>
-                  <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <h3 className="text-xs font-semibold text-foreground mb-2">
                     Manual Setup (non-React / CLI apps)
                   </h3>
                   <CodeBlock
@@ -165,16 +163,16 @@ initPulseguard({
     userId: "user-123",
     issueTrackerUrl: "https://tracker.example.com",
 });`}</CodeBlock>
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
                     Manually initializes telemetry for non-React apps or
                     environments.
                   </p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="error-boundary" className="mt-6">
+              <TabsContent value="error-boundary" className="mt-4">
                 <div>
-                  <h3 className="text-md font-semibold mb-4 text-purple-300">
+                  <h3 className="text-xs font-semibold text-foreground mb-2">
                     React Error Boundary (Optional)
                   </h3>
                   <CodeBlock
@@ -185,7 +183,7 @@ initPulseguard({
 <ErrorBoundary>
     <App />
 </ErrorBoundary>`}</CodeBlock>
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
                     Captures runtime React errors automatically.
                   </p>
                 </div>
@@ -197,10 +195,10 @@ initPulseguard({
       case "manual-error":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               Manually Report Errors
             </h2>
-            <p className="text-sm text-slate-300 mb-6">
+            <p className="text-xs text-muted-foreground mb-4">
               Send custom error reports with context
             </p>
             <CodeBlock
@@ -219,13 +217,13 @@ try {
       case "how-it-works":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               How It Works
             </h2>
-            <p className="text-sm text-slate-300 mb-2">
+            <p className="text-xs text-muted-foreground mb-4">
               Under the hood architecture
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {[
                 "Leverages @opentelemetry/api for span/trace context",
                 "Uses context to suppress duplicate errors",
@@ -235,10 +233,10 @@ try {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-4 bg-slate-900/50 rounded-lg"
+                  className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border"
                 >
-                  <HugeiconsIcon icon={ArrowRight01Icon} className="text-purple-400 w-5 h-5" />
-                  <span className="text-slate-200 text-sm">
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="text-primary w-4 h-4" />
+                  <span className="text-foreground text-xs">
                     {item.includes("@opentelemetry/api") ||
                     item.includes("/api/telemetry/error")
                       ? item
@@ -250,7 +248,7 @@ try {
                             part === "/api/telemetry/error" ? (
                               <code
                                 key={i}
-                                className="bg-slate-400 text-slate-900 px-2 py-1 rounded text-sm"
+                                className="bg-card border border-border text-foreground px-1.5 py-0.5 rounded text-xs font-mono"
                               >
                                 {part}
                               </code>
@@ -269,32 +267,32 @@ try {
       case "api-reference":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               API Reference
             </h2>
-            <p className="text-slate-300 text-sm mb-6">
+            <p className="text-xs text-muted-foreground mb-4">
               Complete API documentation
             </p>
 
-            <div className="space-y-12">
+            <div className="space-y-8">
               <div>
-                <h3 className="text-md font-semibold mb-6 text-purple-300">
-                  <code>&lt;TelemetryProvider /&gt;</code>
+                <h3 className="text-xs font-semibold mb-3 text-foreground font-mono">
+                  &lt;TelemetryProvider /&gt;
                 </h3>
-                <div className="overflow-x-auto bg-slate-900/30 rounded-lg">
+                <div className="overflow-x-auto bg-card border border-border rounded-lg">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-slate-900">
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                      <tr className="bg-muted border-b border-border">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Prop
                         </th>
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Type
                         </th>
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Required
                         </th>
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Description
                         </th>
                       </tr>
@@ -322,18 +320,18 @@ try {
                       ].map((row, index) => (
                         <tr
                           key={index}
-                          className="hover:bg-slate-800/30 transition-colors"
+                          className="hover:bg-muted/50 border-b border-border last:border-b-0 transition-colors"
                         >
-                          <td className="px-6 py-4 font-mono text-sm text-green-400 border-b border-slate-800">
+                          <td className="px-4 py-2.5 font-mono text-xs text-primary">
                             {row.prop}
                           </td>
-                          <td className="px-6 py-4 font-mono text-sm text-blue-400 border-b border-slate-800">
+                          <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
                             {row.type}
                           </td>
-                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                          <td className="px-4 py-2.5 text-xs text-foreground">
                             {row.required}
                           </td>
-                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                          <td className="px-4 py-2.5 text-xs text-muted-foreground">
                             {row.description}
                           </td>
                         </tr>
@@ -344,23 +342,23 @@ try {
               </div>
 
               <div>
-                <h3 className="text-md font-semibold mb-4 text-purple-300">
-                  <code>useTelemetry(options)</code>
+                <h3 className="text-xs font-semibold mb-2 text-foreground font-mono">
+                  useTelemetry(options)
                 </h3>
-                <p className="mb-6 text-slate-300 text-sm leading-relaxed">
+                <p className="mb-3 text-muted-foreground text-xs leading-relaxed">
                   Tracks pageviews, performance, and user interactions.
                 </p>
-                <div className="overflow-x-auto bg-slate-900/30 rounded-lg">
+                <div className="overflow-x-auto bg-card border border-border rounded-lg">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-slate-900">
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                      <tr className="bg-muted border-b border-border">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Option
                         </th>
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Type
                         </th>
-                        <th className="px-6 py-4 text-left font-semibold text-purple-300 border-b border-slate-700">
+                        <th className="px-4 py-2.5 text-left font-semibold text-foreground text-xs">
                           Description
                         </th>
                       </tr>
@@ -385,15 +383,15 @@ try {
                       ].map((row, index) => (
                         <tr
                           key={index}
-                          className="hover:bg-slate-800/30 transition-colors"
+                          className="hover:bg-muted/50 border-b border-border last:border-b-0 transition-colors"
                         >
-                          <td className="px-6 py-4 font-mono text-sm text-green-400 border-b border-slate-800">
+                          <td className="px-4 py-2.5 font-mono text-xs text-primary">
                             {row.option}
                           </td>
-                          <td className="px-6 py-4 font-mono text-sm text-blue-400 border-b border-slate-800">
+                          <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
                             {row.type}
                           </td>
-                          <td className="px-6 py-4 text-slate-300 border-b border-slate-800">
+                          <td className="px-4 py-2.5 text-xs text-muted-foreground">
                             {row.description}
                           </td>
                         </tr>
@@ -404,10 +402,10 @@ try {
               </div>
 
               <div>
-                <h3 className="text-md font-semibold mb-4 text-purple-300">
-                  <code>initPulseguard(config)</code>
+                <h3 className="text-xs font-semibold mb-2 text-foreground font-mono">
+                  initPulseguard(config)
                 </h3>
-                <p className="mb-4 text-slate-300 text-sm">
+                <p className="mb-3 text-muted-foreground text-xs">
                   For non-React usage.
                 </p>
                 <CodeBlock
@@ -421,10 +419,10 @@ try {
               </div>
 
               <div>
-                <h3 className="text-md font-semibold mb-4 text-purple-300">
-                  <code>reportError(error, extra?)</code>
+                <h3 className="text-xs font-semibold mb-2 text-foreground font-mono">
+                  reportError(error, extra?)
                 </h3>
-                <p className="mb-4 text-slate-300 text-sm">
+                <p className="mb-3 text-muted-foreground text-xs">
                   Send manual error reports:
                 </p>
                 <CodeBlock
@@ -434,10 +432,10 @@ try {
               </div>
 
               <div>
-                <h3 className="text-md font-semibold mb-4 text-purple-300">
-                  <code>&lt;ErrorBoundary /&gt;</code>
+                <h3 className="text-xs font-semibold mb-2 text-foreground font-mono">
+                  &lt;ErrorBoundary /&gt;
                 </h3>
-                <p className="text-slate-300 text-sm">
+                <p className="text-muted-foreground text-xs">
                   Wraps part of your app to auto-capture uncaught React errors.
                 </p>
               </div>
@@ -448,10 +446,10 @@ try {
       case "error-payload":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               Example Error Payload
             </h2>
-            <p className="text-sm text-slate-300 mb-6">
+            <p className="text-xs text-muted-foreground mb-4">
               See what data gets sent to your telemetry endpoint
             </p>
             <CodeBlock id="error-payload" language="json">{`{
@@ -471,13 +469,13 @@ try {
       case "security":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold text-foreground mb-1">
               Security
             </h2>
-            <p className="text-sm text-slate-300 mb-2">
+            <p className="text-xs text-muted-foreground mb-4">
               Privacy and security considerations
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {[
                 "Errors are sent via HTTPS",
                 "Sensitive fields (e.g., cookies, tokens) are not collected by default",
@@ -485,10 +483,10 @@ try {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-4 bg-green-900/20 rounded-lg border border-green-700/30"
+                  className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-foreground"
                 >
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-slate-200">{item}</span>
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                  <span className="text-foreground text-xs">{item}</span>
                 </div>
               ))}
             </div>
@@ -501,18 +499,18 @@ try {
   };
 
   return (
-    <div className="text-white">
+    <div className="text-foreground">
       <div className="max-w-4xl mx-auto">
         <div className="flex w-[15%] h-[70vh] fixed left-10">
-          <nav>
+          <nav className="w-full space-y-1">
             {navigationItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full text-sm text-left px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800/50 ${
+                className={`w-full text-xs text-left px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer ${
                   activeSection === item.id
-                    ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-l-4 border-purple-400 text-purple-300 font-medium"
-                    : "text-slate-300 hover:text-white"
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 {item.label}

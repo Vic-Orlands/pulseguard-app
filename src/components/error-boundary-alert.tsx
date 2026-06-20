@@ -8,18 +8,18 @@ export function FallbackComponent({
   onRetry: () => void;
 }) {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="m-auto max-w-md overflow-hidden rounded-xl bg-gray-900/80 shadow-lg backdrop-blur-sm border border-blue-500/20">
-        <div className="relative h-32 bg-gradient-to-r from-blue-900 to-purple-900">
-          <div className="absolute -bottom-8 left-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-900 shadow-md border border-blue-500/20">
+    <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground p-4">
+      <div className="m-auto max-w-md w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive/20 bg-destructive/10 text-destructive">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-blue-400"
+                className="h-5 w-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -28,59 +28,41 @@ export function FallbackComponent({
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">
+                System Error Detected
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                An unexpected crash occurred inside the application.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="px-6 pt-12 pb-6">
-          <h2 className="text-xl font-bold text-blue-100">
-            System Error Detected
-          </h2>
-          <p className="mt-2 text-blue-200/80">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             We&apos;ve detected an issue and our team has been notified. Our
             engineers are working to fix it as quickly as possible.
           </p>
 
-          <div className="mt-4 w-full bg-gray-800/50 rounded-lg py-2 px-4 border border-blue-500/20">
-            <div className="flex flex-col items-start">
-              <span className="text-blue-300/80 text-sm">Error Reference:</span>
-              <span className="text-blue-400 font-mono text-sm break-words">
+          <div className="mt-4 w-full bg-muted/50 rounded border border-border p-3">
+            <div className="flex flex-col space-y-1">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Error Reference:</span>
+              <span className="text-xs font-mono text-destructive break-all select-all font-medium">
                 {error?.message || "Unknown Error"}
               </span>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-            <button
-              onClick={onRetry}
-              className="cursor-pointer flex-1 flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="mr-2 h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="1 4 1 10 7 10" />
-                <polyline points="23 20 23 14 17 14" />
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
-              </svg>
-              Retry Connection
-            </button>
-
+          <div className="mt-6 flex items-center justify-end space-x-2">
             {issueTrackerUrl && (
               <button
                 onClick={() => {
                   window.open(issueTrackerUrl, "_blank", "noopener,noreferrer");
                 }}
-                className="cursor-pointer flex-1 flex items-center justify-center rounded-lg border border-blue-500/20 bg-gray-800/50 px-4 py-2 text-blue-100 transition-colors hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="cursor-pointer inline-flex items-center justify-center rounded border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-4 w-4"
+                  className="mr-1.5 h-3.5 w-3.5 text-muted-foreground"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -93,6 +75,27 @@ export function FallbackComponent({
                 Report Issue
               </button>
             )}
+
+            <button
+              onClick={onRetry}
+              className="cursor-pointer inline-flex items-center justify-center rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-1.5 h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="1 4 1 10 7 10" />
+                <polyline points="23 20 23 14 17 14" />
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+              </svg>
+              Retry Connection
+            </button>
           </div>
         </div>
       </div>
@@ -111,18 +114,18 @@ export function ArchivedFallbackComponent({
   onRetry: () => void;
 }) {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="m-auto max-w-md overflow-hidden rounded-xl bg-white shadow-lg">
-        <div className="relative h-32 bg-gradient-to-r from-red-500 to-pink-500">
-          <div className="absolute -bottom-8 left-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md">
+    <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground p-4">
+      <div className="m-auto max-w-md w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-orange-500/20 bg-orange-500/10 text-orange-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-red-500"
+                className="h-5 w-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -131,60 +134,41 @@ export function ArchivedFallbackComponent({
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">
+                Archived System Error Detected
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                This project state has been archived or is no longer active.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="px-6 pt-12 pb-6">
-          <h2 className="text-xl font-bold text-gray-800">
-            System Error Detected
-          </h2>
-          <p className="mt-2 text-gray-600">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             We&apos;ve detected an issue and our team has been notified. Our
             engineers are working to fix it as quickly as possible.
           </p>
 
-          {/* Error code badge */}
-          <div className="mt-4 w-full bg-gray-100 rounded-lg py-2 px-4 border border-gray-200">
-            <div className="flex flex-col items-start">
-              <span className="text-gray-500 text-sm">Error Reference</span>
-              <span className="text-red-500 font-mono text-sm break-words">
+          <div className="mt-4 w-full bg-muted/50 rounded border border-border p-3">
+            <div className="flex flex-col space-y-1">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Error Reference:</span>
+              <span className="text-xs font-mono text-orange-500 break-all select-all font-medium">
                 {error?.message || "Unknown Error"}
               </span>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-            <button
-              onClick={onRetry}
-              className="cursor-pointer flex-1 flex items-center justify-center rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="mr-2 h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="1 4 1 10 7 10" />
-                <polyline points="23 20 23 14 17 14" />
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
-              </svg>
-              Retry Connection
-            </button>
-
+          <div className="mt-6 flex items-center justify-end space-x-2">
             {issueTrackerUrl && (
               <button
                 onClick={() => {
                   window.open(issueTrackerUrl, "_blank", "noopener,noreferrer");
                 }}
-                className="cursor-pointer flex-1 flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                className="cursor-pointer inline-flex items-center justify-center rounded border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-4 w-4"
+                  className="mr-1.5 h-3.5 w-3.5 text-muted-foreground"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -197,6 +181,27 @@ export function ArchivedFallbackComponent({
                 Report Issue
               </button>
             )}
+
+            <button
+              onClick={onRetry}
+              className="cursor-pointer inline-flex items-center justify-center rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-1.5 h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="1 4 1 10 7 10" />
+                <polyline points="23 20 23 14 17 14" />
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+              </svg>
+              Retry Connection
+            </button>
           </div>
         </div>
       </div>

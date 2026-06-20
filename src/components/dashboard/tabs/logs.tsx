@@ -45,6 +45,7 @@ import { fetchLogs } from "@/lib/api/otlp-api";
 import type { Log, Project, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
 import TraceToLogsComponent from "./traces/trace-to-logs";
+import { useTheme } from "next-themes";
 
 // Timeline data for the right sidebar
 const timelineSteps = [
@@ -107,6 +108,13 @@ const LogsTab = ({ project }: { project: Project }) => {
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [filterLevel, setFilterLevel] = useState<string>("all");
   const [showTraceDemo, setShowTraceDemo] = useState<boolean>(false);
+
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const isDark = mounted && resolvedTheme === "dark";
 
   let start: string;
   switch (timeRange) {
@@ -225,19 +233,16 @@ const LogsTab = ({ project }: { project: Project }) => {
   // Enhanced log visualization component
   const LogVisualization = ({ log }: { log: Log }) => {
     return (
-      <div className="p-6 pt-0 space-y-6">
-        <div className="flex justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-            <span className="text-base text-slate-400 font-mono">Log ID:</span>
-            <span className="text-cyan-400 font-mono">{log.id}</span>
-            <span className="text-slate-400 text-sm font-normal">
-              &mdash; Full details and context for this log entry.
-            </span>
+      <div className="p-6 pt-0 space-y-6 text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 flex-wrap">
+            <span className="text-muted-foreground font-mono">Log ID:</span>
+            <span className="font-mono text-primary">{log.id}</span>
           </h2>
 
-          <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg border border-slate-700/50 p-4 backdrop-blur-sm">
-            <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4 text-slate-500" />
-            <span className="font-mono text-slate-200 text-sm">
+          <div className="flex items-center gap-2 bg-muted rounded-lg border border-border p-3">
+            <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4 text-muted-foreground" />
+            <span className="font-mono text-foreground text-xs">
               {format(new Date(log.time), "PP, h:mmaaa")}
             </span>
           </div>
@@ -248,78 +253,78 @@ const LogsTab = ({ project }: { project: Project }) => {
           {/* Left Column - System Metrics */}
           <div className="lg:col-span-2 space-y-6">
             {/* System Information */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
-              <h3 className="text-lg font-semibold text-slate-200 mb-4">
+            <div className="bg-card rounded-lg border border-border p-5 shadow-none">
+              <h3 className="text-xs font-semibold text-foreground mb-4">
                 System Information
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20">
-                  <div className="p-2 bg-blue-800/40 rounded-lg">
-                    <HugeiconsIcon icon={CpuIcon} className="w-4 h-4 text-blue-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                  <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                    <HugeiconsIcon icon={CpuIcon} className="w-4 h-4 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-blue-300 font-medium">
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Operating System
                     </p>
-                    <p className="text-sm font-semibold text-blue-200">
+                    <p className="text-xs font-bold text-foreground mt-0.5">
                       {log.os ?? "N/A"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-purple-900/30 rounded-lg border border-purple-500/20">
-                  <div className="p-2 bg-purple-800/40 rounded-lg">
-                    <HugeiconsIcon icon={Shield01Icon} className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                  <div className="p-2 bg-purple-500/10 rounded border border-purple-500/20">
+                    <HugeiconsIcon icon={Shield01Icon} className="w-4 h-4 text-purple-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-purple-300 font-medium">
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Severity
                     </p>
-                    <p className="text-sm font-semibold text-purple-200">
+                    <p className="text-xs font-bold text-foreground mt-0.5">
                       {log.severity ?? "N/A"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-orange-900/30 rounded-lg border border-orange-500/20">
-                  <div className="p-2 bg-orange-800/40 rounded-lg">
-                    <Server className="w-4 h-4 text-orange-400" />
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                  <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
+                    <Server className="w-4 h-4 text-amber-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-orange-300 font-medium">
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Service
                     </p>
-                    <p className="text-sm font-semibold text-orange-200">
+                    <p className="text-xs font-bold text-foreground mt-0.5">
                       {log.service_name ?? "N/A"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-green-900/30 rounded-lg border border-green-500/20">
-                  <div className="p-2 bg-green-800/40 rounded-lg">
-                    <HugeiconsIcon icon={DatabaseIcon} className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                  <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
+                    <HugeiconsIcon icon={DatabaseIcon} className="w-4 h-4 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-green-300 font-medium">
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Hostname
                     </p>
-                    <p className="text-sm font-semibold text-green-200">
+                    <p className="text-xs font-bold text-foreground mt-0.5">
                       {log.hostname ?? "N/A"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-600">
-                <div className="flex items-center gap-3 p-3 bg-indigo-900/30 rounded-lg border border-indigo-500/20">
-                  <div className="p-2 bg-indigo-800/40 rounded-lg">
-                    <HugeiconsIcon icon={AiNetworkIcon} className="w-4 h-4 text-indigo-400" />
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                  <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                    <HugeiconsIcon icon={AiNetworkIcon} className="w-4 h-4 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-indigo-300 font-medium">
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Process ID
                     </p>
-                    <p className="text-sm font-semibold text-indigo-200">
+                    <p className="text-xs font-bold text-foreground mt-0.5">
                       {log.pid ?? "N/A"}
                     </p>
                   </div>
@@ -328,15 +333,15 @@ const LogsTab = ({ project }: { project: Project }) => {
             </div>
 
             {/* Log Message */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="bg-card rounded-lg border border-border p-5 shadow-none">
               <div className="flex items-center gap-2 mb-4">
-                <FileCog className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-semibold text-slate-200">
+                <FileCog className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-semibold text-foreground">
                   Log Message
                 </h3>
               </div>
-              <div className="bg-cyan-900/30 rounded-lg p-4 border border-cyan-500/20">
-                <p className="text-sm font-mono text-cyan-200 leading-relaxed">
+              <div className="bg-muted rounded-lg p-4 border border-border">
+                <p className="text-xs font-mono text-foreground leading-relaxed break-all whitespace-pre-wrap">
                   {log.msg ?? "N/A"}
                 </p>
               </div>
@@ -346,23 +351,23 @@ const LogsTab = ({ project }: { project: Project }) => {
           {/* Right Column - Identifiers */}
           <div className="space-y-6">
             {/* Project ID */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="bg-card rounded-lg border border-border p-5 shadow-none">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={Location01Icon} className="w-5 h-5 text-green-400" />
-                  <h3 className="text-lg font-semibold text-slate-200">
+                  <HugeiconsIcon icon={Location01Icon} className="w-4 h-4 text-primary" />
+                  <h3 className="text-xs font-semibold text-foreground">
                     Project ID
                   </h3>
                 </div>
                 <button
                   onClick={() => copyToClipboard(log.project_id, "Project ID")}
-                  className="p-2 text-green-400 hover:text-green-300 hover:bg-green-900/20 rounded-lg transition-colors"
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                 >
                   {copyText(log.project_id)}
                 </button>
               </div>
-              <div className="bg-green-900/30 rounded-lg p-3 border border-green-500/20">
-                <p className="text-xs font-mono text-green-200 break-all">
+              <div className="bg-muted rounded-lg p-3 border border-border">
+                <p className="text-[10px] font-mono text-foreground break-all">
                   {log.project_id}
                 </p>
               </div>
@@ -370,23 +375,23 @@ const LogsTab = ({ project }: { project: Project }) => {
 
             {/* Trace ID */}
             {log.traceId && (
-              <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <div className="bg-card rounded-lg border border-border p-5 shadow-none">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <HugeiconsIcon icon={HashtagIcon} className="w-5 h-5 text-purple-400" />
-                    <h3 className="text-lg font-semibold text-slate-200">
+                    <HugeiconsIcon icon={HashtagIcon} className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-semibold text-foreground">
                       Trace ID
                     </h3>
                   </div>
                   <button
                     onClick={() => copyToClipboard(log.traceId, "Trace ID")}
-                    className="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-900/20 rounded-lg transition-colors"
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     {copyText(log.traceId)}
                   </button>
                 </div>
-                <div className="bg-purple-900/30 rounded-lg p-3 border border-purple-500/20">
-                  <p className="text-xs font-mono text-purple-200 break-all">
+                <div className="bg-muted rounded-lg p-3 border border-border">
+                  <p className="text-[10px] font-mono text-foreground break-all">
                     {log.traceId}
                   </p>
                 </div>
@@ -395,23 +400,23 @@ const LogsTab = ({ project }: { project: Project }) => {
 
             {/* Span ID */}
             {log.spanId && (
-              <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+              <div className="bg-card rounded-lg border border-border p-5 shadow-none">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <HugeiconsIcon icon={Layers01Icon} className="w-5 h-5 text-violet-400" />
-                    <h3 className="text-lg font-semibold text-slate-200">
+                    <HugeiconsIcon icon={Layers01Icon} className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-semibold text-foreground">
                       Span ID
                     </h3>
                   </div>
                   <button
                     onClick={() => copyToClipboard(log.spanId, "Span ID")}
-                    className="p-2 text-violet-400 hover:text-violet-300 hover:bg-violet-900/20 rounded-lg transition-colors"
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     {copyText(log.spanId)}
                   </button>
                 </div>
-                <div className="bg-violet-900/30 rounded-lg p-3 border border-violet-500/20">
-                  <p className="text-xs font-mono text-violet-200 break-all">
+                <div className="bg-muted rounded-lg p-3 border border-border">
+                  <p className="text-[10px] font-mono text-foreground break-all">
                     {log.spanId}
                   </p>
                 </div>
@@ -419,23 +424,23 @@ const LogsTab = ({ project }: { project: Project }) => {
             )}
 
             {/* Action Button */}
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6 backdrop-blur-sm">
+            <div className="bg-card rounded-lg border border-border p-5 shadow-none">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
-                    <HugeiconsIcon icon={Route01Icon} className="w-4 h-4" />
+                  <Button className="w-full text-xs h-9 border-border text-foreground bg-primary text-primary-foreground hover:bg-primary/95 cursor-pointer shadow-none flex items-center justify-center gap-1.5">
+                    <HugeiconsIcon icon={Route01Icon} className="w-3.5 h-3.5" />
                     View Trace-to-Log Correlation
                   </Button>
                 </SheetTrigger>
                 <SheetContent
                   side="right"
-                  className="sm:w-[67%] bg-slate-900 border-slate-700 overflow-y-auto"
+                  className="sm:w-[67%] bg-card border-l border-border text-foreground overflow-y-auto"
                 >
-                  <SheetHeader>
-                    <SheetTitle className="text-white text-lg font-semibold">
+                  <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+                    <SheetTitle className="text-sm font-semibold text-foreground">
                       Trace Details
                     </SheetTitle>
-                    <SheetDescription className="text-gray-400 text-sm">
+                    <SheetDescription className="text-xs text-muted-foreground">
                       Trace ID: {log.traceId}
                     </SheetDescription>
                   </SheetHeader>
@@ -456,9 +461,9 @@ const LogsTab = ({ project }: { project: Project }) => {
 
   // Timeline component for right sidebar
   const TraceTimeline = () => (
-    <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-l border-slate-700 px-6 pb-10">
+    <div className="bg-card px-4 pb-10">
       <div className="relative">
-        <div className="absolute left-6 top-8 bottom-10 w-0.5 bg-gradient-to-b from-cyan-500 via-blue-500 to-purple-500"></div>
+        <div className="absolute left-6 top-8 bottom-10 w-0.5 bg-border"></div>
 
         {timelineSteps.map((step) => {
           const Icon = step.icon;
@@ -467,22 +472,26 @@ const LogsTab = ({ project }: { project: Project }) => {
               key={step.id}
               className="relative flex items-start mb-8 last:mb-0"
             >
-              <div className="relative top-8 z-10 w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                <Icon className="w-6 h-6 text-white" />
+              <div className="relative top-8 z-10 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-xs">
+                {typeof Icon === "function" ? (
+                  <Icon className="w-5 h-5" />
+                ) : (
+                  <HugeiconsIcon icon={Icon as any} className="w-5 h-5" />
+                )}
               </div>
 
               <div className="ml-4 flex-1">
-                <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-white font-semibold">{step.name}</h4>
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    <h4 className="text-xs font-semibold text-foreground">{step.name}</h4>
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] h-5 py-0">
                       {step.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-500 mb-2">{step.service}</p>
-                  <div className="flex items-center gap-2">
-                    <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4 text-cyan-400" />
-                    <span className="text-cyan-400 font-medium">
+                  <p className="text-[10px] text-muted-foreground mb-2">{step.service}</p>
+                  <div className="flex items-center gap-1.5">
+                    <HugeiconsIcon icon={Clock01Icon} className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-foreground text-xs font-medium">
                       {step.time}
                     </span>
                   </div>
@@ -493,23 +502,23 @@ const LogsTab = ({ project }: { project: Project }) => {
         })}
       </div>
 
-      <div className="mt-8 p-4 bg-gradient-to-br from-purple-900/30 to-purple-800/20 rounded-xl border border-purple-500/20">
-        <h4 className="text-purple-300 font-semibold mb-2 flex items-center gap-2">
-          <HugeiconsIcon icon={AnalyticsUpIcon} className="w-4 h-4" />
+      <div className="mt-8 p-4 bg-muted rounded-lg border border-border">
+        <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+          <HugeiconsIcon icon={AnalyticsUpIcon} className="w-4 h-4 text-primary" />
           Performance Insights
         </h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between text-gray-300">
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between text-muted-foreground">
             <span>Total Duration:</span>
-            <span className="text-purple-400 font-medium">156ms</span>
+            <span className="text-foreground font-semibold">156ms</span>
           </div>
-          <div className="flex justify-between text-gray-300">
+          <div className="flex justify-between text-muted-foreground">
             <span>Network Calls:</span>
-            <span className="text-purple-400 font-medium">3</span>
+            <span className="text-foreground font-semibold">3</span>
           </div>
-          <div className="flex justify-between text-gray-300">
+          <div className="flex justify-between text-muted-foreground">
             <span>Cache Hits:</span>
-            <span className="text-green-400 font-medium">2/3</span>
+            <span className="text-emerald-600 font-semibold">2/3</span>
           </div>
         </div>
       </div>
@@ -523,305 +532,310 @@ const LogsTab = ({ project }: { project: Project }) => {
     <>
       {error && <CustomErrorMessage error={error} />}
 
-      <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
-        <CardHeader>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <section>
-              <div className="flex flex-wrap gap-3">
-                <div className="relative">
-                  <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search logs, services, trace IDs..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-slate-800 border-slate-600 text-gray-300 placeholder-gray-500"
-                  />
-                </div>
-
-                <Select value={filterLevel} onValueChange={setFilterLevel}>
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="30">Info</SelectItem>
-                    <SelectItem value="40">Warning</SelectItem>
-                    <SelectItem value="50">Error</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={timeRange}
-                  onValueChange={(value) => setTimeRange(value)}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="1h">Last 1 Hour</SelectItem>
-                    <SelectItem value="24h">Last 24 Hours</SelectItem>
-                    <SelectItem value="7d">Last 7 Days</SelectItem>
-                    <SelectItem value="30d">Last 30 Days</SelectItem>
-                  </SelectContent>
-                </Select>
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+            <div className="flex flex-wrap gap-2.5">
+              <div className="relative">
+                <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search logs, services, trace IDs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-card border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground w-64 shadow-none"
+                />
               </div>
-            </section>
+
+              <Select value={filterLevel} onValueChange={setFilterLevel}>
+                <SelectTrigger className="bg-card border-border text-foreground text-xs h-8 w-40 shadow-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="all" className="text-xs">All Levels</SelectItem>
+                  <SelectItem value="30" className="text-xs">Info</SelectItem>
+                  <SelectItem value="40" className="text-xs">Warning</SelectItem>
+                  <SelectItem value="50" className="text-xs">Error</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={timeRange}
+                onValueChange={(value) => setTimeRange(value)}
+              >
+                <SelectTrigger className="bg-card border-border text-foreground text-xs h-8 w-40 shadow-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border text-foreground">
+                  <SelectItem value="1h" className="text-xs">Last 1 Hour</SelectItem>
+                  <SelectItem value="24h" className="text-xs">Last 24 Hours</SelectItem>
+                  <SelectItem value="7d" className="text-xs">Last 7 Days</SelectItem>
+                  <SelectItem value="30d" className="text-xs">Last 30 Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="flex items-center gap-3">
               <Button
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                variant="outline"
+                className="text-xs h-8 shadow-none border-border hover:bg-muted text-foreground cursor-pointer"
                 onClick={() => setShowTraceDemo(true)}
               >
-                <HugeiconsIcon icon={Route01Icon} className="w-4 h-4 mr-2" />
-                View Trace Timeline
+                <HugeiconsIcon icon={Route01Icon} className="w-3.5 h-3.5 mr-1.5" />
+                View Trace Flow
               </Button>
             </div>
           </div>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-6 mt-4">
-            <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-green-300 text-sm font-medium">
-                    Total Logs
-                  </p>
-                  <p className="text-3xl font-bold text-green-400">
-                    {logs.length}
-                  </p>
-                </div>
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <HugeiconsIcon icon={Activity01Icon} className="w-6 h-6 text-green-400" />
-                </div>
-              </CardContent>
-            </Card>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Total Logs
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {logs.length}
+                </p>
+              </div>
+              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-red-300 text-sm font-medium">Error Logs</p>
-                  <p className="text-3xl font-bold text-red-400">
-                    {logs.filter((log) => log.level === 50).length}
-                  </p>
-                </div>
-                <div className="p-2 bg-red-500/20 rounded-lg">
-                  <HugeiconsIcon icon={Bug01Icon} className="w-6 h-6 text-red-400" />
-                </div>
-              </CardContent>
-            </Card>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Error Logs
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {logs.filter((log) => log.level === 50).length}
+                </p>
+              </div>
+              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
+                <HugeiconsIcon icon={Bug01Icon} className="w-4 h-4 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-yellow-300 text-sm font-medium">
-                    Warning Logs
-                  </p>
-                  <p className="text-3xl font-bold text-yellow-400">
-                    {logs.filter((log) => log.level === 40).length}
-                  </p>
-                </div>
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <HugeiconsIcon icon={Alert01Icon} className="w-6 h-6 text-yellow-400" />
-                </div>
-              </CardContent>
-            </Card>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Warning Logs
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {logs.filter((log) => log.level === 40).length}
+                </p>
+              </div>
+              <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-amber-500" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20">
-              <CardContent className="flex items-center h-full justify-between">
-                <div>
-                  <p className="text-blue-300 text-sm font-medium">Info Logs</p>
-                  <p className="text-3xl font-bold text-blue-400">
-                    {logs.filter((log) => log.level === 30).length}
-                  </p>
-                </div>
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <HugeiconsIcon icon={InformationCircleIcon} className="w-6 h-6 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </CardHeader>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardContent className="flex items-center justify-between p-4 h-full">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                  Info Logs
+                </p>
+                <p className="text-lg font-bold text-foreground mt-1">
+                  {logs.filter((log) => log.level === 30).length}
+                </p>
+              </div>
+              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                <HugeiconsIcon icon={InformationCircleIcon} className="w-4 h-4 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <CardContent>
-          {/* Logs Table */}
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-600/50">
-                <TableHead>Timestamp</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Level</TableHead>
-                <TableHead>Trace ID</TableHead>
-                <TableHead>Span ID</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="border-b border-slate-700/50">
-              {filteredLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-32">
-                    <HugeiconsIcon icon={AlertCircleIcon} className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <p className="text-slate-400 text-lg">
-                      No Logs match your filters
-                    </p>
-                    <p className="text-slate-500 text-sm">
-                      Try adjusting your search criteria
-                    </p>
-                  </TableCell>
+        <Card className="bg-card border border-border shadow-none rounded-lg mt-5">
+          <CardContent className="p-0">
+            {/* Logs Table */}
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Timestamp</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Service</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Level</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Trace ID</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Span ID</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Message</TableHead>
+                  <TableHead className="text-xs text-muted-foreground h-9 px-4 text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                paginatedLogs.map((log) => (
-                  <TableRow
-                    key={log.id}
-                    className="border-slate-700/30 hover:bg-slate-800/30 group transition-colors"
-                  >
-                    <TableCell className="text-gray-300 font-mono text-xs">
-                      {format(new Date(log.time), "PP, h:mmaaa")}
-                    </TableCell>
-                    <TableCell className="text-gray-300">
-                      {log.service_name ?? "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getSeverityColor(log.level)}>
-                        {getSeverityIcon(log.level)}
-                        <span className="ml-1">{log.level}</span>
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-purple-400">
-                      {log.traceId ?? "none"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-purple-400">
-                      {log.spanId ?? "none"}
-                    </TableCell>
-                    <TableCell className="text-gray-300 max-w-md truncate">
-                      {log.msg ?? "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Sheet>
-                          <SheetTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-cyan-400 hover:text-cyan-300"
-                            >
-                              <HugeiconsIcon icon={ViewIcon} className="w-4 h-4" />
-                            </Button>
-                          </SheetTrigger>
-                          <SheetContent
-                            side="right"
-                            className="sm:w-[70%] bg-slate-900 border-slate-700"
-                          >
-                            <SheetHeader className="text-white">
-                              <SheetTitle>Log Details</SheetTitle>
-                            </SheetHeader>
-                            <MemoizedLogVisualization log={log} />
-                          </SheetContent>
-                        </Sheet>
-
-                        <Sheet>
-                          <SheetTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={!log.traceId}
-                              className="text-blue-400 hover:text-blue-300"
-                            >
-                              <HugeiconsIcon icon={Route01Icon} className="w-4 h-4" />
-                            </Button>
-                          </SheetTrigger>
-                          <SheetContent
-                            side="right"
-                            className="sm:w-[70%] bg-slate-900 border-slate-700 overflow-y-auto"
-                          >
-                            <SheetHeader>
-                              <SheetTitle className="text-white">
-                                Trace Details
-                              </SheetTitle>
-                              <SheetDescription className="text-gray-400">
-                                Trace ID: {log.traceId ?? "N/A"}
-                              </SheetDescription>
-                            </SheetHeader>
-                            {log.traceId && (
-                              <TraceToLogsComponent traceId={log.traceId} />
-                            )}
-                          </SheetContent>
-                        </Sheet>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            copyToClipboard(log.traceId ?? "", "Trace ID")
-                          }
-                          className="text-purple-400 hover:text-purple-300"
-                          disabled={!log.traceId}
-                        >
-                          {copyText(log.traceId ?? "")}
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {filteredLogs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-16">
+                      <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-muted-foreground text-xs font-semibold">
+                        No logs match your filters
+                      </p>
+                      <p className="text-muted-foreground/60 text-[10px] mt-0.5">
+                        Try adjusting your search criteria
+                      </p>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  paginatedLogs.map((log) => (
+                    <TableRow
+                      key={log.id}
+                      className="border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell className="text-muted-foreground font-mono text-[10px] py-2 px-4 whitespace-nowrap">
+                        {format(new Date(log.time), "PP, h:mmaaa")}
+                      </TableCell>
+                      <TableCell className="text-foreground text-xs py-2 px-4 whitespace-nowrap">
+                        {log.service_name ?? "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2 px-4">
+                        <Badge className={`${getSeverityColor(log.level)} text-[10px] font-mono shadow-none border-none py-0.5`}>
+                          {getSeverityIcon(log.level)}
+                          <span className="ml-1">{log.level}</span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-[10px] text-primary py-2 px-4">
+                        {log.traceId ?? "none"}
+                      </TableCell>
+                      <TableCell className="font-mono text-[10px] text-muted-foreground py-2 px-4">
+                        {log.spanId ?? "none"}
+                      </TableCell>
+                      <TableCell className="text-foreground text-xs py-2 px-4 max-w-xs truncate">
+                        {log.msg ?? "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2 px-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <Sheet>
+                            <SheetTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
+                              >
+                                <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
+                              </Button>
+                            </SheetTrigger>
+                            <SheetContent
+                              side="right"
+                              className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto"
+                            >
+                              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+                                <SheetTitle className="text-sm font-semibold text-foreground">Log Details</SheetTitle>
+                              </SheetHeader>
+                              <MemoizedLogVisualization log={log} />
+                            </SheetContent>
+                          </Sheet>
 
-          {/* Pagination */}
-          {!error && logs.length > itemsPerPage && (
-            <CardFooter className="flex items-center justify-between mt-4 pl-0">
-              <p className="text-sm text-gray-400">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of{" "}
-                {filteredLogs.length} logs
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="border-slate-600 text-gray-300"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="border-slate-600 text-gray-300"
-                >
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-        </CardContent>
+                          <Sheet>
+                            <SheetTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={!log.traceId}
+                                className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
+                              >
+                                <HugeiconsIcon icon={Route01Icon} className="w-3.5 h-3.5" />
+                              </Button>
+                            </SheetTrigger>
+                            <SheetContent
+                              side="right"
+                              className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto"
+                            >
+                              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+                                <SheetTitle className="text-sm font-semibold text-foreground">
+                                  Trace Details
+                                </SheetTitle>
+                                <SheetDescription className="text-xs text-muted-foreground">
+                                  Trace ID: {log.traceId ?? "N/A"}
+                                </SheetDescription>
+                              </SheetHeader>
+                              {log.traceId && (
+                                <TraceToLogsComponent traceId={log.traceId} />
+                              )}
+                            </SheetContent>
+                          </Sheet>
 
-        {/* Trace Demo Sheet */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              copyToClipboard(log.traceId ?? "", "Trace ID")
+                            }
+                            className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
+                            disabled={!log.traceId}
+                          >
+                            {copyText(log.traceId ?? "")}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            {!error && logs.length > itemsPerPage && (
+              <CardFooter className="flex items-center justify-between p-4 border-t border-border bg-card rounded-b-lg">
+                <p className="text-xs text-muted-foreground">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of{" "}
+                  {filteredLogs.length} logs
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="border-border text-foreground hover:bg-muted text-xs h-8 shadow-none cursor-pointer"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Trace Flow Sheet */}
         <Sheet open={showTraceDemo} onOpenChange={setShowTraceDemo}>
           <SheetContent
             side="right"
-            className="sm:w-[500px] bg-slate-900 border-slate-700 overflow-y-auto"
+            className="sm:max-w-lg bg-card border-l border-border text-foreground overflow-y-auto"
           >
-            <SheetHeader>
-              <SheetTitle className="text-white flex items-center gap-2">
-                <HugeiconsIcon icon={Route01Icon} className="w-6 h-6 text-purple-400" />
+            <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+              <SheetTitle className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <HugeiconsIcon icon={Route01Icon} className="w-4 h-4 text-primary" />
                 Trace Flow Timeline
               </SheetTitle>
-              <SheetDescription className="text-gray-500">
+              <SheetDescription className="text-xs text-muted-foreground">
                 Typical request flow through microservices
               </SheetDescription>
             </SheetHeader>
             <TraceTimeline />
           </SheetContent>
         </Sheet>
-      </Card>
+      </div>
     </>
   );
 };

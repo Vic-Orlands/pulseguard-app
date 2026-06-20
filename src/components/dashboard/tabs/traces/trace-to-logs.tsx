@@ -3,7 +3,6 @@ import { ArrowDown01Icon, ArrowRight01Icon, BarChartIcon, Clock01Icon, DatabaseI
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import {
   Server,
-  LucideProps
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -151,7 +150,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
     []
   );
 
-  // Tree View Component - Fixed clicking and expansion issues
+  // Tree View Component
   const TreeNode = React.memo(
     ({ node, level = 0 }: { node: SpanNode; level?: number }) => {
       const isExpanded = expandedNodes.has(node.spanId);
@@ -182,11 +181,11 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
         <div className="select-none">
           <div
             className={cn(
-              "flex items-center p-3 rounded-lg cursor-pointer border-l-4 ml-2",
+              "flex items-center p-2.5 rounded-lg cursor-pointer ml-2 border",
               level > 0 && "ml-6",
               isSelected
-                ? "bg-cyan-900/40 border-l-cyan-400 shadow-lg shadow-cyan-500/10"
-                : "border-1 border-gray-800 hover:bg-gray-800/30"
+                ? "bg-primary text-primary-foreground font-semibold border-primary shadow-xs"
+                : "border-border hover:bg-muted/50 text-foreground"
             )}
             style={{
               marginLeft: `${level * 24 + 20}px`,
@@ -194,11 +193,11 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
             }}
             onMouseDown={handleNodeClick}
           >
-            {/* Connection lines for better visual hierarchy */}
+            {/* Connection lines */}
             {level > 0 && (
               <>
                 <div
-                  className="absolute border-l bg-cyan-400/30 border-cyan-400/30"
+                  className="absolute border-l border-border"
                   style={{
                     left: `-${level * 24 - 6}px`,
                     top: "0",
@@ -206,7 +205,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
                   }}
                 />
                 <div
-                  className="absolute border-t bg-cyan-400/30 border-cyan-400/30"
+                  className="absolute border-t border-border"
                   style={{
                     left: `-${level * 24 - 6}px`,
                     top: "50%",
@@ -221,19 +220,19 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
               className={cn(
                 "w-6 h-6 flex items-center justify-center rounded-sm mr-3 transition-colors",
                 hasChildren
-                  ? "hover:bg-gray-700/50 cursor-pointer"
+                  ? "hover:bg-muted cursor-pointer"
                   : "cursor-default"
               )}
               onMouseDown={handleToggleClick}
             >
               {hasChildren ? (
                 isExpanded ? (
-                  <HugeiconsIcon icon={ArrowDown01Icon} className="w-4 h-4 text-cyan-400" />
+                  <HugeiconsIcon icon={ArrowDown01Icon} className="w-3.5 h-3.5 text-muted-foreground" />
                 ) : (
-                  <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 text-cyan-400" />
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="w-3.5 h-3.5 text-muted-foreground" />
                 )
               ) : (
-                <div className="w-2 h-2 rounded-full bg-gray-500/50" />
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
               )}
             </div>
 
@@ -241,15 +240,18 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
               <div className="flex flex-col min-w-0 flex-1">
                 <span
                   className={cn(
-                    "font-medium text-sm truncate",
-                    isSelected ? "text-cyan-200" : "text-white"
+                    "font-semibold text-xs truncate",
+                    isSelected ? "text-primary-foreground" : "text-foreground"
                   )}
                   title={node.name}
                 >
                   {node.name}
                 </span>
                 <span
-                  className="text-xs text-gray-400 truncate"
+                  className={cn(
+                    "text-[10px] truncate",
+                    isSelected ? "text-primary-foreground/75" : "text-muted-foreground"
+                  )}
                   title={node.serviceName}
                 >
                   {node.serviceName}
@@ -258,19 +260,21 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
               <div className="text-right flex items-center gap-2 ml-4 flex-shrink-0">
                 <span
                   className={cn(
-                    "text-sm font-mono",
-                    isSelected ? "text-cyan-300" : "text-cyan-400"
+                    "text-xs font-mono font-medium",
+                    isSelected ? "text-primary-foreground/90" : "text-primary"
                   )}
                 >
                   {node.duration.toFixed(2)}ms
                 </span>
                 {node.httpStatus && (
                   <Badge
+                    variant="outline"
                     className={cn(
-                      "text-xs px-2 py-0.5",
+                      "text-[10px] px-2 py-0.5 border-none shadow-none",
                       node.httpStatus >= 400
-                        ? "bg-red-600/20 text-red-400 border-red-500/30"
-                        : "bg-green-600/20 text-green-400 border-green-500/30"
+                        ? "bg-red-500/10 text-red-600"
+                        : "bg-emerald-500/10 text-emerald-600",
+                      isSelected && (node.httpStatus >= 400 ? "bg-red-500/30 text-white" : "bg-emerald-500/30 text-white")
                     )}
                   >
                     {node.httpStatus}
@@ -294,16 +298,16 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
   );
   TreeNode.displayName = "TreeNode";
 
-  // Span Card Component for Waterfall View - Improved indentation design
+  // Span Card Component for Waterfall View
   const SpanCard = memo(
     ({ span, level = 0 }: { span: Span; level?: number }) => {
       return (
         <div className="relative" style={{ marginLeft: `${level * 32}px` }}>
-          {/* Connection lines for hierarchy visualization */}
+          {/* Connection lines */}
           {level > 0 && (
             <>
               <div
-                className="absolute border-l-2 border-gray-600/30"
+                className="absolute border-l border-border"
                 style={{
                   left: `-${level * 32 - 16}px`,
                   top: "0",
@@ -311,7 +315,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
                 }}
               />
               <div
-                className="absolute border-t-2 border-gray-600/30"
+                className="absolute border-t border-border"
                 style={{
                   left: `-${level * 32 - 16}px`,
                   top: "50%",
@@ -322,43 +326,35 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
           )}
 
           <Card
-            className={cn(
-              "bg-gray-800/30 border-gray-700/50 hover:bg-gray-800/50 cursor-pointer transition-all duration-200 mb-3 relative overflow-hidden",
-              level > 0 && "border-l-4 border-l-cyan-500/30"
-            )}
+            className="bg-card border border-border hover:bg-muted cursor-pointer transition-all duration-200 mb-3 relative overflow-hidden shadow-none rounded-lg"
             onClick={() => handleSpanSelect(span)}
           >
-            {/* Gradient accent for depth */}
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent pointer-events-none"
-              style={{ opacity: Math.min(level * 0.1, 0.3) }}
-            />
-
-            <CardContent className="relative z-10">
+            <CardContent className="p-4 relative z-10">
               <div className="flex justify-between items-center mb-3">
                 <div className="min-w-0 flex-1">
                   <div
-                    className="text-white font-semibold text-base truncate"
+                    className="text-foreground font-semibold text-xs truncate"
                     title={span.name}
                   >
                     {span.name}
                   </div>
                   <div
-                    className="text-sm text-gray-400 truncate"
+                    className="text-[10px] text-muted-foreground truncate"
                     title={span.serviceName}
                   >
                     {span.serviceName}
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-3 ml-4 flex-shrink-0">
-                  <div className="text-cyan-400 font-bold text-base">
+                  <div className="text-primary font-bold text-xs">
                     {span.duration.toFixed(2)} ms
                   </div>
                   <Badge
+                    variant="outline"
                     className={cn(
-                      "bg-green-600/20 text-green-400 border-green-500/30",
+                      "bg-emerald-500/10 text-emerald-600 border-none shadow-none text-[10px] py-0.5",
                       span.httpStatus >= 400 &&
-                        "bg-red-600/20 text-red-400 border-red-500/30"
+                        "bg-red-500/10 text-red-600"
                     )}
                   >
                     {span.httpStatus || "OK"}
@@ -367,34 +363,33 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
               </div>
 
               {/* Duration bar */}
-              <div className="w-full bg-gray-700/50 rounded-full h-2 mb-3">
+              <div className="w-full bg-muted border border-border rounded-full h-1.5 mb-3">
                 <div
-                  className="h-2 rounded-full transition-all duration-300"
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-300",
+                    span.httpStatus >= 400 ? "bg-red-500" : "bg-primary"
+                  )}
                   style={{
                     width: `${Math.min(
                       (span.duration / metrics.maxDuration) * 100,
                       100
                     )}%`,
-                    background:
-                      span.httpStatus >= 400
-                        ? "linear-gradient(to right, #ff4d4f, #ff7875)"
-                        : "linear-gradient(to right, #00f0ff, #00b4d8)",
                   }}
                 />
               </div>
 
               {/* Key attributes */}
               {span.attributes && Object.keys(span.attributes).length > 0 && (
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-300">
+                <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground">
                   {Object.entries(span.attributes)
                     .slice(0, 4)
                     .map(([key, val]) => (
-                      <div key={key} className="flex justify- truncate">
-                        <span className="text-gray-500 truncate" title={key}>
+                      <div key={key} className="flex justify-start truncate">
+                        <span className="text-muted-foreground font-medium truncate" title={key}>
                           {key}:
                         </span>
                         <span
-                          className="font-mono text-right truncate ml-2"
+                          className="font-mono text-foreground text-right truncate ml-2"
                           title={String(val || "-")}
                         >
                           {String(val || "-")}
@@ -411,7 +406,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
   );
   SpanCard.displayName = "SpanCard";
 
-  // Waterfall Timeline Component - Improved hierarchy visualization
+  // Waterfall Timeline Component
   const WaterfallTimeline = useMemo(() => {
     // Build hierarchy map
     const spanMap = new Map<string, SpanNode>();
@@ -444,15 +439,15 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
 
     return (
       <div className="relative">
-        <div className="px-6 bg-gray-900/30">{renderSpanHierarchy(roots)}</div>
+        <div className="px-4 py-4">{renderSpanHierarchy(roots)}</div>
       </div>
     );
   }, [spans, metrics.maxDuration]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <HugeiconsIcon icon={Loading02Icon} className="w-8 h-8 animate-spin text-cyan-400" />
+      <div className="flex items-center justify-center p-8">
+        <HugeiconsIcon icon={Loading02Icon} className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -460,21 +455,21 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
   if (error) return <CustomErrorMessage error="Failed to fetch trace data." />;
 
   if (!trace || spans.length === 0) {
-    return <div className="p-6 text-gray-300">No spans available.</div>;
+    return <div className="p-6 text-muted-foreground text-xs">No spans available.</div>;
   }
 
   return (
-    <Card className="bg-slate-900/50 backdrop-blur-xl border-slate-700/50 shadow-2xl text-white">
-      <CardHeader>
+    <Card className="bg-card border border-border shadow-none rounded-lg text-foreground">
+      <CardHeader className="p-4 border-b border-border/50 space-y-4">
         {/* Breadcrumbs */}
         {breadcrumbPath.length > 0 && (
-          <Breadcrumb className="mb-6">
+          <Breadcrumb className="mb-4">
             <BreadcrumbList>
               {breadcrumbPath.map((span, i) => (
                 <React.Fragment key={span.spanId}>
                   <BreadcrumbItem>
                     <BreadcrumbLink
-                      className="text-cyan-400 hover:text-cyan-300 cursor-pointer"
+                      className="text-primary hover:text-primary/80 cursor-pointer text-xs"
                       onClick={() => handleSpanSelect(span)}
                     >
                       {span.name}
@@ -488,47 +483,44 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
         )}
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-3 gap-6 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
           {[
             {
               label: "Services",
               value: metrics.serviceCount,
-              icon: <Server className="w-6 h-6 text-blue-400" />,
-              theme:
-                "bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20",
-              color: "blue",
+              icon: <Server className="w-4 h-4 text-blue-500" />,
+              theme: "bg-card border-border",
+              bg: "bg-blue-500/10 border-blue-500/20",
             },
             {
               label: "Spans",
               value: metrics.spanCount,
-              icon: <HugeiconsIcon icon={BarChartIcon} className="w-6 h-6 text-yellow-400" />,
-              theme:
-                "bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/20",
-              color: "yellow",
+              icon: <HugeiconsIcon icon={BarChartIcon} className="w-4 h-4 text-amber-500" />,
+              theme: "bg-card border-border",
+              bg: "bg-amber-500/10 border-amber-500/20",
             },
             {
               label: "Duration",
               value: `${metrics.totalDuration} ms`,
-              icon: <HugeiconsIcon icon={ArrowRight01Icon} className="w-6 h-6 text-green-400" />,
-              theme:
-                "bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20",
-              color: "green",
+              icon: <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 text-emerald-500" />,
+              theme: "bg-card border-border",
+              bg: "bg-emerald-500/10 border-emerald-500/20",
             },
           ].map((metric) => (
             <Card
               key={metric.label}
-              className={`${metric.theme} backdrop-blur-lg hover:shadow-[0_0_10px_rgba(0,255,255,0.2)] transition-shadow`}
+              className="bg-card border border-border shadow-none rounded-lg"
             >
-              <CardContent className="flex items-center h-full justify-between">
+              <CardContent className="flex items-center h-full justify-between p-4">
                 <div>
-                  <p className={`text-sm font-medium text-${metric.color}-300`}>
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                     {metric.label}
                   </p>
-                  <p className={`text-3xl font-bold text-${metric.color}-400`}>
+                  <p className="text-lg font-bold text-foreground mt-1">
                     {metric.value}
                   </p>
                 </div>
-                <div className={`p-3 bg-${metric.color}-500/20 rounded-lg`}>
+                <div className={cn("p-2 rounded border", metric.bg)}>
                   {metric.icon}
                 </div>
               </CardContent>
@@ -537,33 +529,33 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
         </div>
 
         {/* Toggle Mode */}
-        <div className="flex justify-end items-center gap-3">
+        <div className="flex justify-end items-center gap-1.5">
           <Button
             onClick={() => setMode("waterfall")}
-            variant={mode === "waterfall" ? "default" : "secondary"}
-            className="flex items-center gap-2"
+            variant={mode === "waterfall" ? "default" : "outline"}
+            className="text-xs h-8 shadow-none border-border cursor-pointer flex items-center gap-1.5"
           >
-            <HugeiconsIcon icon={HierarchyFilesIcon} className="w-4 h-4" />
+            <HugeiconsIcon icon={HierarchyFilesIcon} className="w-3.5 h-3.5" />
             Waterfall
           </Button>
           <Button
             onClick={() => setMode("tree")}
-            variant={mode === "tree" ? "default" : "secondary"}
-            className="flex items-center gap-2"
+            variant={mode === "tree" ? "default" : "outline"}
+            className="text-xs h-8 shadow-none border-border cursor-pointer flex items-center gap-1.5"
           >
-            <HugeiconsIcon icon={UngroupItemsIcon} className="w-4 h-4" />
+            <HugeiconsIcon icon={UngroupItemsIcon} className="w-3.5 h-3.5" />
             Tree
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-4">
         {/* Main Visualization */}
         {mode === "waterfall" && (
-          <Card className="bg-gray-800/30 border-gray-700/50 backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold flex items-center gap-2 text-white">
-                <HugeiconsIcon icon={BarChartIcon} className="w-6 h-6 text-cyan-400" />
+          <Card className="bg-card border border-border rounded-lg shadow-none">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
+              <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <HugeiconsIcon icon={BarChartIcon} className="w-4 h-4 text-primary" />
                 Span Timeline
               </CardTitle>
             </CardHeader>
@@ -572,15 +564,15 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
         )}
 
         {mode === "tree" && (
-          <Card className="bg-gray-800/30 border-gray-700/50 backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold flex items-center gap-2 text-white">
-                <HugeiconsIcon icon={UngroupItemsIcon} className="w-6 h-6 text-purple-400" />
+          <Card className="bg-card border border-border rounded-lg shadow-none">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
+              <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <HugeiconsIcon icon={UngroupItemsIcon} className="w-4 h-4 text-primary" />
                 Span Hierarchy
               </CardTitle>
             </CardHeader>
-            <CardContent className="pl-0">
-              <div>
+            <CardContent className="p-4 pl-0">
+              <div className="space-y-1">
                 {spanTree.map((node) => (
                   <TreeNode key={node.spanId} node={node} />
                 ))}
@@ -590,27 +582,27 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
         )}
 
         {/* Service Dependency Map */}
-        <Card className="mt-10 bg-gray-800/30 border-gray-700/50 backdrop-blur-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold flex items-center gap-2 text-white">
-              <HugeiconsIcon icon={WorkflowCircle01Icon} className="w-6 h-6 text-pink-400" />
+        <Card className="mt-6 bg-card border border-border shadow-none rounded-lg">
+          <CardHeader className="py-3 px-4 border-b border-border/50">
+            <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <HugeiconsIcon icon={WorkflowCircle01Icon} className="w-4 h-4 text-primary" />
               Service Dependency Map
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-6">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-4">
               {metrics.services.map((svc, i) => (
                 <React.Fragment key={svc}>
-                  <div className="flex items-center gap-3 hover:scale-105 transition-transform">
-                    <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(0,255,255,0.3)]">
-                      <Server className="w-6 h-6 text-white" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-muted border border-border rounded-full flex items-center justify-center">
+                      <Server className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="text-cyan-300 text-base font-medium">
+                    <span className="text-foreground text-xs font-semibold">
                       {svc}
                     </span>
                   </div>
                   {i < metrics.services.length - 1 && (
-                    <HugeiconsIcon icon={ArrowRight01Icon} className="text-gray-400" />
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="text-muted-foreground w-4 h-4" />
                   )}
                 </React.Fragment>
               ))}
@@ -621,180 +613,167 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
 
       {/* Span Details Sheet */}
       <Sheet open={!!selectedSpan} onOpenChange={() => setSelectedSpan(null)}>
-        <SheetContent className="sm:w-[64%] bg-slate-900 border-slate-700 overflow-y-auto">
+        <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto">
           {selectedSpan ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <HugeiconsIcon icon={InformationCircleIcon} className="w-6 h-6" />
+            <div className="space-y-6 text-foreground">
+              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
+                <SheetTitle className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <HugeiconsIcon icon={InformationCircleIcon} className="w-4 h-4 text-primary" />
                   Span Details
                 </SheetTitle>
               </SheetHeader>
 
-              <div className="p-6 pt-0 space-y-8">
-                {/* Header Section with timing info */}
-                <section className="flex justify-between items-start mb-8 bg-slate-800/30 border border-slate-700 rounded-xl p-6">
+              <div className="space-y-6">
+                {/* Header Section */}
+                <div className="bg-card border border-border rounded-lg p-4 shadow-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-white mb-2">
+                    <h2 className="text-sm font-bold text-foreground mb-1">
                       {selectedSpan.name}
                     </h2>
-                    <p className="text-slate-400">{selectedSpan.serviceName}</p>
+                    <p className="text-xs text-muted-foreground">{selectedSpan.serviceName}</p>
                   </div>
 
                   {/* Timing Panel */}
-                  <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border border-blue-700/50 rounded-xl p-4 min-w-[280px]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <HugeiconsIcon icon={Clock01Icon} className="w-5 h-5 text-blue-400" />
-                      <span className="text-blue-400 font-semibold">
+                  <div className="bg-muted border border-border rounded-lg p-3 min-w-[240px]">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-semibold text-foreground">
                         Timing
                       </span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 text-[10px] text-muted-foreground">
                       <div className="flex justify-between">
-                        <span className="text-slate-300 text-sm">
-                          Duration:
-                        </span>
-                        <span className="text-blue-300 font-mono font-semibold">
+                        <span>Duration:</span>
+                        <span className="text-primary font-mono font-semibold">
                           {selectedSpan.duration.toFixed(2)} ms
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300 text-sm">Started:</span>
-                        <span className="text-slate-300 font-mono text-xs">
-                          {format(
-                            selectedSpan.startTime,
-                            "MMM dd, yyyy | h:mmaaa"
-                          )}
+                        <span>Started:</span>
+                        <span className="text-foreground font-mono">
+                          {format(new Date(selectedSpan.startTime), "MMM dd, yyyy | h:mmaaa")}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300 text-sm">Ended:</span>
-                        <span className="text-slate-300 font-mono text-xs">
-                          {format(
-                            selectedSpan.endTime,
-                            "MMM dd, yyyy | h:mmaaa"
-                          )}
+                        <span>Ended:</span>
+                        <span className="text-foreground font-mono">
+                          {format(new Date(selectedSpan.endTime), "MMM dd, yyyy | h:mmaaa")}
                         </span>
                       </div>
                     </div>
                   </div>
-                </section>
+                </div>
 
-                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left Column - Main Info */}
-                  <div className="lg:col-span-2 space-y-6">
-                    {/* Basic Information */}
-                    <section className="bg-slate-800/20 border border-slate-700 rounded-xl p-6">
-                      <SectionHeader
-                        title="Basic Information"
-                        icon={Server}
-                        color="text-emerald-400"
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <section className="bg-card border border-border rounded-lg p-4 shadow-none">
+                    <SectionHeader
+                      title="Basic Information"
+                      icon={Server}
+                      color="text-primary"
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <InfoCard label="Span ID" value={selectedSpan.spanId} />
+                      <InfoCard
+                        label="Trace ID"
+                        value={selectedSpan.traceId}
                       />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InfoCard label="Span ID" value={selectedSpan.spanId} />
-                        <InfoCard
-                          label="Trace ID"
-                          value={selectedSpan.traceId}
-                        />
-                      </div>
-                    </section>
+                    </div>
+                  </section>
 
-                    {/* HTTP Information */}
-                    <section className="bg-slate-800/20 border border-slate-700 rounded-xl p-6">
-                      <SectionHeader
-                        title="HTTP Information"
-                        icon={GlobeIcon}
-                        color="text-orange-400"
+                  {/* HTTP Information */}
+                  <section className="bg-card border border-border rounded-lg p-4 shadow-none">
+                    <SectionHeader
+                      title="HTTP Information"
+                      icon={GlobeIcon}
+                      color="text-primary"
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <InfoCard
+                        label="Status"
+                        value={selectedSpan.httpStatus || "OK"}
                       />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InfoCard
-                          label="Status"
-                          value={selectedSpan.httpStatus || "OK"}
-                        />
-                        <InfoCard
-                          label="Request"
-                          value={
-                            selectedSpan.httpMethod && selectedSpan.httpUrl
-                              ? `${selectedSpan.httpMethod} ${selectedSpan.httpUrl}`
-                              : "-"
-                          }
-                        />
-                        <InfoCard
-                          label="Route"
-                          value={selectedSpan.attributes["next.route"] || "-"}
-                        />
-                        <InfoCard
-                          label="Span Type"
-                          value={
-                            selectedSpan.attributes["next.span_type"] || "-"
-                          }
-                        />
-                      </div>
-                    </section>
-
-                    {/* Custom Attributes */}
-                    {(() => {
-                      const customAttributes = Object.entries(
-                        selectedSpan.attributes || {}
-                      ).filter(([key]) => !key.startsWith("next."));
-
-                      if (customAttributes.length === 0) return null;
-
-                      return (
-                        <section className="bg-slate-800/20 border border-slate-700 rounded-xl p-6">
-                          <SectionHeader
-                            title="Custom Attributes"
-                            icon={Tag01Icon}
-                            color="text-purple-400"
-                          />
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {customAttributes.map(([key, val]) => (
-                              <InfoCard
-                                key={key}
-                                label={key}
-                                value={String(val ?? "-")}
-                              />
-                            ))}
-                          </div>
-                        </section>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Right Column - Resources */}
-                  <div className="space-y-6">
-                    <section className="bg-slate-800/20 border border-slate-700 rounded-xl p-6">
-                      <SectionHeader
-                        title="Resources"
-                        icon={DatabaseIcon}
-                        color="text-cyan-400"
+                      <InfoCard
+                        label="Request"
+                        value={
+                          selectedSpan.httpMethod && selectedSpan.httpUrl
+                            ? `${selectedSpan.httpMethod} ${selectedSpan.httpUrl}`
+                            : "-"
+                        }
                       />
-                      <div className="space-y-3">
-                        {Object.entries(selectedSpan.resources).map(
-                          ([key, val]) => (
-                            <div
+                      <InfoCard
+                        label="Route"
+                        value={selectedSpan.attributes["next.route"] || "-"}
+                      />
+                      <InfoCard
+                        label="Span Type"
+                        value={
+                          selectedSpan.attributes["next.span_type"] || "-"
+                        }
+                      />
+                    </div>
+                  </section>
+
+                  {/* Custom Attributes */}
+                  {(() => {
+                    const customAttributes = Object.entries(
+                      selectedSpan.attributes || {}
+                    ).filter(([key]) => !key.startsWith("next."));
+
+                    if (customAttributes.length === 0) return null;
+
+                    return (
+                      <section className="bg-card border border-border rounded-lg p-4 shadow-none">
+                        <SectionHeader
+                          title="Custom Attributes"
+                          icon={Tag01Icon}
+                          color="text-primary"
+                        />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {customAttributes.map(([key, val]) => (
+                            <InfoCard
                               key={key}
-                              className="border-b border-slate-700/50 pb-3 last:border-0 last:pb-0"
-                            >
-                              <div className="text-xs font-medium text-slate-400 mb-1">
-                                {key}
-                              </div>
-                              <div className="text-sm text-white font-mono break-all">
-                                {String(val ?? "-")}
-                              </div>
+                              label={key}
+                              value={String(val ?? "-")}
+                            />
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })()}
+
+                  {/* Resources */}
+                  <section className="bg-card border border-border rounded-lg p-4 shadow-none">
+                    <SectionHeader
+                      title="Resources"
+                      icon={DatabaseIcon}
+                      color="text-primary"
+                    />
+                    <div className="space-y-3">
+                      {Object.entries(selectedSpan.resources).map(
+                        ([key, val]) => (
+                          <div
+                            key={key}
+                            className="border-b border-border pb-2.5 last:border-0 last:pb-0"
+                          >
+                            <div className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground mb-1">
+                              {key}
                             </div>
-                          )
-                        )}
-                      </div>
-                    </section>
-                  </div>
-                </section>
+                            <div className="text-xs text-foreground font-mono break-all">
+                              {String(val ?? "-")}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </section>
+                </div>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="min-h-screen bg-slate-900 p-6 flex items-center justify-center">
-              <div className="text-slate-400">No span selected</div>
+            <div className="p-6 flex items-center justify-center">
+              <div className="text-muted-foreground text-xs">No span selected</div>
             </div>
           )}
         </SheetContent>
@@ -805,7 +784,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
 
 export default TraceToLogsComponent;
 
-// resuable components
+// reusable components
 const InfoCard = ({
   label,
   value,
@@ -813,28 +792,34 @@ const InfoCard = ({
 }: {
   label: string;
   value: string | number | null | undefined;
-  icon?: React.ComponentType<Omit<React.ComponentProps<typeof HugeiconsIcon>, "icon">>;
+  icon?: React.ComponentType<{ className?: string }>;
 }) => (
-  <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 hover:bg-slate-800/70 transition-colors">
-    <div className="flex items-center gap-2 mb-2">
-      {Icon && <Icon className="w-4 h-4 text-slate-400" />}
-      <span className="text-sm font-medium text-slate-400">{label}</span>
+  <div className="bg-muted border border-border rounded-lg p-3 hover:bg-muted/85 transition-colors text-foreground">
+    <div className="flex items-center gap-1.5 mb-1.5">
+      {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
+      <span className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">{label}</span>
     </div>
-    <div className="text-white font-mono text-sm break-all">{value}</div>
+    <div className="font-mono text-xs break-all">{value}</div>
   </div>
 );
 
 const SectionHeader = ({
   title,
   icon: Icon,
-  color = "text-slate-300",
+  color = "text-muted-foreground",
 }: {
   title: string;
-  icon: React.ComponentType<Omit<React.ComponentProps<typeof HugeiconsIcon>, "icon">>;
-  color: string;
+  icon: any;
+  color?: string;
 }) => (
-  <div className="flex items-center gap-2 mb-4">
-    {Icon && <Icon className={`w-5 h-5 ${color}`} />}
-    <h3 className={`text-lg font-semibold ${color}`}>{title}</h3>
+  <div className="flex items-center gap-1.5 mb-4">
+    {Icon && (
+      typeof Icon === "function" ? (
+        <Icon className={cn("w-4 h-4", color)} />
+      ) : (
+        <HugeiconsIcon icon={Icon} className={cn("w-4 h-4", color)} />
+      )
+    )}
+    <h3 className={cn("text-xs font-semibold", color)}>{title}</h3>
   </div>
 );
