@@ -1,5 +1,18 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert01Icon, Copy01Icon, Delete02Icon, FloppyDiskIcon, Key01Icon, Notification01Icon, Refresh01Icon, Settings01Icon, Tick01Icon, UserGroupIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import {
+  Alert01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  FloppyDiskIcon,
+  Key01Icon,
+  Notification01Icon,
+  Refresh01Icon,
+  Settings01Icon,
+  Tick01Icon,
+  UserGroupIcon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@hugeicons/core-free-icons";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -34,20 +47,6 @@ export default function SettingsTab({ project }: { project: Project }) {
   const [projectDescription, setProjectDescription] =
     useState<string>(description);
 
-  // const [notifications, setNotifications] = useState({
-  //   errorAlerts: true,
-  //   performanceAlerts: true,
-  //   weeklyReports: false,
-  //   downtimeNotifications: true,
-  // });
-
-  // const [projectSettings, setProjectSettings] = useState({
-  //   errorRetention: "30",
-  //   alertThreshold: "5",
-  //   autoResolve: true,
-  //   publicDashboard: false,
-  // });
-
   // Auto-generate project ID from project name
   useEffect(() => {
     const generateId = (name: string) =>
@@ -69,20 +68,6 @@ export default function SettingsTab({ project }: { project: Project }) {
     setProjectName(value);
     setHasUnsavedChanges(true);
   };
-
-  // const handleRoleChange = (memberId: number, newRole: string) => {
-  //   setTeamMembers((prev) =>
-  //     prev.map((member) =>
-  //       member.id === memberId ? { ...member, role: newRole } : member
-  //     )
-  //   );
-  //   setHasUnsavedChanges(true);
-  // };
-
-  // const handleRemoveMember = (memberId: number) => {
-  //   setTeamMembers((prev) => prev.filter((member) => member.id !== memberId));
-  //   setHasUnsavedChanges(true);
-  // };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
@@ -136,97 +121,54 @@ export default function SettingsTab({ project }: { project: Project }) {
     toast.success("API key copied to clipboard!");
   };
 
-  // const getRoleBadgeVariant = (role: string) => {
-  //   switch (role) {
-  //     case "Owner":
-  //       return "default";
-  //     case "Admin":
-  //       return "secondary";
-  //     case "Developer":
-  //     case "Viewer":
-  //       return "outline";
-  //     default:
-  //       return "outline";
-  //   }
-  // };
-
   return (
     <Card
       className={
         deleteDialogOpen
           ? ""
-          : "bg-slate-900/50 backdrop-blur-xl border-slate-700/50 space-y-8 p-6 min-h-screen"
+          : "bg-card border border-border space-y-5 p-4 rounded-lg shadow-none text-foreground"
       }
     >
-      {/* Header */}
-      {/* <div className="flex items-center justify-end">
-        <div className="flex items-center gap-3">
-          {hasUnsavedChanges && (
-            <div className="flex items-center gap-2 text-amber-400 text-sm">
-              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-              Unsaved changes
-            </div>
-          )}
-          <Button
-            onClick={handleSaveChanges}
-            disabled={!hasUnsavedChanges || isSaving}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            {isSaving ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
-      </div> */}
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-4">
           {/* Project Information */}
-          <Card className="bg-slate-900/50 border border-slate-700/50">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5 text-blue-400" />
-                <CardTitle className="text-xl">Project Information</CardTitle>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
+              <div className="flex items-center gap-1.5">
+                <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4 text-primary" />
+                <CardTitle className="text-xs font-semibold text-foreground">Project Information</CardTitle>
               </div>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
                 Basic configuration for your monitoring project
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
+            <CardContent className="p-4 space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80">
                     Project Name
                   </label>
                   <Input
                     value={projectName}
                     onChange={(e) => handleProjectNameChange(e.target.value)}
-                    className="bg-slate-900/50 border-slate-600 text-slate-300 focus:border-blue-400 transition-colors"
+                    className="bg-card border-border text-foreground text-xs h-8 shadow-none focus-visible:ring-1 transition-colors"
                     placeholder="Enter project name"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80">
                     Project ID
                   </label>
                   <div className="relative">
                     <Input
                       value={projectSlug}
-                      className="bg-slate-900/30 border-slate-600 text-slate-400 pr-12"
+                      className="bg-muted border-border text-muted-foreground text-xs h-8 pr-12 shadow-none"
                       disabled
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       <Badge
                         variant="outline"
-                        className="text-xs border-slate-600"
+                        className="text-[9px] px-1.5 py-0.5 border-border shadow-none"
                       >
                         Auto-generated
                       </Badge>
@@ -234,8 +176,8 @@ export default function SettingsTab({ project }: { project: Project }) {
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80">
                   Description
                 </label>
                 <Textarea
@@ -244,7 +186,7 @@ export default function SettingsTab({ project }: { project: Project }) {
                     setProjectDescription(e.target.value);
                     setHasUnsavedChanges(true);
                   }}
-                  className="bg-slate-900/50 border-slate-600 text-slate-300 focus:border-blue-400 transition-colors resize-none"
+                  className="bg-card border-border text-foreground text-xs shadow-none resize-none focus-visible:ring-1 transition-colors"
                   rows={3}
                   placeholder="Describe your project..."
                 />
@@ -253,139 +195,57 @@ export default function SettingsTab({ project }: { project: Project }) {
           </Card>
 
           {/* Team Management */}
-          <Card className="bg-slate-900/50 border border-slate-700/50">
-            <CardHeader className="pb-4">
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <HugeiconsIcon icon={UserGroupIcon} className="h-5 w-5 text-purple-400" />
-                  <CardTitle className="text-xl">Team Members</CardTitle>
+                <div className="flex items-center gap-1.5">
+                  <HugeiconsIcon icon={UserGroupIcon} className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-xs font-semibold text-foreground">Team Members</CardTitle>
                 </div>
                 <Badge
                   variant="outline"
-                  className="border-purple-400/30 text-purple-400"
+                  className="border-border text-muted-foreground text-[10px] px-1.5 py-0.5 shadow-none"
                 >
                   1 member
-                  {/* {teamMembers.length !== 1 ? "s" : ""} */}
                 </Badge>
               </div>
-              <CardDescription>
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
                 Manage team access and permissions
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center justify-center py-12">
-                <span className="text-2xl font-semibold text-slate-400">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex flex-col items-center justify-center py-8">
+                <span className="text-sm font-semibold text-muted-foreground">
                   Teams
                 </span>
-                <span className="text-lg text-slate-500 mb-4">Coming soon</span>
-                <span className="text-sm text-slate-600">
+                <span className="text-[10px] text-muted-foreground mt-0.5 mb-2">Coming soon</span>
+                <span className="text-[10px] text-muted-foreground/60">
                   Team management features will be available in a future update.
                 </span>
               </div>
-              {/* {teamMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-slate-900/30 border border-slate-700/30 hover:border-slate-600/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10 ring-2 ring-slate-700">
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-semibold">
-                        {member.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-slate-200">
-                          {member.name}
-                        </p>
-                        {member.isOwner && (
-                          <Shield className="h-4 w-4 text-amber-400" />
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-400">{member.email}</p>
-                      <p className="text-xs text-slate-500">
-                        Last active: {member.lastActive}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      variant={getRoleBadgeVariant(member.role)}
-                      className="min-w-[80px] justify-center"
-                    >
-                      {member.role}
-                    </Badge>
-                    {!member.isOwner && (
-                      <>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-slate-600 hover:border-slate-500"
-                            >
-                              Change Role
-                              <ChevronDown className="h-4 w-4 ml-2" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                            {["Admin", "Developer", "Viewer"].map((role) => (
-                              <DropdownMenuItem
-                                key={role}
-                                onClick={() =>
-                                  handleRoleChange(member.id, role)
-                                }
-                                className="hover:bg-slate-700"
-                              >
-                                {role}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveMember(member.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950/30"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                className="w-full border-dashed border-slate-600 hover:border-blue-400 hover:bg-blue-950/20 transition-colors"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Invite Team Member
-              </Button> */}
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-3 pt-2">
             {hasUnsavedChanges && (
-              <div className="flex items-center gap-2 text-amber-400 text-sm">
-                <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-semibold">
+                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
                 Unsaved changes
               </div>
             )}
             <Button
               onClick={handleSaveChanges}
               disabled={!hasUnsavedChanges || isSaving}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 px-3 font-semibold shadow-none"
             >
               {isSaving ? (
                 <>
-                  <HugeiconsIcon icon={Refresh01Icon} className="h-4 w-4 mr-2 animate-spin" />
+                  <HugeiconsIcon icon={Refresh01Icon} className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <HugeiconsIcon icon={FloppyDiskIcon} className="h-4 w-4 mr-2" />
+                  <HugeiconsIcon icon={FloppyDiskIcon} className="h-3.5 w-3.5 mr-1.5" />
                   Save Changes
                 </>
               )}
@@ -394,36 +254,36 @@ export default function SettingsTab({ project }: { project: Project }) {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* API Configuration */}
-          <Card className="bg-slate-900/50 border border-slate-700/50">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Key01Icon} className="h-5 w-5 text-green-400" />
-                <CardTitle className="text-lg">API Configuration</CardTitle>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
+              <div className="flex items-center gap-1.5">
+                <HugeiconsIcon icon={Key01Icon} className="h-4 w-4 text-emerald-500" />
+                <CardTitle className="text-xs font-semibold text-foreground">API Configuration</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
+            <CardContent className="p-4 space-y-3.5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80">
                   API Key
                 </label>
                 <div className="flex items-center gap-2">
                   <Input
                     value={showApiKey ? id : "•".repeat(id.length)}
-                    className="bg-slate-900/50 border-slate-600 font-mono text-sm"
+                    className="bg-card border-border font-mono text-xs h-8 shadow-none"
                     readOnly
                   />
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="border-slate-600"
+                    className="border-border text-xs h-8 px-2.5 shadow-none"
                   >
                     {showApiKey ? (
-                      <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={ViewOffIcon} className="h-3.5 w-3.5" />
                     ) : (
-                      <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={ViewIcon} className="h-3.5 w-3.5" />
                     )}
                   </Button>
                   <Button
@@ -432,14 +292,14 @@ export default function SettingsTab({ project }: { project: Project }) {
                     onClick={copyApiKey}
                     className={
                       apiKeyCopied
-                        ? "border-green-900 bg-green-800"
-                        : "border-slate-600"
+                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs h-8 px-2.5 shadow-none"
+                        : "border-border text-xs h-8 px-2.5 shadow-none"
                     }
                   >
                     {apiKeyCopied ? (
-                      <HugeiconsIcon icon={Tick01Icon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={Tick01Icon} className="h-3.5 w-3.5" />
                     ) : (
-                      <HugeiconsIcon icon={Copy01Icon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={Copy01Icon} className="h-3.5 w-3.5" />
                     )}
                   </Button>
                 </div>
@@ -447,77 +307,60 @@ export default function SettingsTab({ project }: { project: Project }) {
               <Button
                 disabled
                 variant="outline"
-                className="w-full border-slate-600"
+                className="w-full border-border text-xs h-8 shadow-none"
               >
-                <HugeiconsIcon icon={Refresh01Icon} className="h-4 w-4 mr-2" />
+                <HugeiconsIcon icon={Refresh01Icon} className="h-3.5 w-3.5 mr-1.5" />
                 Regenerate Key
               </Button>
             </CardContent>
           </Card>
 
           {/* Notifications */}
-          <Card className="bg-slate-900/50 border border-slate-700/50">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Notification01Icon} className="h-5 w-5 text-yellow-400" />
-                <CardTitle className="text-lg">Notifications</CardTitle>
+          <Card className="bg-card border border-border shadow-none rounded-lg">
+            <CardHeader className="py-3 px-4 border-b border-border/50">
+              <div className="flex items-center gap-1.5">
+                <HugeiconsIcon icon={Notification01Icon} className="h-4 w-4 text-amber-500" />
+                <CardTitle className="text-xs font-semibold text-foreground">Notifications</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center justify-center py-12">
-                <span className="text-2xl font-semibold text-slate-400">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex flex-col items-center justify-center py-8">
+                <span className="text-sm font-semibold text-muted-foreground">
                   Notifications
                 </span>
-                <span className="text-lg text-slate-500 mb-4">Coming soon</span>
-                <span className="text-sm text-slate-600">
+                <span className="text-[10px] text-muted-foreground mt-0.5 mb-2">Coming soon</span>
+                <span className="text-[10px] text-muted-foreground/60">
                   Notification features will be available in a future update.
                 </span>
               </div>
-              {/* {Object.entries(notifications).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <label className="text-sm text-slate-300 capitalize">
-                    {key.replace(/([A-Z])/g, " $1").toLowerCase()}
-                  </label>
-                  <Switch
-                    checked={value}
-                    onCheckedChange={(checked) => {
-                      setNotifications((prev) => ({ ...prev, [key]: checked }));
-                      setHasUnsavedChanges(true);
-                    }}
-                  />
-                </div>
-              ))} */}
             </CardContent>
           </Card>
 
           {/* Danger Zone */}
-          <Card className="bg-red-950/20 border border-red-900/50 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Alert01Icon} className="h-5 w-5 text-red-400" />
-                <CardTitle className="text-lg text-red-400">
+          <Card className="bg-destructive/5 border border-destructive/20 shadow-none rounded-lg">
+            <CardHeader className="py-3 px-4 border-b border-destructive/25">
+              <div className="flex items-center gap-1.5">
+                <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4 text-destructive" />
+                <CardTitle className="text-xs font-semibold text-destructive">
                   Danger Zone
                 </CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-red-300">Delete Project</h4>
-                  <p className="text-sm text-red-400/80 mt-1">
-                    Permanently delete this project and all associated data.
-                    This action cannot be undone.
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="w-full bg-red-600 hover:bg-red-700"
-                >
-                  <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4 mr-2" />
-                  Delete Project
-                </Button>
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <h4 className="text-xs font-semibold text-destructive">Delete Project</h4>
+                <p className="text-[10px] text-destructive/80 mt-0.5">
+                  Permanently delete this project and all associated data. This action cannot be undone.
+                </p>
               </div>
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+                className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
+              >
+                <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
+                Delete Project
+              </Button>
             </CardContent>
           </Card>
         </div>

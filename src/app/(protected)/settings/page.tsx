@@ -1,16 +1,32 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert01Icon, ArrowDown01Icon, Calendar01Icon, Camera01Icon, CheckmarkBadge01Icon, DatabaseIcon, Delete02Icon, Download01Icon, FloppyDiskIcon, Loading02Icon, LockIcon, Refresh01Icon, Search01Icon, Settings01Icon, UserIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import {
+  Alert01Icon,
+  ArrowDown01Icon,
+  Calendar01Icon,
+  Camera01Icon,
+  CheckmarkBadge01Icon,
+  DatabaseIcon,
+  Delete02Icon,
+  Download01Icon,
+  FloppyDiskIcon,
+  Loading02Icon,
+  LockIcon,
+  Refresh01Icon,
+  Search01Icon,
+  Settings01Icon,
+  UserIcon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@hugeicons/core-free-icons";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Zap
-} from "lucide-react";
+import { Zap, Sun, Moon } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -45,6 +61,7 @@ import { RenderDeleteAccountDialogComp } from "./delete-user-card";
 import { updateUser } from "@/lib/api/user-api";
 import { availableAvatars } from "@/components/avatars";
 import { normalizePostgresString, wrapAsPostgresString } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 import { UserFormSchema, type UserFormType } from "@/types/settings";
 
@@ -53,6 +70,8 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 export default function UserSettingsNew() {
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const curentUser = user && normalizePostgresString(user.avatar);
   const curentUserDetails = user && normalizePostgresString(user.provider);
   const isOAuthUser =
@@ -100,6 +119,10 @@ export default function UserSettingsNew() {
     useState<boolean>(false);
 
   // Effects
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (error) {
       setTimeout(() => setError(""), 5000);
@@ -175,8 +198,6 @@ export default function UserSettingsNew() {
       const { name, newPassword, avatar } = validation.data;
       const updateData = { name, password: newPassword, avatar };
 
-      console.log("data:", updateData);
-
       const res = await updateUser(updateData);
       if (!res) {
         setError("Failed to update user data");
@@ -230,36 +251,7 @@ export default function UserSettingsNew() {
   };
 
   const handleBatchDelete = async () => {
-    setLoading(true);
-    // const projectsToDelete = Array.from(selectedProjects);
-
-    // Animate selected projects
-    // projectsToDelete.forEach((projectId) => {
-    //   const projectEl = document.querySelector(
-    //     `[data-project-id="${projectId}"]`
-    //   ) as HTMLElement | null;
-    //   if (projectEl) {
-    //     projectEl.style.transform = "scale(0.8)";
-    //     projectEl.style.opacity = "0";
-    //     projectEl.style.transition = "all 0.4s ease-out";
-    //   }
-    // });
-
-    // try {
-    //   const res = await batchDeleteProjects(projectsToDelete);
-    //   if (!res || res.some((r) => !r.success)) {
-    //     setError("Failed to delete projects");
-    //   }
-
-    //   setProjects((prev) => prev.filter((p) => !selectedProjects.has(p.id)));
-    //   setSelectedProjects(new Set());
-    //   setBatchDeleteDialog(false);
-    //   toast.success("Selected projects deleted successfully!");
-    // } catch (error) {
-    //   console.error("Failed to delete projects:", error);
-    // } finally {
-    //   setLoading(false);
-    // }
+    // Left unimplemented in the original codebase
   };
 
   const handleDeleteAllProjects = async () => {
@@ -310,21 +302,21 @@ export default function UserSettingsNew() {
 
   // Render components
   const renderProfileTab = () => (
-    <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-      <CardHeader className="gap-0">
-        <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+    <Card className="bg-card border border-border shadow-none rounded-lg">
+      <CardHeader className="py-3 px-4 border-b border-border/50">
+        <CardTitle className="text-xs font-semibold text-foreground">
           Profile Information
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
           Update your personal details and avatar
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 ring-2 ring-slate-600">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center gap-3.5">
+          <Avatar className="h-12 w-12 border border-border">
             <AvatarImage src={userForm.avatar} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold">
+            <AvatarFallback className="bg-muted text-muted-foreground font-bold text-sm">
               {userForm.name
                 .split(" ")
                 .map((n) => n[0])
@@ -332,32 +324,32 @@ export default function UserSettingsNew() {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col space-y-1">
-            <label className="text-sm font-medium text-slate-300">
+            <label className="text-[10px] font-semibold text-muted-foreground">
               Profile Avatar
             </label>
             <Button
               onClick={() => setAvatarDialogOpen(true)}
-              variant="ghost"
-              className="border-slate-600 hover:border-blue-400"
+              variant="outline"
+              className="border-border text-foreground hover:bg-muted text-xs h-7 px-2.5 shadow-none"
             >
-              <HugeiconsIcon icon={Camera01Icon} className="h-4 w-4" />
+              <HugeiconsIcon icon={Camera01Icon} className="h-3.5 w-3.5 mr-1.5" />
               Change Avatar
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground/80">
               Full Name
             </label>
             <Input
               value={userForm.name}
               onChange={(e) => handleFormChange("name", e.target.value)}
-              className="bg-slate-900/50 border-slate-600 text-gray-400 focus:border-blue-400"
+              className="bg-card border-border text-foreground text-xs h-8 shadow-none focus-visible:ring-1"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground/80">
               Email Address
             </label>
             <Input
@@ -368,24 +360,24 @@ export default function UserSettingsNew() {
               }
               disabled
               type="email"
-              className="bg-slate-900/50 border-slate-600 focus:border-blue-400"
+              className="bg-muted border-border text-muted-foreground text-xs h-8 shadow-none"
             />
           </div>
         </div>
-        <div className="space-y-4 pt-4 border-t border-slate-700/50">
-          <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
-            <HugeiconsIcon icon={LockIcon} className="h-5 w-5 text-amber-400" />
+        <div className="space-y-4 pt-4 border-t border-border">
+          <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+            <HugeiconsIcon icon={LockIcon} className="h-4 w-4 text-amber-500" />
             Change Password
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(
               ["currentPassword", "newPassword", "confirmPassword"] as const
             ).map((field) => (
-              <div key={field} className="space-y-2">
+              <div key={field} className="space-y-1.5">
                 <label
                   className={clsx(
-                    "text-sm font-medium text-slate-300",
-                    isOAuthUser && "text-slate-500"
+                    "text-xs font-semibold text-foreground/80",
+                    isOAuthUser && "text-muted-foreground/60"
                   )}
                 >
                   {field === "currentPassword"
@@ -401,10 +393,10 @@ export default function UserSettingsNew() {
                     placeholder="********"
                     disabled={isOAuthUser}
                     onChange={(e) => handleFormChange(field, e.target.value)}
-                    className="bg-slate-900/50 border-slate-600 text-gray-400 focus:border-blue-400 pr-10"
+                    className="bg-card border-border text-foreground text-xs h-8 shadow-none pr-9 focus-visible:ring-1"
                   />
                   <span
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-200"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
                     onClick={() =>
                       setShowPassword((prev) => ({
                         ...prev,
@@ -413,9 +405,9 @@ export default function UserSettingsNew() {
                     }
                   >
                     {showPassword[field] ? (
-                      <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={ViewOffIcon} className="h-3.5 w-3.5" />
                     ) : (
-                      <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={ViewIcon} className="h-3.5 w-3.5" />
                     )}
                   </span>
                 </div>
@@ -428,51 +420,51 @@ export default function UserSettingsNew() {
   );
 
   const renderProjectsTab = () => (
-    <div className="space-y-6">
-      <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-        <CardHeader>
+    <div className="space-y-4">
+      <Card className="bg-card border border-border shadow-none rounded-lg">
+        <CardHeader className="py-3 px-4 border-b border-border/50">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <CardTitle className="text-xs font-semibold text-foreground">
                 Your Projects
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
                 Manage all your monitoring projects
               </CardDescription>
             </div>
             <Badge
               variant="outline"
-              className="border-blue-400/30 text-blue-400 text-lg px-3 py-1"
+              className="border-border text-foreground text-xs px-2 py-0.5 shadow-none"
             >
               {projects.length} total
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 items-center mb-6">
-            <div className="flex items-center gap-2 flex-1 min-w-[300px]">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-3 items-center mb-4">
+            <div className="flex items-center gap-2 flex-grow min-w-[200px]">
               <div className="relative flex-1">
-                <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <HugeiconsIcon icon={Search01Icon} className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Search projects by name..."
+                  placeholder="Search projects..."
                   value={projectSearch}
                   onChange={(e) => setProjectSearch(e.target.value)}
-                  className="bg-slate-900/50 border-slate-600 focus:border-blue-400 pl-10"
+                  className="bg-card border-border text-foreground text-xs h-8 shadow-none pl-8 focus-visible:ring-1"
                 />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" className="border-slate-600">
+                  <Button variant="outline" className="border-border text-xs h-8 px-2.5 shadow-none gap-1.5">
                     {projectFilter}
-                    <HugeiconsIcon icon={ArrowDown01Icon} className="h-4 w-4" />
+                    <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                <DropdownMenuContent className="bg-card border border-border text-foreground rounded-lg shadow-sm">
                   {["Ascending", "Descending"].map((order) => (
                     <DropdownMenuItem
                       key={order}
                       onClick={() => setProjectFilter(order)}
-                      className="hover:bg-slate-700"
+                      className="hover:bg-muted text-xs cursor-pointer"
                     >
                       {order}
                     </DropdownMenuItem>
@@ -483,18 +475,16 @@ export default function UserSettingsNew() {
             {selectedProjects.size > 0 && (
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <Badge
-                  variant="secondary"
-                  className="bg-blue-600/20 text-blue-400"
+                  className="bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-400 text-[10px] px-1.5 py-0.5 rounded font-semibold shadow-none"
                 >
                   {selectedProjects.size} selected
                 </Badge>
                 <Button
                   onClick={() => setBatchDeleteDialog(true)}
                   variant="destructive"
-                  size="sm"
-                  className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30"
+                  className="bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 text-xs h-8 px-2.5 rounded shadow-none font-semibold"
                 >
-                  <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+                  <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
                   Delete Selected
                 </Button>
               </div>
@@ -504,23 +494,23 @@ export default function UserSettingsNew() {
               variant="destructive"
               disabled={projects.length === 0}
               className={clsx(
-                "bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/30",
-                projects.length === 0 && "cursor-not-allowed"
+                "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 text-xs h-8 px-2.5 rounded shadow-none font-semibold",
+                projects.length === 0 && "opacity-50 cursor-not-allowed"
               )}
             >
-              <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+              <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
               Delete All
             </Button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredProjects.map((project) => (
               <div
                 key={project.id}
                 data-project-id={project.id}
-                className="group p-4 bg-slate-900/30 border border-slate-700/30 rounded-lg hover:border-slate-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                className="group p-3 bg-muted/20 border border-border rounded-lg hover:border-muted-foreground/30 transition-all duration-200"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <Checkbox
                       checked={selectedProjects.has(project.id)}
                       onCheckedChange={(checked) => {
@@ -531,61 +521,61 @@ export default function UserSettingsNew() {
                           return newSet;
                         });
                       }}
-                      className="border-slate-600"
+                      className="border-border rounded shadow-none"
                     />
-                    <div className="space-y-1">
-                      <h3 className="font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
+                    <div className="space-y-0.5">
+                      <h3 className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors">
                         {project.name}
                       </h3>
-                      <div className="flex items-center text-sm text-slate-400 w-full flex-wrap gap-2">
+                      <div className="flex items-center text-[10px] text-muted-foreground gap-3">
                         <span className="flex items-center gap-1">
                           <HugeiconsIcon icon={Calendar01Icon} className="h-3 w-3" />
                           Created:{" "}
-                          {format(new Date(project.createdAt), "MMM, dd, yyyy")}
+                          {format(new Date(project.createdAt), "MMM dd, yyyy")}
                         </span>
                         <span
                           className={clsx(
                             project.errorCount > 0
-                              ? "text-red-400"
-                              : "text-green-400",
-                            "flex items-center gap-1"
+                              ? "text-red-500"
+                              : "text-emerald-500",
+                            "flex items-center gap-1 font-semibold"
                           )}
                         >
                           <HugeiconsIcon icon={Alert01Icon} className="h-3 w-3" />
-                          {project.errorCount} errors
+                          {project.errorCount} error{project.errorCount !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       onClick={() =>
                         router.push(`/projects/${project.slug}?tab=settings`)
                       }
                       variant="ghost"
-                      size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-200"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground h-7 w-7 hover:bg-muted"
                     >
-                      <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       onClick={() =>
                         setDeleteProjectDialog({ open: true, project })
                       }
                       variant="ghost"
-                      size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 h-7 w-7 hover:bg-red-500/10"
                     >
-                      <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
               </div>
             ))}
             {filteredProjects.length === 0 && (
-              <div className="text-center py-12">
-                <HugeiconsIcon icon={DatabaseIcon} className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">
+              <div className="text-center py-8">
+                <HugeiconsIcon icon={DatabaseIcon} className="h-8 w-8 text-muted-foreground/45 mx-auto mb-2" />
+                <p className="text-muted-foreground text-xs">
                   {projectSearch || projectFilter !== "Ascending"
                     ? "No projects match your filters"
                     : "No projects found"}
@@ -598,22 +588,73 @@ export default function UserSettingsNew() {
     </div>
   );
 
+  const renderAppearanceTab = () => (
+    <Card className="bg-card border border-border shadow-none rounded-lg">
+      <CardHeader className="py-3 px-4 border-b border-border/50">
+        <CardTitle className="text-xs font-semibold text-foreground">
+          Appearance Settings
+        </CardTitle>
+        <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+          Customize the visual theme of your dashboard preferences
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            onClick={() => setTheme("light")}
+            className={clsx(
+              "p-4 rounded-lg border text-left transition-all duration-200 cursor-pointer",
+              mounted && theme === "light"
+                ? "border-primary bg-muted/40"
+                : "border-border hover:border-muted-foreground/30"
+            )}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-foreground">Light Mode</span>
+              <Sun className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Default light slate design for clear visibility in bright settings.
+            </p>
+          </button>
+
+          <button
+            onClick={() => setTheme("dark")}
+            className={clsx(
+              "p-4 rounded-lg border text-left transition-all duration-200 cursor-pointer",
+              mounted && theme === "dark"
+                ? "border-primary bg-muted/40"
+                : "border-border hover:border-muted-foreground/30"
+            )}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-foreground">Dark Mode</span>
+              <Moon className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Low-light zinc theme to reduce eye strain in darker environments.
+            </p>
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderDangerZoneTab = () => (
-    <Card className="bg-red-950/20 border border-red-900/50 backdrop-blur-xl">
-      <CardHeader>
-        <CardTitle className="text-red-400">Danger Zone</CardTitle>
-        <CardDescription className="text-red-400/80">
+    <Card className="bg-destructive/5 border border-destructive/20 shadow-none rounded-lg">
+      <CardHeader className="py-3 px-4 border-b border-destructive/25">
+        <CardTitle className="text-xs font-semibold text-destructive">Danger Zone</CardTitle>
+        <CardDescription className="text-[10px] text-destructive/80 mt-0.5">
           Irreversible and destructive actions
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="p-4 flex items-center justify-between bg-red-950/30 rounded-lg border border-red-900/30">
+      <CardContent className="p-4 space-y-4">
+        <div className="space-y-3">
+          <div className="p-3 flex items-center justify-between bg-destructive/5 rounded-lg border border-destructive/20 gap-4">
             <div>
-              <h4 className="font-medium text-red-300">Delete All Projects</h4>
-              <p className="text-sm text-red-400/80 mt-1">
-                Permanently delete all your projects and their data. This cannot
-                be undone.
+              <h4 className="text-xs font-semibold text-destructive">Delete All Projects</h4>
+              <p className="text-[10px] text-destructive/80 mt-0.5">
+                Permanently delete all your projects and their data. This cannot be undone.
               </p>
             </div>
             <Button
@@ -621,28 +662,27 @@ export default function UserSettingsNew() {
               variant="destructive"
               disabled={projects.length === 0}
               className={clsx(
-                "bg-red-600 hover:bg-red-700",
-                projects.length === 0 && "cursor-not-allowed"
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-2.5 shadow-none font-semibold",
+                projects.length === 0 && "opacity-50 cursor-not-allowed"
               )}
             >
-              <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
-              Delete All Projects
+              <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
+              Delete All
             </Button>
           </div>
-          <div className="p-4 flex items-center justify-between bg-red-950/30 rounded-lg border border-red-900/30">
+          <div className="p-3 flex items-center justify-between bg-destructive/5 rounded-lg border border-destructive/20 gap-4">
             <div>
-              <h4 className="font-medium text-red-300">Delete Account</h4>
-              <p className="text-sm text-red-400/80 mt-1">
-                Permanently delete your account and all associated data. This
-                action is irreversible.
+              <h4 className="text-xs font-semibold text-destructive">Delete Account</h4>
+              <p className="text-[10px] text-destructive/80 mt-0.5">
+                Permanently delete your account and all associated data. This action is irreversible.
               </p>
             </div>
             <Button
               onClick={() => setDeleteAccountDialog({ open: true, step: 1 })}
               variant="destructive"
-              className="bg-red-700 hover:bg-red-800"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-2.5 shadow-none font-semibold"
             >
-              <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+              <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
               Delete Account
             </Button>
           </div>
@@ -653,43 +693,37 @@ export default function UserSettingsNew() {
 
   const renderAvatarDialog = () => (
     <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
-      <DialogContent className="bg-slate-800 border-slate-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-border/50">
+          <DialogTitle className="text-xs font-bold text-foreground">
             Choose Avatar
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
             Select a new avatar for your profile
           </DialogDescription>
         </DialogHeader>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="grid grid-cols-3 gap-4 py-4"
-        >
+        <div className="grid grid-cols-3 gap-3 p-4">
           {availableAvatars.map((avatar, index) => (
-            <motion.button
+            <button
               key={index}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 handleFormChange("avatar", avatar);
                 setAvatarDialogOpen(false);
               }}
-              className={`p-2 rounded-lg border-2 transition-all duration-200 ${
+              className={clsx(
+                "p-1.5 rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center",
                 userForm.avatar === avatar
-                  ? "border-blue-400 bg-blue-400/10"
-                  : "border-slate-600 hover:border-blue-500"
-              }`}
+                  ? "border-primary bg-muted"
+                  : "border-border hover:border-muted-foreground/30"
+              )}
             >
-              <Avatar className="h-16 w-16 mx-auto">
+              <Avatar className="h-10 w-10">
                 <AvatarImage src={avatar} />
                 <AvatarFallback>?</AvatarFallback>
               </Avatar>
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -699,34 +733,32 @@ export default function UserSettingsNew() {
       open={deleteProjectDialog.open}
       onOpenChange={(open) => setDeleteProjectDialog({ open, project: null })}
     >
-      <DialogContent className="bg-slate-800 border-slate-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-            <HugeiconsIcon icon={Alert01Icon} className="h-5 w-5" />
+      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-border/50">
+          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+            <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete Project
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete &quot;
-            {deleteProjectDialog.project?.name}
-            &quot;? This action cannot be undone.
+          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+            Are you sure you want to delete &quot;{deleteProjectDialog.project?.name}&quot;? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="p-3 bg-muted/10 border-t border-border/50 flex gap-2 justify-end">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={() =>
               setDeleteProjectDialog({ open: false, project: null })
             }
-            className="border-slate-600"
+            className="border-border text-xs h-8 px-3 shadow-none font-semibold"
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={() => handleDeleteProject(deleteProjectDialog.project)}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
           >
-            <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+            <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
             Delete Project
           </Button>
         </DialogFooter>
@@ -736,31 +768,30 @@ export default function UserSettingsNew() {
 
   const renderBatchDeleteDialog = () => (
     <Dialog open={batchDeleteDialog} onOpenChange={setBatchDeleteDialog}>
-      <DialogContent className="bg-slate-800 border-slate-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
-            <HugeiconsIcon icon={Alert01Icon} className="h-5 w-5" />
+      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-border/50">
+          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+            <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete Selected Projects
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete {selectedProjects.size} selected
-            projects? This action cannot be undone.
+          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+            Are you sure you want to delete {selectedProjects.size} selected projects? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="p-3 bg-muted/10 border-t border-border/50 flex gap-2 justify-end">
           <Button
             variant="outline"
             onClick={() => setBatchDeleteDialog(false)}
-            className="border-slate-600"
+            className="border-border text-xs h-8 px-3 shadow-none font-semibold"
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleBatchDelete}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
           >
-            <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+            <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
             Delete {selectedProjects.size} Projects
           </Button>
         </DialogFooter>
@@ -773,37 +804,35 @@ export default function UserSettingsNew() {
       open={deleteAllProjectsDialog}
       onOpenChange={setDeleteAllProjectsDialog}
     >
-      <DialogContent className="bg-slate-800 border-slate-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl text-red-400 flex items-center gap-2">
+      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-border/50">
+          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+            <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete All Projects
           </DialogTitle>
-          <DialogDescription>
-            This will permanently delete{" "}
-            <b className="text-white/75">ALL {projects.length}</b> of your
-            projects and their data. This action cannot be undone.
+          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+            This will permanently delete all {projects.length} of your projects and their data. This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-red-400/80 bg-red-950/30 p-3 rounded-lg border border-red-900/30">
-            This is a destructive action that will remove all monitoring data,
-            configurations, and history for all projects.
+        <div className="p-4">
+          <p className="text-xs text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/25 leading-relaxed">
+            This is a destructive action that will remove all monitoring data, configurations, and history for all projects.
           </p>
         </div>
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="p-3 bg-muted/10 border-t border-border/50 flex gap-2 justify-end">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={() => setDeleteAllProjectsDialog(false)}
-            className="border-slate-600"
+            className="border-border text-xs h-8 px-3 shadow-none font-semibold"
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleDeleteAllProjects}
-            className="bg-red-700 hover:bg-red-800"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
           >
-            <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+            <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
             Delete All Projects
           </Button>
         </DialogFooter>
@@ -813,52 +842,49 @@ export default function UserSettingsNew() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <HugeiconsIcon icon={Loading02Icon} className="h-8 w-8 animate-spin text-blue-400 mx-auto" />
-          <p className="text-slate-400">Loading your settings...</p>
+          <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-primary mx-auto" />
+          <p className="text-xs text-muted-foreground">Loading your settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white py-12">
-      <div className="max-w-full lg:max-w-10/12 mx-auto">
+    <div className="min-h-screen bg-background text-foreground py-10">
+      <div className="max-w-5xl mx-auto">
         {error && <CustomErrorMessage error={error} />}
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
+        transition={{ duration: 0.3 }}
+        className="max-w-5xl mx-auto px-6"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+        <div
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
+            <h1 className="text-lg font-bold text-foreground mb-0.5">
               Account Settings
             </h1>
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-xs">
               Manage your account, projects, and preferences
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <AnimatePresence>
               {hasUnsavedChanges && (
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 15 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="flex items-center gap-2 text-amber-400 text-sm"
+                  exit={{ opacity: 0, x: 15 }}
+                  className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-semibold"
                 >
-                  <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
                   Unsaved changes
                 </motion.div>
               )}
@@ -868,115 +894,121 @@ export default function UserSettingsNew() {
               type="submit"
               onClick={handleSaveChanges}
               disabled={!hasUnsavedChanges || isSaving}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+              className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none px-4 rounded-md"
             >
               {isSaving ? (
                 <>
-                  <HugeiconsIcon icon={Refresh01Icon} className="h-4 w-4 animate-spin" />
+                  <HugeiconsIcon icon={Refresh01Icon} className="h-3.5 w-3.5 animate-spin mr-1.5" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <HugeiconsIcon icon={FloppyDiskIcon} className="h-4 w-4" />
+                  <HugeiconsIcon icon={FloppyDiskIcon} className="h-3.5 w-3.5 mr-1.5" />
                   Save Changes
                 </>
               )}
             </Button>
           </div>
-        </motion.div>
+        </div>
 
-        <div className="flex items-center justify-between border-b-2 border-slate-700/50 mb-4">
-          <div className="flex space-x-6">
+        <div className="flex items-center justify-between border-b border-border mb-6">
+          <div className="flex space-x-4">
             {[
               { id: "profile", label: "Profile", icon: UserIcon },
               { id: "projects", label: "Projects", icon: DatabaseIcon },
+              { id: "appearance", label: "Appearance", icon: Settings01Icon },
               { id: "danger", label: "Danger Zone", icon: Alert01Icon },
             ].map((tab) => (
-              <h2
+              <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 border-transparent border-b-2 cursor-pointer py-2 px-1 text-sm transition-all duration-200 ${
+                className={`flex items-center gap-1.5 border-b-2 cursor-pointer py-2 px-1 text-xs font-semibold transition-all duration-200 h-9 ${
                   activeTab === tab.id
-                    ? "border-b-2 border-b-blue-600 text-white"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <HugeiconsIcon icon={tab.icon} className="h-4 w-4" />
+                <HugeiconsIcon icon={tab.icon} className="h-3.5 w-3.5" />
                 {tab.label}
-              </h2>
+              </button>
             ))}
           </div>
 
           <Button
             variant="ghost"
             onClick={() => window.history.back()}
-            className="border-none text-slate-400 hover:text-slate-200"
+            className="border-none text-muted-foreground hover:text-foreground text-xs hover:bg-muted"
           >
             Back Home
-            <HugeiconsIcon icon={ArrowDown01Icon} className="h-4 w-4 rotate-[-90deg]" />
+            <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5 rotate-[-90deg] ml-1.5" />
           </Button>
         </div>
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           <div className="xl:col-span-3">
             {activeTab === "profile" && renderProfileTab()}
             {activeTab === "projects" && renderProjectsTab()}
+            {activeTab === "appearance" && renderAppearanceTab()}
             {activeTab === "danger" && renderDangerZoneTab()}
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-              <CardContent className="p-6">
-                <div className="text-center space-y-4">
-                  <Avatar className="h-20 w-20 mx-auto ring-4 ring-blue-400/20">
-                    <AvatarImage src={user?.avatar.String} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white font-bold text-2xl">
-                      {user?.name
+            <Card className="bg-card border border-border shadow-none rounded-lg">
+              <CardContent className="p-5">
+                <div className="text-center space-y-3">
+                  <Avatar className="h-14 w-14 mx-auto border border-border">
+                    <AvatarImage src={userForm.avatar} />
+                    <AvatarFallback className="bg-muted text-muted-foreground font-bold text-lg">
+                      {userForm.name
                         ?.split(" ")
                         .map((n) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-slate-200 text-xl">
+                    <h3 className="font-semibold text-foreground text-sm">
                       {user?.name}
                     </h3>
-                    <p className="text-slate-400 text-xs mb-2 mt-1">
+                    <p className="text-muted-foreground text-[10px] mb-2 mt-0.5">
                       Signed in with {curentUserDetails || "password"}
                     </p>
                     <Badge
                       variant="outline"
-                      className={
+                      className={clsx(
+                        "text-[9px] px-1.5 py-0.5 font-semibold rounded shadow-none border",
                         user?.avatar.Valid
-                          ? "text-green-400 border-green-900/30"
-                          : "border-purple-400/30 text-purple-400"
-                      }
+                          ? "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30"
+                          : "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/30"
+                      )}
                     >
-                      <HugeiconsIcon icon={CheckmarkBadge01Icon} />
+                      <HugeiconsIcon icon={CheckmarkBadge01Icon} className="h-3 w-3 mr-1" />
                       {user?.avatar.Valid ? "Verified" : "Unverified"}
                     </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-slate-800/50 border border-slate-700/50 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-yellow-400" />
+
+            <Card className="bg-card border border-border shadow-none rounded-lg">
+              <CardHeader className="py-3 px-4 border-b border-border/50">
+                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Zap className="h-4 w-4 text-amber-500" />
                   Quick Actions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="p-3">
                 <Button
-                  variant="secondary"
-                  className="w-full border-slate-600 justify-start"
+                  variant="outline"
+                  className="w-full border-border text-foreground hover:bg-muted text-xs justify-start h-8 shadow-none"
                 >
-                  <HugeiconsIcon icon={Download01Icon} className="h-4 w-4 mr-2" />
+                  <HugeiconsIcon icon={Download01Icon} className="h-3.5 w-3.5 mr-2" />
                   Export Data
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
+
         {renderAvatarDialog()}
         {renderDeleteProjectDialog()}
         {renderBatchDeleteDialog()}
