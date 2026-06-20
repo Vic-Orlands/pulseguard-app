@@ -203,7 +203,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         return (
           <>
             <FormField label="Profile Picture" error={errors.avatar?.message}>
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {/* Avatar Type Toggle */}
                 <div className="flex gap-2">
                   <button
@@ -213,13 +213,13 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       setValue("avatarType", "predefined");
                       setValue("avatar", selectedAvatar);
                     }}
-                    className={`flex-1 py-2 px-4 rounded-md text-sm transition ${
+                    className={`flex-1 py-1.5 px-4 rounded-md text-xs font-semibold transition ${
                       avatarType === "predefined"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground border border-border hover:bg-muted"
                     }`}
                   >
-                    <HugeiconsIcon icon={Camera01Icon} className="h-4 w-4 inline mr-2" />
+                    <HugeiconsIcon icon={Camera01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
                     Choose Avatar
                   </button>
                   <button
@@ -229,13 +229,13 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       setValue("avatarType", "upload");
                       if (uploadedAvatar) setValue("avatar", uploadedAvatar);
                     }}
-                    className={`flex-1 py-2 px-4 rounded-md text-sm transition ${
+                    className={`flex-1 py-1.5 px-4 rounded-md text-xs font-semibold transition ${
                       avatarType === "upload"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground border border-border hover:bg-muted"
                     }`}
                   >
-                    <HugeiconsIcon icon={Upload01Icon} className="h-4 w-4 inline mr-2" />
+                    <HugeiconsIcon icon={Upload01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
                     Upload Image
                   </button>
                 </div>
@@ -250,21 +250,21 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         onClick={() => handleAvatarSelect(avatar)}
                         className={`relative group overflow-hidden rounded-lg border-2 transition ${
                           selectedAvatar === avatar
-                            ? "border-blue-500 ring-2 ring-blue-500/50"
-                            : "border-gray-700 hover:border-gray-600"
+                            ? "border-primary ring-2 ring-primary/20"
+                            : "border-border hover:border-muted-foreground/30"
                         }`}
                       >
                         <Image
                           src={avatar}
                           alt={`Avatar ${index + 1}`}
-                          className="w-full h-16 object-cover bg-gray-800"
+                          className="w-full h-16 object-cover bg-muted"
                           width={64}
                           height={64}
                           unoptimized={isDiceBearAvatar(avatar)}
                         />
                         {selectedAvatar === avatar && (
-                          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-blue-500" />
+                          <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-primary" />
                           </div>
                         )}
                       </button>
@@ -284,20 +284,20 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                     />
                     <label
                       htmlFor="avatar-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition"
+                      className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted transition"
                     >
                       {uploadedAvatar ? (
                         <Image
                           src={uploadedAvatar}
                           alt="Uploaded avatar"
-                          className="w-16 h-16 rounded-full object-cover"
-                          width={64}
-                          height={64}
+                          className="w-12 h-12 rounded-full object-cover"
+                          width={48}
+                          height={48}
                         />
                       ) : (
                         <>
-                          <HugeiconsIcon icon={Upload01Icon} className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-400">
+                          <HugeiconsIcon icon={Upload01Icon} className="h-6 w-6 text-muted-foreground mb-1.5" />
+                          <span className="text-xs text-muted-foreground">
                             Click to upload image
                           </span>
                         </>
@@ -307,7 +307,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                 )}
 
                 {/* Current Avatar Preview */}
-                <div className="flex items-center gap-3 p-3 bg-black/30 rounded-lg">
+                <div className="flex items-center gap-3 p-2.5 bg-background border border-border rounded-lg">
                   <Image
                     src={
                       avatarType === "upload"
@@ -316,9 +316,9 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         : selectedAvatar
                     }
                     alt="Current avatar"
-                    className="rounded-full h-12 w-12 object-contain bg-gray-800"
-                    width={48}
-                    height={48}
+                    className="rounded-full object-contain bg-muted"
+                    width={40}
+                    height={40}
                     quality={80}
                     unoptimized={isDiceBearAvatar(
                       avatarType === "upload"
@@ -327,8 +327,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                     )}
                   />
                   <div>
-                    <p className="text-sm text-white">Current Selection</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs font-semibold text-foreground">Current Selection</p>
+                    <p className="text-[10px] text-muted-foreground">
                       {avatarType === "upload"
                         ? "Uploaded Image"
                         : "Predefined Avatar"}
@@ -349,46 +349,46 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               <input
                 type="text"
                 placeholder="Your Company"
-                className="px-4 py-2 w-full rounded-md bg-black/30 border border-blue-900/40 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="px-4 py-1.5 w-full rounded-md bg-background border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
                 {...register("company")}
               />
             </FormField>
 
             <FormField label="Role (Optional)" error={errors.role?.message}>
               <Select onValueChange={(value) => setValue("role", value)}>
-                <SelectTrigger className="w-full rounded-md bg-black/30 border border-blue-900/40 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <SelectTrigger className="w-full rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border border-blue-900/40">
+                <SelectContent className="bg-popover border border-border text-foreground">
                   <SelectGroup>
-                    <SelectLabel className="text-gray-400">Role</SelectLabel>
+                    <SelectLabel className="text-muted-foreground text-xs">Role</SelectLabel>
                     <SelectItem
                       value="developer"
-                      className="text-white hover:bg-blue-900/30 focus:bg-blue-900/30"
+                      className="hover:bg-muted focus:bg-muted text-sm"
                     >
                       Developer
                     </SelectItem>
                     <SelectItem
                       value="devops"
-                      className="text-white hover:bg-blue-900/30 focus:bg-blue-900/30"
+                      className="hover:bg-muted focus:bg-muted text-sm"
                     >
                       DevOps Engineer
                     </SelectItem>
                     <SelectItem
                       value="sre"
-                      className="text-white hover:bg-blue-900/30 focus:bg-blue-900/30"
+                      className="hover:bg-muted focus:bg-muted text-sm"
                     >
                       SRE
                     </SelectItem>
                     <SelectItem
                       value="manager"
-                      className="text-white hover:bg-blue-900/30 focus:bg-blue-900/30"
+                      className="hover:bg-muted focus:bg-muted text-sm"
                     >
                       Engineering Manager
                     </SelectItem>
                     <SelectItem
                       value="other"
-                      className="text-white hover:bg-blue-900/30 focus:bg-blue-900/30"
+                      className="hover:bg-muted focus:bg-muted text-sm"
                     >
                       Other
                     </SelectItem>
@@ -403,31 +403,31 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Create an account</h1>
-        <p className="text-gray-400">Sign up for PulseGuard</p>
+      <div className="text-center mb-5">
+        <h1 className="text-lg font-bold text-foreground">Create an account</h1>
+        <p className="text-xs text-muted-foreground">Sign up for PulseGuard</p>
       </div>
 
-      <div className="flex mb-6 items-center justify-center">
+      <div className="flex mb-5 items-center justify-center">
         <div className="flex items-center w-full max-w-md">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex-1 relative">
               <motion.div
-                className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${
                   step > i
-                    ? "bg-green-500"
+                    ? "bg-emerald-600 dark:bg-emerald-500 text-white"
                     : step === i
-                    ? "bg-blue-600"
-                    : "bg-gray-700"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground border border-border"
                 }`}
                 animate={{
-                  scale: step === i ? [1, 1.1, 1] : 1,
+                  scale: step === i ? [1, 1.05, 1] : 1,
                 }}
                 transition={{
                   duration: 0.5,
@@ -436,12 +436,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                 }}
               >
                 {step > i ? (
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-white z-10" />
+                  <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4.5 w-4.5 text-white z-10" />
                 ) : (
-                  <span className="text-white text-sm">{i}</span>
+                  <span className="text-xs font-semibold">{i}</span>
                 )}
               </motion.div>
-              <div className="text-xs text-gray-400 text-center mt-1">
+              <div className="text-[10px] font-medium text-muted-foreground text-center mt-1">
                 {i === 1
                   ? "Account"
                   : i === 2
@@ -453,8 +453,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
               {i < 4 && (
                 <div
-                  className={`absolute top-4 left-full w-full h-0.5 -translate-x-5/12 -z-10 ${
-                    step > i ? "bg-green-500" : "bg-gray-700"
+                  className={`absolute top-3.5 left-full w-full h-[1px] -translate-x-5/12 -z-10 ${
+                    step > i ? "bg-emerald-600 dark:bg-emerald-500" : "bg-border"
                   }`}
                 />
               )}
@@ -466,35 +466,36 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-4 bg-red-950/50 border-red-800"
+          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+          </div>
         </Alert>
       )}
 
-      <form className="space-y-4">
+      <form className="space-y-3.5">
         <AnimatePresence mode="wait">
           <motion.div
             key={`step-${step}`}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 15 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, x: -15 }}
+            transition={{ duration: 0.2 }}
           >
             {renderStepContent()}
           </motion.div>
         </AnimatePresence>
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-5">
           {step > 1 && (
             <motion.button
               type="button"
               onClick={prevStep}
-              className="flex-1 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-700 transition"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="flex-1 bg-background border border-border text-foreground py-1.5 rounded-md hover:bg-muted text-xs font-semibold transition"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
               Back
             </motion.button>
@@ -505,30 +506,30 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             disabled={isPending}
             className={`${
               step > 1 ? "flex-1" : "w-full"
-            } bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            } bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center gap-1.5`}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             {isPending ? (
-              <HugeiconsIcon icon={Loading02Icon} className="h-5 w-5 animate-spin" />
+              <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
             ) : (
               <>
                 {step === 4 ? "Register" : "Continue"}
-                {!isPending && <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />}
+                {!isPending && <HugeiconsIcon icon={ArrowRight01Icon} className="h-3.5 w-3.5" />}
               </>
             )}
           </motion.button>
         </div>
       </form>
 
-      <div className="text-center mt-6">
-        <p className="text-gray-400">
+      <div className="text-center mt-5">
+        <p className="text-xs text-muted-foreground">
           Already have an account?{" "}
           <button
             type="button"
             aria-label="Sign in"
             onClick={() => onToggleMode("login")}
-            className="text-blue-400 cursor-pointer hover:text-blue-300 hover:underline"
+            className="text-primary font-semibold hover:underline cursor-pointer"
           >
             Sign in
           </button>

@@ -5,10 +5,10 @@ import type { FormFieldProps, InputWithIconProps } from "@/types/form";
 
 // Form field component
 export const FormField = ({ label, error, children }: FormFieldProps) => (
-  <div className="space-y-2 mb-4">
-    <label className="block text-sm font-medium text-gray-300">{label}</label>
+  <div className="space-y-1 mb-3">
+    <label className="block text-xs font-semibold text-foreground/80">{label}</label>
     {children}
-    {error && <p className="text-sm text-red-400 mt-1">{error}</p>}
+    {error && <p className="text-xs text-destructive mt-1">{error}</p>}
   </div>
 );
 
@@ -30,14 +30,14 @@ export const InputWithIcon = ({
 
   return (
     <div className="relative">
-      <HugeiconsIcon icon={Icon} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+      <HugeiconsIcon icon={Icon} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
       <input
         type={inputType}
         className={`pl-10 ${
           showPasswordToggle ? "pr-10" : "pr-4"
-        } py-2 w-full rounded-md bg-black/30 border ${
-          error ? "border-red-500" : "border-blue-900/40"
-        } text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent`}
+        } py-1.5 w-full rounded-md bg-background border ${
+          error ? "border-destructive" : "border-border"
+        } text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent`}
         placeholder={placeholder}
         {...props}
       />
@@ -45,7 +45,7 @@ export const InputWithIcon = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
         >
           {showPassword ? (
             <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
@@ -57,3 +57,4 @@ export const InputWithIcon = ({
     </div>
   );
 };
+

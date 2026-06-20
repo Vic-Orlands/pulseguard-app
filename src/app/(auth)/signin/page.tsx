@@ -22,16 +22,16 @@ export default function AuthPage() {
   if (!hydrated) return null;
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-black text-white relative">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-background text-foreground relative">
       <AnimatedBackground />
 
       <Logo />
 
       <motion.div
-        className="w-full max-w-md p-6 rounded-xl backdrop-blur-sm bg-black/30 border border-blue-900/40 z-10"
-        initial={{ opacity: 0, y: 20 }}
+        className="w-full max-w-md p-6 rounded-lg border border-border bg-card shadow-xs z-10"
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
       >
         <AnimatePresence mode="wait">
           {mode === "login" ? (
@@ -45,13 +45,14 @@ export default function AuthPage() {
       </motion.div>
 
       <motion.div
-        className="mt-8 text-sm text-gray-400 text-center z-10"
+        className="mt-6 text-xs text-muted-foreground text-center z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
       >
         &copy; {new Date().getFullYear()} PulseGuard. All rights reserved.
       </motion.div>
     </div>
   );
 }
+

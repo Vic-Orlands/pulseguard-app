@@ -12,6 +12,7 @@ import {
   Tooltip,
   ReferenceLine,
 } from "recharts";
+
 const data = [
   { time: "05:30", unknown: 0, error: 0 },
   { time: "05:35", unknown: 0, error: 0 },
@@ -45,10 +46,10 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
-          <p className="text-gray-300 text-sm mb-2">{`Time: ${label}`}</p>
+        <div className="bg-popover border border-border rounded-md p-2.5 shadow-sm text-popover-foreground">
+          <p className="text-muted-foreground text-[10px] mb-1 font-semibold">{`Time: ${label}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
+            <p key={index} className="text-xs font-semibold" style={{ color: entry.color }}>
               {`${entry.dataKey}: ${entry.value}`}
             </p>
           ))}
@@ -74,14 +75,14 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
   };
 
   const CustomLegend = () => (
-    <div className="flex items-center gap-6 text-sm mb-4">
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 bg-gray-500 rounded-sm"></div>
-        <span className="text-gray-400">unknown Total: 6</span>
+    <div className="flex items-center gap-4 text-xs mb-3 font-semibold">
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+        <span className="text-muted-foreground">Unknown Total: 6</span>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 bg-red-500 rounded-sm"></div>
-        <span className="text-red-400">error Total: 10</span>
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-destructive rounded-full"></div>
+        <span className="text-destructive">Error Total: 10</span>
       </div>
     </div>
   );
@@ -91,7 +92,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
       return (
         <BarChart
           data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -99,21 +100,21 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
             dataKey="time"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 12 }}
-            interval={0}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+            interval={1}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
             domain={[0, 5]}
             ticks={[0, 1, 2, 3, 4, 5]}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--accent)", opacity: 0.15 }} />
           {activePoint.x && (
             <ReferenceLine
               x={activePoint.x}
-              stroke="#64748B"
+              stroke="var(--border)"
               strokeWidth={1}
               strokeDasharray="2 2"
             />
@@ -121,7 +122,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
           {activePoint.y && (
             <ReferenceLine
               y={activePoint.y}
-              stroke="#64748B"
+              stroke="var(--border)"
               strokeWidth={1}
               strokeDasharray="2 2"
             />
@@ -129,15 +130,15 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
           <Bar
             dataKey="unknown"
             stackId="logs"
-            fill="#6B7280"
-            barSize={8}
+            fill="var(--muted-foreground)"
+            barSize={6}
             radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="error"
             stackId="logs"
-            fill="#EF4444"
-            barSize={8}
+            fill="var(--destructive)"
+            barSize={6}
             radius={[1, 1, 0, 0]}
           />
         </BarChart>
@@ -146,7 +147,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
       return (
         <LineChart
           data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -154,13 +155,13 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
             dataKey="time"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 12 }}
-            interval={0}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+            interval={1}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
             domain={[0, 5]}
             ticks={[0, 1, 2, 3, 4, 5]}
           />
@@ -168,7 +169,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
           {activePoint.x && (
             <ReferenceLine
               x={activePoint.x}
-              stroke="#64748B"
+              stroke="var(--border)"
               strokeWidth={1}
               strokeDasharray="2 2"
             />
@@ -176,7 +177,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
           {activePoint.y && activePoint.y > 0 && (
             <ReferenceLine
               y={activePoint.y}
-              stroke="#64748B"
+              stroke="var(--border)"
               strokeWidth={1}
               strokeDasharray="2 2"
             />
@@ -184,18 +185,18 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
           <Line
             type="monotone"
             dataKey="unknown"
-            stroke="#6B7280"
-            strokeWidth={2}
-            dot={{ fill: "#6B7280", strokeWidth: 0, r: 3 }}
-            activeDot={{ r: 4, fill: "#6B7280" }}
+            stroke="var(--muted-foreground)"
+            strokeWidth={1.5}
+            dot={{ fill: "var(--muted-foreground)", strokeWidth: 0, r: 2.5 }}
+            activeDot={{ r: 3.5, fill: "var(--muted-foreground)" }}
           />
           <Line
             type="monotone"
             dataKey="error"
-            stroke="#EF4444"
-            strokeWidth={2}
-            dot={{ fill: "#EF4444", strokeWidth: 0, r: 3 }}
-            activeDot={{ r: 4, fill: "#EF4444" }}
+            stroke="var(--destructive)"
+            strokeWidth={1.5}
+            dot={{ fill: "var(--destructive)", strokeWidth: 0, r: 2.5 }}
+            activeDot={{ r: 3.5, fill: "var(--destructive)" }}
           />
         </LineChart>
       );
@@ -203,46 +204,46 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
   };
 
   return (
-    <div className="bg-gray-900 text-white p-4 rounded-lg font-mono">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="bg-card border border-border p-4 rounded-lg shadow-none text-foreground">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors text-xs font-semibold"
           >
-            <HugeiconsIcon icon={ArrowDown01Icon} className={`w-4 h-4 transition-transform ${
+            <HugeiconsIcon icon={ArrowDown01Icon} className={`w-3.5 h-3.5 transition-transform ${
                                       isCollapsed ? "-rotate-90" : ""
                                     }`} />
-            <span className="text-sm font-medium">Logs volume</span>
+            <span>Logs volume</span>
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 mr-2">Loki</span>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-[10px] text-muted-foreground mr-1">Loki</span>
           <button
             onClick={() => setChartType(chartType === "bar" ? "line" : "bar")}
-            className="p-1 hover:bg-gray-800 rounded transition-colors"
+            className="p-1 hover:bg-muted rounded transition-colors"
             title={`Switch to ${chartType === "bar" ? "line" : "bar"} chart`}
           >
             {chartType === "bar" ? (
-              <HugeiconsIcon icon={AnalyticsUpIcon} className="w-4 h-4 text-gray-400 hover:text-white" />
+              <HugeiconsIcon icon={AnalyticsUpIcon} className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
             ) : (
-              <HugeiconsIcon icon={BarChartIcon} className="w-4 h-4 text-gray-400 hover:text-white" />
+              <HugeiconsIcon icon={BarChartIcon} className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
             )}
           </button>
         </div>
       </div>
 
       {!isCollapsed && (
-        <div className="mt-4">
+        <div className="mt-3">
           <CustomLegend />
-          <div className="h-64 bg-gray-800 rounded p-2">
+          <div className="h-48 bg-muted/10 rounded border border-border/50 p-2">
             <ResponsiveContainer width="100%" height="100%">
               {renderChart()}
             </ResponsiveContainer>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

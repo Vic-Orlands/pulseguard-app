@@ -6,6 +6,8 @@ import { TelemetryProvider } from "@/components/telemetry-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { setProjectId } from "@/lib/telemetry/client-error-tracking";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 // Set projectId globally
 const currentProjectId = process.env.NEXT_PUBLIC_PROJECT_ID;
 const trackerUrl = process.env.NEXT_PUBLIC_ISSUE_TRACKER_URL;
@@ -70,16 +72,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TelemetryProvider
-          projectId={currentProjectId}
-          issueTrackerUrl={trackerUrl}
-        >
-          <AuthProvider>{children}</AuthProvider>
-        </TelemetryProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <TelemetryProvider
+            projectId={currentProjectId}
+            issueTrackerUrl={trackerUrl}
+          >
+            <AuthProvider>{children}</AuthProvider>
+          </TelemetryProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

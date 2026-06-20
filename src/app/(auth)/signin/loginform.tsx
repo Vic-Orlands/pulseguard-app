@@ -94,29 +94,30 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-        <p className="text-gray-400">Sign in to your PulseGuard account</p>
+      <div className="text-center mb-5">
+        <h1 className="text-lg font-bold text-foreground">Welcome back</h1>
+        <p className="text-xs text-muted-foreground">Sign in to your PulseGuard account</p>
       </div>
 
       {error && (
         <Alert
           variant="destructive"
-          className="mb-4 bg-red-950/50 border-red-800"
+          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+          </div>
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <FormField label="Email" error={errors.email?.message}>
           <InputWithIcon
             icon={Mail01Icon}
@@ -145,18 +146,18 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-600"
+              className="h-3.5 w-3.5 rounded border-border bg-background text-primary focus:ring-primary cursor-pointer"
             />
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-sm text-gray-300"
+              className="ml-2 block text-xs text-foreground/80 cursor-pointer"
             >
               Remember me
             </label>
           </div>
           <p
             onClick={() => onToggleMode("forgot-password")}
-            className="text-sm text-blue-400 hover:text-blue-300 cursor-pointer"
+            className="text-xs text-primary hover:underline cursor-pointer"
           >
             Forgot password?
           </p>
@@ -165,14 +166,14 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         <motion.button
           type="submit"
           disabled={isPending}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center"
-          whileHover={{ scale: isPending ? 1 : 1.02 }}
-          whileTap={{ scale: isPending ? 1 : 0.98 }}
+          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center"
+          whileHover={{ scale: isPending ? 1 : 1.01 }}
+          whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
           {isPending ? (
             <HugeiconsIcon
               icon={Loading02Icon}
-              className="h-5 w-5 animate-spin"
+              className="h-4 w-4 animate-spin"
             />
           ) : (
             <>Sign In</>
@@ -180,34 +181,34 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </motion.button>
       </form>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-700"></div>
+            <div className="w-full border-t border-border"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 text-gray-400 bg-gray-900">
+          <div className="relative flex justify-center text-xs">
+            <span className="px-2 text-muted-foreground bg-card">
               Or continue with
             </span>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           <motion.button
             type="button"
             onClick={() => handleOAuthLogin("github")}
-            className="w-full flex items-center justify-center gap-2 bg-black/30 border border-blue-900/40 py-2 px-4 rounded-md hover:bg-black/50 transition"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-background border border-border py-1.5 px-4 rounded-md hover:bg-muted transition text-foreground"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             <HugeiconsIcon icon={GithubIcon} className="h-4 w-4" />
           </motion.button>
           <motion.button
             type="button"
             onClick={() => handleOAuthLogin("google")}
-            className="w-full flex items-center justify-center gap-2 bg-black/30 border border-blue-900/40 py-2 px-4 rounded-md hover:bg-black/50 transition"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-background border border-border py-1.5 px-4 rounded-md hover:bg-muted transition text-foreground"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -231,14 +232,14 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </div>
       </div>
 
-      <div className="text-center mt-6">
-        <p className="text-gray-400">
+      <div className="text-center mt-5">
+        <p className="text-xs text-muted-foreground">
           Don&apos;t have an account?{" "}
           <button
             type="button"
             aria-label="Sign up"
             onClick={() => onToggleMode("signup")}
-            className="text-blue-400 hover:text-blue-300 cursor-pointer hover:underline"
+            className="text-primary font-semibold hover:underline cursor-pointer"
           >
             Sign up
           </button>

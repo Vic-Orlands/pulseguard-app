@@ -128,40 +128,39 @@ export default function DashboardComponent({ project }: { project: Project }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar
         alerts={alerts}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      <main className="px-10 py-6 pb-24">
+      <main className="px-8 py-6 pb-24 max-w-7xl mx-auto">
         {/* header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-bold text-foreground">
               {project.name}
             </CardTitle>
-            <CardDescription className="text-slate-400">
-              Monitor your application and resolve errors across all
-              environments
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Monitor your application and resolve errors across all environments
             </CardDescription>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2.5">
             <a href="/documentation" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                className="bg-black/30 border border-blue-900/40"
+                className="bg-card border border-border text-foreground hover:bg-muted text-xs h-8 px-3 shadow-none font-medium"
               >
-                <HugeiconsIcon icon={HelpCircleIcon} className="h-4 w-4 mr-2" />
+                <HugeiconsIcon icon={HelpCircleIcon} className="h-3.5 w-3.5 mr-1.5" />
                 Documentation
               </Button>
             </a>
             <Button
-              className="gap-2"
+              className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 px-3 font-semibold shadow-none"
               onClick={() => setActiveTab("connect-platform")}
             >
-              <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
+              <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />
               Connect Platform
             </Button>
           </div>

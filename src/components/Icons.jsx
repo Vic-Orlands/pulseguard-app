@@ -8,45 +8,30 @@ export const PulseGuardLogo = () => (
       xmlns="http://www.w3.org/2000/svg"
       style={{ height: "60px", width: "200px" }}
     >
-      <defs>
-        <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#2563eb" stopOpacity="1" />
-          <stop offset="100%" stopColor="#9333ea" stopOpacity="1" />
-        </linearGradient>
-        <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.6" />
-        </linearGradient>
-      </defs>
       <path
         d="M8 16 L20 12 L32 16 L32 28 C32 36 20 44 20 44 C20 44 8 36 8 28 Z"
-        fill="url(#bgGradient)"
-        stroke="url(#shieldGradient)"
+        fill="currentColor"
+        className="text-primary"
+        stroke="currentColor"
         strokeWidth="1.5"
       />
       <path
         d="M12 28 L15 28 L17 22 L19 34 L22 20 L24 32 L26 28 L28 28"
         fill="none"
-        stroke="#ffffff"
+        stroke="var(--background)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         opacity="0.9"
-      >
-        <animate
-          attributeName="opacity"
-          values="0.6;1;0.6"
-          dur="2s"
-          repeatCount="indefinite"
-        />
-      </path>
+      />
       <text
         x="45"
         y="30"
         fontFamily="Inter, system-ui, sans-serif"
         fontSize="18"
         fontWeight="700"
-        fill="#d3d3d3"
+        fill="currentColor"
+        className="text-foreground"
       >
         PulseGuard
       </text>
@@ -56,7 +41,8 @@ export const PulseGuardLogo = () => (
         fontFamily="Inter, system-ui, sans-serif"
         fontSize="9"
         fontWeight="400"
-        fill="#94a3b8"
+        fill="currentColor"
+        className="text-muted-foreground"
         letterSpacing="0.5px"
       >
         MONITORING • OBSERVABILITY

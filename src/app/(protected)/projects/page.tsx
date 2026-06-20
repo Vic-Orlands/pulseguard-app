@@ -418,68 +418,71 @@ export default function ProjectSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white py-12">
+    <div className="min-h-screen bg-background text-foreground py-10">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
       >
         {/* Header with user menu */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+          transition={{ delay: 0.05, duration: 0.3 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1">
+            <h1 className="text-lg font-bold text-foreground mb-1">
               Your Projects
             </h1>
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-xs">
               Select a project to go to the project dashboard
             </p>
           </div>
 
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 15 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="flex gap-3 w-full md:w-auto items-center"
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="flex gap-2.5 w-full md:w-auto items-center"
           >
-            <div className="relative flex-1 md:w-64">
+            <div className="relative flex-1 md:w-56">
               <Input
                 placeholder="Search projects..."
-                className="pl-2 pt-0 w-full bg-black/30 border border-blue-900/40 focus:ring-blue-500 focus:ring-1"
+                className="pl-2 pt-0 w-full bg-card border border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={handleRefresh}
                 variant="outline"
                 size="sm"
                 disabled={isRefreshing}
-                className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
+                className="bg-card border border-border text-foreground hover:bg-muted h-8 shadow-none"
               >
-                <HugeiconsIcon icon={Refresh01Icon} className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <HugeiconsIcon
+                  icon={Refresh01Icon}
+                  className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                />
               </Button>
             </motion.div>
 
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="default"
                   onClick={handleNewProjectClick}
-                  className="hover:border-gray-500 shadow-none h-8"
+                  className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none"
                 >
-                  <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
+                  <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-white">
+              <DialogContent className="sm:max-w-[480px] bg-transparent border-none text-foreground p-0">
                 <AnimatePresence>
                   {showForm && (
                     <>
@@ -487,28 +490,28 @@ export default function ProjectSelectionPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.2 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50"
                         onClick={() => setShowForm(false)}
                       />
                       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                         <motion.div
                           layout
-                          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                          initial={{ scale: 0.95, opacity: 0, y: 15 }}
                           animate={{
                             scale: 1,
                             opacity: 1,
                             y: 0,
-                            width: 480,
+                            width: 440,
                             height: "fit-content",
                           }}
-                          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                          exit={{ scale: 0.95, opacity: 0, y: 15 }}
                           transition={{
                             type: "spring",
                             damping: 25,
                             stiffness: 300,
-                            layout: { duration: 0.6, ease: "easeInOut" },
+                            layout: { duration: 0.4, ease: "easeInOut" },
                           }}
-                          className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+                          className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ProjectForm
@@ -525,81 +528,81 @@ export default function ProjectSelectionPage() {
             </Dialog>
 
             {/* User dropdown menu */}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200 bg-gradient-to-br from-blue-500 to-purple-600"
+                    className="relative h-8 w-8 overflow-hidden rounded-full border border-border hover:border-muted-foreground/30 transition-all bg-muted cursor-pointer"
                   >
                     {curentUser ? (
                       <Image
                         className="h-full w-full absolute object-cover"
                         src={curentUser}
-                        alt={user.name}
+                        alt={user?.name || ""}
                         width={50}
                         height={50}
                       />
                     ) : (
-                      <HugeiconsIcon icon={UserIcon} className="h-5 w-5 text-white" />
+                      <HugeiconsIcon icon={UserIcon} className="h-4 w-4 text-foreground" />
                     )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-64 bg-gray-900/95 backdrop-blur-sm border border-gray-700/50 shadow-2xl shadow-black/50 rounded-xl"
+                  className="w-60 bg-popover border border-border text-foreground rounded-lg shadow-sm"
                   align="end"
                   forceMount
                 >
-                  <DropdownMenuLabel className="font-normal p-4">
-                    <div className="flex items-center space-x-3">
+                  <DropdownMenuLabel className="font-normal p-3">
+                    <div className="flex items-center space-x-2.5">
                       {curentUser ? (
                         <Image
-                          className="h-12 w-12 rounded-full object-cover border-2 border-gray-600"
+                          className="h-10 w-10 rounded-full object-cover border border-border"
                           src={curentUser}
-                          alt={user.name}
-                          width={48}
-                          height={48}
+                          alt={user?.name || ""}
+                          width={40}
+                          height={40}
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-gray-600">
-                          <HugeiconsIcon icon={UserIcon} className="h-6 w-6 text-white" />
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center border border-border">
+                          <HugeiconsIcon icon={UserIcon} className="h-5 w-5 text-foreground" />
                         </div>
                       )}
-                      <div className="flex flex-col space-y-1 w-35">
-                        <p className="text-sm font-semibold leading-none text-white">
+                      <div className="flex flex-col space-y-0.5 w-32">
+                        <p className="text-xs font-semibold leading-none text-foreground">
                           {user?.name || "Loading..."}
                         </p>
-                        <p className="text-xs leading-none text-gray-400 truncate">
+                        <p className="text-[10px] leading-none text-muted-foreground truncate">
                           {user?.email || ""}
                         </p>
                       </div>
                     </div>
                   </DropdownMenuLabel>
 
-                  <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-600 to-transparent mx-2" />
+                  <DropdownMenuSeparator className="bg-border" />
 
-                  <div className="py-2 px-2">
+                  <div className="p-1">
                     <Button
                       onClick={() => router.push("/settings")}
                       variant="ghost"
-                      className="w-full justify-start rounded-lg h-10 text-gray-300 hover:text-white hover:bg-gray-800/80 transition-all duration-200 group"
+                      className="w-full justify-start rounded-md h-8 text-xs text-foreground hover:bg-muted transition"
                     >
-                      <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
-                      <span className="font-medium">Account Settings</span>
+                      <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5 mr-1.5" />
+                      <span>Account Settings</span>
                     </Button>
                   </div>
 
-                  <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-600 to-transparent mx-2" />
+                  <DropdownMenuSeparator className="bg-border" />
 
-                  <div className="py-2 px-2">
+                  <div className="p-1">
                     <CustomAlertDialog
                       trigger={
                         <Button
                           variant="ghost"
-                          className="w-full justify-start rounded-lg h-10 text-gray-300 hover:text-red-300 hover:bg-red-900/20 transition-all duration-200 group"
+                          className="w-full justify-start rounded-md h-8 text-xs text-foreground hover:bg-destructive/10 hover:text-destructive transition"
                         >
-                          <HugeiconsIcon icon={Logout01Icon} className="h-4 w-4" />
-                          <span className="font-medium">Sign out</span>
+                          <HugeiconsIcon icon={Logout01Icon} className="h-3.5 w-3.5 mr-1.5" />
+                          <span>Sign out</span>
                         </Button>
                       }
                       title="Leaving Already?"
@@ -623,24 +626,28 @@ export default function ProjectSelectionPage() {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="flex justify-end mb-4"
+              transition={{ delay: 0.1, duration: 0.3 }}
+              className="flex justify-end mb-3"
             >
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Button
                   size="icon"
                   onClick={toggleViewMode}
-                  className="dark:bg-sidebar-accent dark:text-white hidden lg:flex"
+                  className="bg-card border border-border text-foreground hover:bg-muted h-8 w-8 shadow-none hidden lg:flex"
                   title={
                     viewMode === "grid"
                       ? "Switch to List Layout"
                       : "Switch to Grid Layout"
                   }
                 >
-                  {viewMode === "grid" ? <HugeiconsIcon icon={LayoutGridIcon} /> : <HugeiconsIcon icon={ListViewIcon} />}
+                  {viewMode === "grid" ? (
+                    <HugeiconsIcon icon={LayoutGridIcon} className="h-4 w-4" />
+                  ) : (
+                    <HugeiconsIcon icon={ListViewIcon} className="h-4 w-4" />
+                  )}
                 </Button>
               </motion.div>
             </motion.div>
@@ -655,10 +662,10 @@ export default function ProjectSelectionPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center justify-center pt-48"
+              className="flex items-center justify-center pt-40"
             >
-              <HugeiconsIcon icon={Loading02Icon} className="h-8 w-8 animate-spin text-blue-400" />
-              <span className="ml-2 text-gray-400">Loading projects...</span>
+              <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-xs text-muted-foreground">Loading projects...</span>
             </motion.div>
           ) : filteredProjects.length > 0 ? (
             <motion.div
@@ -668,17 +675,16 @@ export default function ProjectSelectionPage() {
               exit={{ opacity: 0 }}
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                  : "grid grid-cols-1 md:grid-cols-2 gap-6"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                  : "grid grid-cols-1 md:grid-cols-2 gap-5"
               }
             >
               {filteredProjects.map((project, index) => (
                 <motion.div
                   key={project.id}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: index * 0.1, duration: 0.4 }}
-                  whileHover={{ scale: 1.02 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
                 >
                   <ProjectCard
                     index={index}
@@ -692,24 +698,24 @@ export default function ProjectSelectionPage() {
           ) : (
             <motion.div
               key="empty"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="flex flex-col items-center justify-center pt-48 text-center"
+              exit={{ opacity: 0, y: 15 }}
+              className="flex flex-col items-center justify-center pt-40 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 15, stiffness: 200 }}
-                className="w-24 h-24 rounded-full bg-blue-900/20 flex items-center justify-center mb-6"
+                className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4 border border-border"
               >
-                <HugeiconsIcon icon={Layers01Icon} className="h-12 w-12 text-blue-400" />
+                <HugeiconsIcon icon={Layers01Icon} className="h-10 w-10 text-muted-foreground" />
               </motion.div>
 
-              <h3 className="text-lg font-medium">
+              <h3 className="text-sm font-semibold text-foreground mb-1">
                 {searchQuery ? "No projects found" : "No projects yet"}
               </h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-xs text-muted-foreground mb-4">
                 {searchQuery
                   ? "Try a different search term or clear your search"
                   : "Create your first project to get started"}
@@ -717,38 +723,38 @@ export default function ProjectSelectionPage() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
-                className="flex gap-3"
+                transition={{ delay: 0.1, duration: 0.3 }}
+                className="flex gap-2.5"
               >
                 {searchQuery && (
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <Button
                       variant="outline"
                       onClick={() => setSearchQuery("")}
-                      className="bg-black/30 border-blue-900/40 hover:bg-blue-900/20"
+                      className="bg-card border border-border text-foreground hover:bg-muted text-xs h-8 shadow-none"
                     >
                       Clear Search
                     </Button>
                   </motion.div>
                 )}
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <Dialog open={showForm} onOpenChange={setShowForm}>
                     <DialogTrigger asChild>
                       <Button
                         onClick={handleNewProjectClick}
-                        className="hover:border-gray-500 shadow-none h-8"
+                        className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none"
                       >
-                        <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
+                        <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
                         New Project
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-white">
+                    <DialogContent className="sm:max-w-[480px] bg-transparent border-none text-foreground p-0">
                       <AnimatePresence>
                         {showForm && (
                           <>
@@ -756,28 +762,28 @@ export default function ProjectSelectionPage() {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 0.2 }}
                               exit={{ opacity: 0 }}
-                              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                              className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50"
                               onClick={() => setShowForm(false)}
                             />
                             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                               <motion.div
                                 layout
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                initial={{ scale: 0.95, opacity: 0, y: 15 }}
                                 animate={{
                                   scale: 1,
                                   opacity: 1,
                                   y: 0,
-                                  width: 480,
+                                  width: 440,
                                   height: "fit-content",
                                 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                exit={{ scale: 0.95, opacity: 0, y: 15 }}
                                 transition={{
                                   type: "spring",
                                   damping: 25,
                                   stiffness: 300,
-                                  layout: { duration: 0.6, ease: "easeInOut" },
+                                  layout: { duration: 0.4, ease: "easeInOut" },
                                 }}
-                                className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+                                className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ProjectForm

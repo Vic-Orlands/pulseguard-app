@@ -56,15 +56,15 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Forgot Password?</h1>
-        <p className="text-gray-400">
+      <div className="text-center mb-5">
+        <h1 className="text-lg font-bold text-foreground">Forgot Password?</h1>
+        <p className="text-xs text-muted-foreground">
           Enter your email to receive a password reset link.
         </p>
       </div>
@@ -72,23 +72,25 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-4 bg-red-950/50 border-red-800"
+          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+          </div>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-4 bg-green-950/50 border-green-800">
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 text-green-400" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{success}</AlertDescription>
+        <Alert className="mb-3 border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs py-2 px-3 flex items-center gap-2">
+          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 text-emerald-500 shrink-0" />
+          <div>
+            <AlertDescription className="text-xs font-medium leading-none">{success}</AlertDescription>
+          </div>
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <FormField label="Email" error={errors.email?.message}>
           <InputWithIcon
             icon={Mail01Icon}
@@ -102,22 +104,22 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
         <motion.button
           type="submit"
           disabled={isPending}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center"
-          whileHover={{ scale: isPending ? 1 : 1.02 }}
-          whileTap={{ scale: isPending ? 1 : 0.98 }}
+          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center"
+          whileHover={{ scale: isPending ? 1 : 1.01 }}
+          whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
           {isPending ? (
-            <HugeiconsIcon icon={Loading02Icon} className="h-5 w-5 animate-spin" />
+            <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
           ) : (
             <>Send Reset Link</>
           )}
         </motion.button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-5 text-center">
         <button
           type="button"
-          className="text-blue-400 hover:underline cursor-pointer text-sm"
+          className="text-primary hover:underline cursor-pointer text-xs"
           onClick={() => onToggleMode("login")}
           aria-label="Back to login"
         >

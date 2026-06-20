@@ -1,6 +1,23 @@
+"use client";
+
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, ArrowLeft01Icon, Cancel01Icon, ChartLineData02Icon, DashboardCircleIcon, GitMergeIcon, Layers01Icon, Logout01Icon, Menu01Icon, Notification01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
-import React, { useState } from "react";
+import {
+  Activity01Icon,
+  Alert01Icon,
+  AlertCircleIcon,
+  ArrowLeft01Icon,
+  Cancel01Icon,
+  ChartLineData02Icon,
+  DashboardCircleIcon,
+  GitMergeIcon,
+  Layers01Icon,
+  Logout01Icon,
+  Menu01Icon,
+  Notification01Icon,
+  Settings01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,20 +27,19 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
-import {
-  Server
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Server, Sun, Moon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList } from "@/components/ui/tabs";
-import type { Alert, NavItem } from "@/types/dashboard";
+import type { Alert as DashboardAlert, NavItem } from "@/types/dashboard";
 import { PulseGuardLogo } from "../../Icons";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import Image from "next/image";
 import { getGreeting, normalizePostgresString } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 interface HeaderProps {
-  alerts: Alert[];
+  alerts: DashboardAlert[];
   activeTab: NavItem;
   setActiveTab: (tab: NavItem) => void;
 }
@@ -31,33 +47,49 @@ interface HeaderProps {
 const navItems = [
   {
     id: "overview",
-    icon: <HugeiconsIcon icon={DashboardCircleIcon} className="h-4 w-4" />,
+    icon: <HugeiconsIcon icon={DashboardCircleIcon} className="h-3.5 w-3.5" />,
     label: "Overview",
   },
   {
     id: "sessions",
-    icon: <HugeiconsIcon icon={Layers01Icon} className="h-4 w-4" />,
+    icon: <HugeiconsIcon icon={Layers01Icon} className="h-3.5 w-3.5" />,
     label: "Sessions",
   },
   {
     id: "metrics",
-    icon: <HugeiconsIcon icon={ChartLineData02Icon} className="h-4 w-4" />,
+    icon: <HugeiconsIcon icon={ChartLineData02Icon} className="h-3.5 w-3.5" />,
     label: "Metrics",
   },
-  { id: "errors", icon: <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4" />, label: "Errors" },
-  { id: "logs", icon: <HugeiconsIcon icon={Activity01Icon} className="h-4 w-4" />, label: "Logs" },
-  { id: "traces", icon: <HugeiconsIcon icon={GitMergeIcon} className="h-4 w-4" />, label: "Traces" },
+  {
+    id: "errors",
+    icon: <HugeiconsIcon icon={AlertCircleIcon} className="h-3.5 w-3.5" />,
+    label: "Errors",
+  },
+  {
+    id: "logs",
+    icon: <HugeiconsIcon icon={Activity01Icon} className="h-3.5 w-3.5" />,
+    label: "Logs",
+  },
+  {
+    id: "traces",
+    icon: <HugeiconsIcon icon={GitMergeIcon} className="h-3.5 w-3.5" />,
+    label: "Traces",
+  },
   {
     id: "alerts",
-    icon: <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />,
+    icon: <HugeiconsIcon icon={Alert01Icon} className="h-3.5 w-3.5" />,
     label: "Alerts",
   },
   {
     id: "integrations",
-    icon: <Server className="h-4 w-4" />,
+    icon: <Server className="h-3.5 w-3.5" />,
     label: "Integrations",
   },
-  { id: "settings", icon: <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />, label: "Settings" },
+  {
+    id: "settings",
+    icon: <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5" />,
+    label: "Settings",
+  },
 ];
 
 export default function Header({
@@ -67,8 +99,14 @@ export default function Header({
 }: HeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const activeAlerts = alerts.filter((a) => a.status === "active").length;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
@@ -76,19 +114,40 @@ export default function Header({
     router.push("/projects");
   };
 
-  const curentUser = user && normalizePostgresString(user.avatar);
+  const currentUser = user && normalizePostgresString(user.avatar);
 
   return (
-    <header className="sticky top-0 z-10 backdrop-blur-sm bg-black/30 border-b border-blue-900/40">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-card text-foreground">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <PulseGuardLogo />
+      <div className="flex items-center justify-between px-6 py-2.5">
+        <div className="flex items-center gap-1">
+          <PulseGuardLogo />
+        </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <HugeiconsIcon icon={Notification01Icon} className="h-5 w-5" />
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="text-muted-foreground hover:text-foreground h-8 w-8 shadow-none"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-8 w-8 text-muted-foreground hover:text-foreground shadow-none"
+          >
+            <HugeiconsIcon icon={Notification01Icon} className="h-4 w-4" />
             {activeAlerts > 0 && (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-destructive"></span>
             )}
           </Button>
 
@@ -96,65 +155,66 @@ export default function Header({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200"
+                className="relative text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200 h-8 px-2.5 shadow-none"
               >
                 {`${getGreeting()}, ${user?.name || ""}`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-64 lg:mr-3 bg-gray-900/95 backdrop-blur-sm border border-gray-700/50 shadow-2xl shadow-black/50 rounded-xl"
+              className="w-56 bg-card border border-border text-foreground shadow-sm rounded-lg"
               forceMount
-              sideOffset={12}
+              sideOffset={8}
+              align="end"
             >
-              <DropdownMenuLabel className="font-normal p-4">
-                <div className="flex items-center space-x-3">
-                  {curentUser ? (
+              <DropdownMenuLabel className="font-normal p-3">
+                <div className="flex items-center space-x-2.5">
+                  {currentUser ? (
                     <Image
-                      className="h-12 w-12 rounded-full object-cover border-2 border-gray-600"
-                      src={curentUser}
+                      className="h-8 w-8 rounded-full object-cover border border-border"
+                      src={currentUser}
                       alt={user.name}
-                      width={48}
-                      height={48}
+                      width={32}
+                      height={32}
                     />
                   ) : (
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-gray-600">
-                      <HugeiconsIcon icon={UserIcon} className="h-6 w-6 text-white" />
+                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center border border-border">
+                      <HugeiconsIcon icon={UserIcon} className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="flex flex-col space-y-1 w-35">
-                    <p className="text-sm font-semibold leading-none text-white">
+                  <div className="flex flex-col space-y-0.5 w-36">
+                    <p className="text-xs font-semibold leading-none text-foreground truncate">
                       {user?.name || "Loading..."}
                     </p>
-                    <p className="text-xs leading-none text-gray-400 truncate">
+                    <p className="text-[10px] leading-none text-muted-foreground truncate">
                       {user?.email || ""}
                     </p>
                   </div>
                 </div>
               </DropdownMenuLabel>
 
-              <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-600 to-transparent mx-2" />
+              <DropdownMenuSeparator className="bg-border" />
 
-              <div className="p-2">
+              <div className="p-1">
                 <Button
                   onClick={() => router.push("/settings")}
                   variant="ghost"
-                  className="w-full justify-start rounded-lg h-10 text-gray-300 hover:text-white hover:bg-gray-800/80 transition-all duration-200 group"
+                  className="w-full justify-start rounded-md h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-all group shadow-none"
                 >
-                  <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
+                  <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5 mr-2" />
                   <span className="font-medium">Account Settings</span>
                 </Button>
               </div>
 
-              <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-600 to-transparent mx-2" />
+              <DropdownMenuSeparator className="bg-border" />
 
-              <div className="p-2">
+              <div className="p-1">
                 <CustomAlertDialog
                   trigger={
                     <Button
                       variant="ghost"
-                      className="w-full justify-start rounded-lg h-10 text-gray-300 hover:text-red-300 hover:bg-red-900/20 transition-all duration-200 group"
+                      className="w-full justify-start rounded-md h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all group shadow-none"
                     >
-                      <HugeiconsIcon icon={Logout01Icon} className="h-4 w-4" />
+                      <HugeiconsIcon icon={Logout01Icon} className="h-3.5 w-3.5 mr-2" />
                       <span className="font-medium">Sign out</span>
                     </Button>
                   }
@@ -168,19 +228,19 @@ export default function Header({
 
           <Button
             variant="ghost"
-            size="sm"
-            className="md:hidden"
+            size="icon"
+            className="md:hidden h-8 w-8 text-muted-foreground hover:text-foreground shadow-none"
             onClick={toggleMobileMenu}
           >
-            <HugeiconsIcon icon={Menu01Icon} className="h-5 w-5" />
+            <HugeiconsIcon icon={Menu01Icon} className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex px-6 border-t border-blue-900/40 overflow-x-auto">
+      <nav className="hidden md:flex px-6 border-t border-border overflow-x-auto bg-card">
         <Tabs value={activeTab} className="w-full">
-          <TabsList className="bg-transparent p-0 h-auto w-full space-x-2 justify-start">
+          <TabsList className="bg-transparent p-0 h-auto w-full space-x-1 justify-start">
             <BackToProjectButton
               isMobile={false}
               onClick={handleBackToProjects}
@@ -198,16 +258,20 @@ export default function Header({
       </nav>
 
       {/* Mobile Navigation */}
-      <MobileMenu
-        isOpen={mobileMenuOpen}
-        onClose={toggleMobileMenu}
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          toggleMobileMenu();
-        }}
-        onBackToProjects={handleBackToProjects}
-      />
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <MobileMenu
+            isOpen={mobileMenuOpen}
+            onClose={toggleMobileMenu}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              toggleMobileMenu();
+            }}
+            onBackToProjects={handleBackToProjects}
+          />
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -222,30 +286,21 @@ function NavButton({
   activeTab: string;
   onClick: () => void;
 }) {
+  const isActive = activeTab === item.id;
   return (
     <Button
       variant="ghost"
-      className={`rounded-none flex items-center px-1 mx-1 text-sm font-medium border-b-2 transition-all duration-75 ${
-        activeTab === item.id
-          ? "border-b-[2px] border-transparent border-b-blue-400 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-          : "border-b border-transparent text-gray-400 hover:text-white/80"
+      className={`rounded-none flex items-center px-3 py-2 text-xs font-medium border-b-2 transition-all duration-75 h-9 shadow-none ${
+        isActive
+          ? "border-primary text-foreground bg-accent/30 font-semibold"
+          : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/10"
       }`}
       onClick={onClick}
     >
-      {activeTab === item.id ? (
-        <div className="flex items-center">
-          <svg width="0" height="0" className="absolute">
-            <linearGradient id="blue-purple" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop stopColor="#2563eb" offset="0%" />
-              <stop stopColor="#9333ea" offset="100%" />
-            </linearGradient>
-          </svg>
-          <div className="[&>svg]:stroke-[url(#blue-purple)]">{item.icon}</div>
-        </div>
-      ) : (
-        item.icon
-      )}
-      <span>{item.label}</span>
+      <div className="flex items-center gap-1.5">
+        <div className="flex-shrink-0 text-current">{item.icon}</div>
+        <span>{item.label}</span>
+      </div>
     </Button>
   );
 }
@@ -261,23 +316,19 @@ function BackToProjectButton({
   const trigger = isMobile ? (
     <Button
       variant="ghost"
-      className={`w-full justify-start text-lg py-4 mb-2 ${
-        false
-          ? "bg-blue-900/40 text-white/80"
-          : "text-gray-300 hover:bg-gray-800/70"
-      }`}
+      className="w-full justify-start text-xs py-2 mb-2 text-muted-foreground hover:bg-muted hover:text-foreground shadow-none"
     >
-      <div className="flex items-center gap-4">
-        <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
+      <div className="flex items-center gap-3">
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
         <span>Back to Projects</span>
       </div>
     </Button>
   ) : (
     <Button
       variant="ghost"
-      className="rounded-none flex items-center gap-2 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white/80 mr-4"
+      className="rounded-none flex items-center gap-1.5 py-2 text-xs font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/10 mr-4 h-9 shadow-none"
     >
-      <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
+      <HugeiconsIcon icon={ArrowLeft01Icon} className="h-3.5 w-3.5" />
       <span>Back to Projects</span>
     </Button>
   );
@@ -309,68 +360,62 @@ function MobileMenu({
   if (!isOpen) return null;
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.15 }}
+      className="md:hidden fixed inset-0 z-50 flex flex-col bg-background text-foreground"
+    >
       {/* Header with close button */}
-      <div className="flex justify-between items-center p-4 bg-slate-950">
+      <div className="flex justify-between items-center p-4 border-b border-border bg-card">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-80"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full"></div>
+            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+              <div className="w-3 h-3 bg-background rounded-full"></div>
+            </div>
           </div>
-          <span className="text-xl font-bold">PulseGuard</span>
+          <span className="text-xs font-bold text-foreground">PulseGuard</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="bg-blue-900/20 hover:bg-blue-900/30"
+          className="border border-border text-muted-foreground hover:text-foreground hover:bg-muted h-8 w-8 shadow-none"
         >
-          <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
+          <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Mobile Menu Items */}
-      <div className="flex flex-col p-6 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0 }}
-        >
+      <div className="flex flex-col p-4 bg-card flex-grow overflow-y-auto">
+        <div className="mb-2">
           <BackToProjectButton isMobile onClick={onBackToProjects} />
-        </motion.div>
+        </div>
 
-        {navItems.map((item, index) => (
-          <motion.div
+        {navItems.map((item) => (
+          <Button
             key={item.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (index + 1) * 0.1 }}
+            variant="ghost"
+            className={`w-full justify-start text-xs py-2 mb-1.5 h-10 shadow-none ${
+              activeTab === item.id
+                ? "bg-accent text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+            onClick={() => onTabChange(item.id as NavItem)}
           >
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-lg py-4 mb-2 ${
-                activeTab === item.id
-                  ? "bg-blue-900/40 text-white"
-                  : "text-gray-300 hover:bg-gray-800/70"
-              }`}
-              onClick={() => onTabChange(item.id as NavItem)}
-            >
-              <div className="flex items-center gap-4">
-                {item.icon}
-                <span>{item.label}</span>
-              </div>
-            </Button>
-          </motion.div>
+            <div className="flex items-center gap-3">
+              <span className="text-current">{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
+          </Button>
         ))}
       </div>
 
       {/* App Info */}
-      <p className="text-center text-sm bg-slate-950 py-3">
-        ©{" 0"}
-        <span className="font-mono">
-          {new Date().getFullYear()} PulseGuard by MezieIV
-        </span>
-      </p>
-    </div>
+      <div className="text-center text-[10px] bg-card border-t border-border py-3 text-muted-foreground">
+        © {new Date().getFullYear()} PulseGuard by MezieIV
+      </div>
+    </motion.div>
   );
 }
