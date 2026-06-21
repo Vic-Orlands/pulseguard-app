@@ -64,6 +64,7 @@ export default function Homepage() {
   const [tab, setTab] = useState<Tab>("react");
   const [copied, setCopied] = useState(false);
   const [feed, setFeed] = useState<FeedItem[]>([]);
+  const [architectureOpen, setArchitectureOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState(0);
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -169,7 +170,7 @@ export default function Homepage() {
               Real-time observability for modern systems. Detect issues, own
               incidents, and ship with confidence.
             </p>
-            <div className="mt-8 flex flex-col items-center gap-5">
+            <div className="mt-8 flex items-center gap-5">
               <button
                 className="pg-action pg-action-primary"
                 onClick={() => authenticate("signup")}
@@ -282,8 +283,11 @@ export default function Homepage() {
 
         <section
           id="signals"
-          className="pg-shell flex min-h-[780px] items-center border-b border-[#e4e4df] bg-[#f7f7f5] px-5 py-28 dark:bg-[#090909]"
+          className="pg-shell overflow-hidden border-b border-[#e4e4df] bg-transparent dark:bg-[#090909]"
+          style={{ backgroundColor: theme === "dark" ? "#090909" : "transparent" }}
         >
+          <div className={architectureOpen ? "pg-signal-track is-architecture" : "pg-signal-track"}>
+            <div className="pg-signal-panel flex min-h-[780px] items-center px-5 py-28">
           <div className="mx-auto w-full max-w-5xl">
             <div className="text-center">
               <p className="pg-label">Test the signal</p>
@@ -318,7 +322,8 @@ export default function Homepage() {
             </div>
             <div
               ref={feedRef}
-              className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-white p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
+              className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-transparent p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
+              style={{ backgroundColor: theme === "dark" ? "#101010" : "transparent" }}
             >
               {feed.length === 0 ? (
                 <div className="grid h-full place-items-center text-center text-[#777772] dark:text-neutral-500">
@@ -350,7 +355,10 @@ export default function Homepage() {
                 </AnimatePresence>
               )}
             </div>
-            <ArchitectureGraph />
+            <button onClick={() => setArchitectureOpen(true)} className="mt-9 flex items-center gap-2 text-xs font-medium text-[#777772] hover:text-[#ff5a1f] dark:text-[#a3a3a3]">Explore the pipeline <ChevronRight size={14} /></button>
+          </div>
+            </div>
+            <div className="pg-architecture-panel flex min-h-[780px] items-center px-5 py-28"><div className="mx-auto w-full max-w-6xl"><button onClick={() => setArchitectureOpen(false)} className="mb-9 flex items-center gap-2 text-xs font-medium text-[#777772] hover:text-[#ff5a1f] dark:text-[#a3a3a3]"><ChevronRight className="rotate-180" size={14} />Back to signals</button><ArchitectureGraph /></div></div>
           </div>
         </section>
 
