@@ -162,17 +162,6 @@ button {
 
 .pg-signal { color: var(--pg-signal); }
 
-.pg-signal-track {
-  display: flex;
-  width: 190%;
-  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-
-.pg-signal-track.is-architecture { transform: translateX(-47.37%); }
-.pg-signal-panel { flex: 0 0 47.37%; }
-.pg-architecture-panel { flex: 0 0 52.63%; }
-
 .dark .dashboard-shell [class*="bg-blue-"],
 .dark .dashboard-shell [class*="bg-purple-"],
 .dark .dashboard-shell [class*="bg-green-"],
@@ -197,9 +186,6 @@ button {
 @media (max-width: 720px) {
   .pg-shell { border-inline: 0; }
   .pg-grid { background-size: 100% 220px, 150px 100%; }
-  .pg-signal-track { width: 200%; }
-  .pg-signal-track.is-architecture { transform: translateX(-50%); }
-  .pg-signal-panel, .pg-architecture-panel { flex-basis: 50%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
