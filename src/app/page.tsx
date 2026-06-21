@@ -8,9 +8,12 @@ import {
   Check,
   ChevronRight,
   Clipboard,
+  Github,
+  MessageSquare,
   Moon,
   Sun,
   Terminal,
+  Twitter,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,6 +21,7 @@ import { useAuth } from "@/context/auth-context";
 import { PulseGuardLogo } from "@/components/Icons";
 import { LandingFaq } from "@/components/landing/faq";
 import { ArchitectureGraph } from "@/components/landing/architecture-graph";
+import { PipelineSandbox } from "@/components/landing/pipeline-sandbox";
 
 type Tab = "react" | "node" | "go";
 type EventType = "error" | "log" | "metric" | "trace";
@@ -198,6 +202,18 @@ export default function Homepage() {
                 className="block w-full"
               />
             </div>
+          </div>
+        </section>
+
+        <section className="pg-shell flex min-h-[760px] items-center border-b border-[#e4e4df] px-5 py-28">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+            <div>
+              <p className="pg-label">Pipeline in motion</p>
+              <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">Unified telemetry for modern cloud infrastructure.</h2>
+              <p className="mt-7 max-w-md leading-7 text-[#73736e]">Generate logs, traces, and metrics in one flow. The collector batches each signal and routes it to the tools your team already understands.</p>
+              <div className="mt-8 flex gap-6 text-xs text-[#777772]"><span>OpenTelemetry compliant</span><span>Zero agent overhead</span></div>
+            </div>
+            <PipelineSandbox />
           </div>
         </section>
 
@@ -430,56 +446,13 @@ export default function Homepage() {
         >
           PULSEGUARD
         </div>
-        <div className="mx-auto mt-10 grid min-h-[330px] max-w-[1440px] items-end gap-10 px-6 py-10 sm:px-12 lg:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
-            <div className="scale-[.84] origin-left invert">
-              <PulseGuardLogo />
-            </div>
-            <p className="mt-5 max-w-xs text-sm leading-6 text-neutral-500">
-              Observability for the parts of your product that cannot be left to
-              guesswork.
-            </p>
+        <div className="mx-auto mt-10 max-w-[1440px] px-6 pb-10 sm:px-12">
+          <div className="grid gap-10 md:grid-cols-12">
+            <div className="md:col-span-5"><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">Open-source, developer-first observability pipeline for modern distributed web assets. Standardized on OpenTelemetry, Loki, Tempo, and Prometheus.</p><div className="mt-5 flex gap-3"><a href="https://github.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Github size={16} /></a><a href="https://twitter.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Twitter size={16} /></a><a href="https://discord.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><MessageSquare size={16} /></a></div></div>
+            <div className="md:col-span-3"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Platform sections</p><div className="mt-4 space-y-3 text-[11px] text-neutral-400"><button onClick={() => { scrollToSection("signals"); setArchitectureOpen(true); }} className="block text-left hover:text-white">Topology architecture</button><button onClick={() => scrollToSection("signals")} className="block text-left hover:text-white">Metrics, logs & traces sandbox</button><button onClick={() => scrollToSection("integrate")} className="block text-left hover:text-white">Configuration explorer</button><button onClick={() => scrollToSection("faq")} className="block text-left hover:text-white">Frequently asked questions</button></div></div>
+            <div className="md:col-span-4"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Deployment status</p><div className="mt-4 space-y-3 rounded-lg border border-[#303030] bg-[#101010] p-4 font-mono text-[10px] text-neutral-400"><div className="flex justify-between border-b border-[#303030] pb-3"><span>Core collector stream</span><span className="text-[#ff5a1f]">STABLE V1.2.0</span></div><div className="flex justify-between"><span>Grafana integration</span><span className="text-[#ff5a1f]">PROVISIONED</span></div></div><p className="mt-4 text-[10px] leading-relaxed text-neutral-500">OpenTelemetry is a registered trademark of The Linux Foundation. Backends and templates are released under Apache 2.0 licenses.</p></div>
           </div>
-          <div className="grid grid-cols-2 gap-8 text-sm">
-            <div className="space-y-4 text-neutral-400">
-              <p className="text-xs text-neutral-600">Product</p>
-              <button onClick={() => scrollToSection("product")}>
-                Signals
-              </button>
-              <button
-                onClick={() => scrollToSection("integrate")}
-                className="block"
-              >
-                Instrumentation
-              </button>
-              <button
-                onClick={() => scrollToSection("signals")}
-                className="block"
-              >
-                Live console
-              </button>
-            </div>
-            <div className="space-y-4 text-neutral-400">
-              <p className="text-xs text-neutral-600">Company</p>
-              <button
-                onClick={() => scrollToSection("integrate")}
-                className="block"
-              >
-                Docs
-              </button>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
-                className="block"
-              >
-                GitHub
-              </a>
-            </div>
-          </div>
-          <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} PulseGuard
-          </p>
+          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-[#303030] pt-6 text-xs text-neutral-500 sm:flex-row"><span>© {new Date().getFullYear()} PulseGuard. All rights reserved.</span><div className="flex gap-3"><span>Privacy policy</span><span>•</span><span>Terms of service</span><span>•</span><span className="font-mono text-[10px]">v1.2.0-b26</span></div></div>
         </div>
       </footer>
     </div>
