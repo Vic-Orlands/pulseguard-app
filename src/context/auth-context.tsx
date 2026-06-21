@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<UserProps | null>(null);
   const shouldFetchUser =
-    pathname.startsWith("/projects") || pathname.startsWith("/settings");
+    pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/settings");
 
   // fetch user func
   const fetchUser = useCallback(async () => {
