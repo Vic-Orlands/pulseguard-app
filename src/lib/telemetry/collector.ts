@@ -35,15 +35,43 @@ const logger = createLogger("telemetry-collector");
 
 // Environment constants
 const isProduction = process.env.NODE_ENV === "production";
-const OTLP_ENDPOINT = process.env.OTLP_ENDPOINT || "http://otel-collector:4318";
+const OTLP_ENDPOINT = normalizeOtlpEndpoint(process.env.OTLP_ENDPOINT);
 const PROMETHEUS_PORT = parseInt(process.env.PROMETHEUS_PORT || "9464", 10);
+const OTEL_DIAGNOSTIC_LOG_LEVEL = process.env.OTEL_DIAGNOSTIC_LOG_LEVEL;
 
 // Singleton SDK instance
 let sdkInstance: NodeSDK | null = null;
 
-// Enable debug logging in development
-if (!isProduction) {
-  diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+const diagLogLevelMap: Record<string, DiagLogLevel> = {
+  debug: DiagLogLevel.DEBUG,
+  info: DiagLogLevel.INFO,
+  warn: DiagLogLevel.WARN,
+  error: DiagLogLevel.ERROR,
+  verbose: DiagLogLevel.VERBOSE,
+  all: DiagLogLevel.ALL,
+  none: DiagLogLevel.NONE,
+};
+
+const diagLogLevel = OTEL_DIAGNOSTIC_LOG_LEVEL
+  ? diagLogLevelMap[OTEL_DIAGNOSTIC_LOG_LEVEL.toLowerCase()] ??
+    DiagLogLevel.NONE
+  : DiagLogLevel.NONE;
+
+if (diagLogLevel !== DiagLogLevel.NONE) {
+  diag.setLogger(new DiagConsoleLogger(), diagLogLevel);
+}
+
+function normalizeOtlpEndpoint(endpoint?: string) {
+  if (!endpoint) {
+    return null;
+  }
+
+  const trimmed = endpoint.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
 }
 
 // Initialize resource attributes
@@ -77,12 +105,6 @@ export async function startTelemetryCollector(): Promise<() => Promise<void>> {
     const resource = initializeResources();
     logger.debug("Resource attributes", { attributes: resource.attributes });
 
-    // Configure trace exporter
-    const traceExporter = new OTLPTraceExporter({
-      url: `${OTLP_ENDPOINT}/v1/traces`,
-      timeoutMillis: 15000,
-    });
-
     // Configure Prometheus exporter
     const prometheusExporter = new PrometheusExporter({
       port: PROMETHEUS_PORT,
@@ -90,13 +112,22 @@ export async function startTelemetryCollector(): Promise<() => Promise<void>> {
       host: "0.0.0.0",
     });
 
-    // Configure span processor
-    const spanProcessor = new BatchSpanProcessor(traceExporter, {
-      maxQueueSize: 2048,
-      maxExportBatchSize: 512,
-      scheduledDelayMillis: 5000,
-      exportTimeoutMillis: 30000,
-    });
+    const spanProcessors = OTLP_ENDPOINT
+      ? [
+          new BatchSpanProcessor(
+            new OTLPTraceExporter({
+              url: `${OTLP_ENDPOINT}/v1/traces`,
+              timeoutMillis: 15000,
+            }),
+            {
+              maxQueueSize: 2048,
+              maxExportBatchSize: 512,
+              scheduledDelayMillis: 5000,
+              exportTimeoutMillis: 30000,
+            }
+          ),
+        ]
+      : [];
 
     // Create meter provider
     const meterProvider = new MeterProvider({
@@ -111,12 +142,17 @@ export async function startTelemetryCollector(): Promise<() => Promise<void>> {
     // Initialize SDK
     sdkInstance = new NodeSDK({
       resource,
-      spanProcessors: [spanProcessor],
+      spanProcessors,
       resourceDetectors: getResourceDetectors(),
       instrumentations: getNodeAutoInstrumentations(),
     });
 
     sdkInstance.start();
+    if (!OTLP_ENDPOINT && !isProduction) {
+      logger.info(
+        "OTLP trace export is disabled because OTLP_ENDPOINT is not configured"
+      );
+    }
     logger.info(
       `OpenTelemetry SDK initialized on http://localhost:${PROMETHEUS_PORT}/metrics`
     );

@@ -584,6 +584,8 @@ export default function Homepage() {
             alt="Swan on dark water"
             className="h-full w-full object-cover object-center ml-10"
             fill
+            priority
+            loading="eager"
           />
         </div>
         <div
