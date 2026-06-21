@@ -72,7 +72,9 @@ export default function Homepage() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [integrationView, setIntegrationView] =
     useState<IntegrationView>("instrument");
+  const [integrationDirection, setIntegrationDirection] = useState(1);
   const [signalView, setSignalView] = useState<SignalView>("arrivals");
+  const [signalDirection, setSignalDirection] = useState(1);
   const [activeScreen, setActiveScreen] = useState(0);
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +108,18 @@ export default function Homepage() {
     await navigator.clipboard.writeText(samples[tab]);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  const selectIntegrationView = (view: IntegrationView) => {
+    if (view === integrationView) return;
+    setIntegrationDirection(view === "telemetry" ? 1 : -1);
+    setIntegrationView(view);
+  };
+
+  const selectSignalView = (view: SignalView) => {
+    if (view === signalView) return;
+    setSignalDirection(view === "architecture" ? 1 : -1);
+    setSignalView(view);
   };
 
   const dispatch = (type: EventType) => {
@@ -249,73 +263,133 @@ export default function Homepage() {
           id="integrate"
           className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-20"
         >
-          <div className="mx-auto max-w-6xl">
+          <div className="w-full">
             <div className="mb-14 flex justify-center">
               <div className="inline-flex rounded-lg border border-[#dfdfda] bg-white/70 p-1 dark:border-[#3b3b3b] dark:bg-[#121212]">
-                {([
-                  ["instrument", "Request context"],
-                  ["telemetry", "Unified telemetry"],
-                ] as const).map(([view, label]) => (
+                {(
+                  [
+                    ["instrument", "Request context"],
+                    ["telemetry", "Unified telemetry"],
+                  ] as const
+                ).map(([view, label]) => (
                   <button
                     key={view}
-                    onClick={() => setIntegrationView(view)}
+                    onClick={() => selectIntegrationView(view)}
                     className="relative rounded-md px-4 py-2 text-[11px] font-medium text-[#777772] dark:text-neutral-400"
                   >
                     {integrationView === view && (
                       <motion.span
                         layoutId="integration-tab"
-                        className="absolute inset-0 rounded-md bg-[#171716] dark:bg-[#f5f5f5]"
-                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-md bg-[#ff5a1f]"
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 34,
+                        }}
                       />
                     )}
-                    <span className={integrationView === view ? "relative z-10 text-white dark:text-[#171716]" : "relative z-10"}>{label}</span>
+                    <span
+                      className={
+                        integrationView === view
+                          ? "relative z-10 text-[#171716]"
+                          : "relative z-10"
+                      }
+                    >
+                      {label}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="overflow-hidden">
-              <motion.div
-                className="flex w-[200%]"
-                animate={{ x: integrationView === "instrument" ? "0%" : "-50%" }}
-                transition={{ type: "spring", stiffness: 155, damping: 25, mass: 0.85 }}
-              >
-                <div className="flex w-1/2 min-h-[620px] items-center">
-                  <div className="grid w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+            <AnimatePresence initial={false} mode="wait" custom={integrationDirection}>
+              {integrationView === "instrument" ? (
+                <motion.div
+                  key="instrument"
+                  custom={integrationDirection}
+                  initial={(direction) => ({ x: direction * -72, opacity: 0 })}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={(direction) => ({ x: direction * 72, opacity: 0 })}
+                  transition={{ type: "spring", stiffness: 175, damping: 26, mass: 0.8 }}
+                  className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
+                >
                     <div>
                       <p className="pg-label">Instrument once</p>
-                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">Follow the request everywhere it goes.</h2>
-                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">Start with a few lines. PulseGuard handles the context that makes every event useful.</p>
+                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                        Follow the request everywhere it goes.
+                      </h2>
+                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                        Start with a few lines. PulseGuard handles the context
+                        that makes every event useful.
+                      </p>
                     </div>
-                    <div className="border border-[#e1e1dc] bg-white shadow-[0_24px_65px_rgba(30,30,20,.06)] dark:border-[#3b3b3b] dark:bg-[#121212]">
-                      <div className="flex items-center justify-between border-b border-[#e5e5e0] px-4 py-3 dark:border-[#3b3b3b]">
-                        <div className="flex">
+                    <div className="overflow-hidden rounded-xl border border-[#e1e1dc] bg-white shadow-[0_24px_65px_rgba(30,30,20,.06)] dark:border-[#3b3b3b] dark:bg-[#121212]">
+                      <div className="flex min-h-[72px] items-center border-b border-[#e5e5e0] dark:border-[#3b3b3b]">
+                        <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
                           {(["react", "node", "go"] as Tab[]).map((item) => (
-                            <button key={item} className={tab === item ? "border-b-2 border-[#ff5a1f] px-3 py-2 text-xs font-semibold" : "px-3 py-2 text-xs text-[#777772]"} onClick={() => setTab(item)}>
-                              {item === "react" ? "React / Next.js" : item === "node" ? "Node.js" : "Go"}
+                            <button
+                              key={item}
+                              className={
+                                tab === item
+                                  ? "flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-medium text-[#272725] shadow-[0_5px_14px_rgba(30,30,20,.08)] dark:bg-[#1c1c1c] dark:text-[#f5f5f5]"
+                                  : "flex shrink-0 items-center gap-2 border-l border-[#e5e5e0] px-5 py-3 text-xs text-[#777772] first:border-l-0 dark:border-[#303030] dark:text-neutral-400"
+                              }
+                              onClick={() => setTab(item)}
+                            >
+                              <span className={tab === item ? "grid size-4 place-items-center rounded-full bg-[#ff5a1f] text-[8px] text-[#171716]" : "grid size-4 place-items-center rounded-full border border-current text-[8px]"}>{item === "react" ? "R" : item === "node" ? "N" : "G"}</span>
+                              {item === "react"
+                                ? "React / Next.js"
+                                : item === "node"
+                                  ? "Node.js"
+                                  : "Go"}
                             </button>
                           ))}
                         </div>
-                        <button className="flex items-center gap-2 text-xs text-[#666661]" onClick={copy}>
-                          {copied ? <Check size={14} /> : <Clipboard size={14} />}{copied ? "Copied" : "Copy"}
+                        <button
+                          className="mr-4 flex shrink-0 items-center gap-2 rounded-full border border-[#e1e1dc] bg-white px-4 py-2.5 text-xs text-[#4b4b47] dark:border-[#3b3b3b] dark:bg-[#121212] dark:text-neutral-300"
+                          onClick={copy}
+                        >
+                          {copied ? (
+                            <Check size={14} />
+                          ) : (
+                            <Clipboard size={14} />
+                          )}
+                          {copied ? "Copied" : "Copy"}
                         </button>
                       </div>
-                      <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-[#343430] dark:text-neutral-300 sm:p-10">{samples[tab]}</pre>
+                      <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-[#343430] dark:text-neutral-300 sm:p-10">
+                        {samples[tab]}
+                      </pre>
                     </div>
-                  </div>
-                </div>
-                <div className="flex w-1/2 min-h-[620px] items-center pl-[5%]">
-                  <div className="grid w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="telemetry"
+                  custom={integrationDirection}
+                  initial={(direction) => ({ x: direction * 72, opacity: 0 })}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={(direction) => ({ x: direction * -72, opacity: 0 })}
+                  transition={{ type: "spring", stiffness: 175, damping: 26, mass: 0.8 }}
+                  className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
+                >
                     <div>
                       <p className="pg-label">Pipeline in motion</p>
-                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">Unified telemetry for modern cloud infrastructure.</h2>
-                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">Generate logs, traces, and metrics in one flow. The collector batches each signal and routes it to the tools your team already understands.</p>
-                      <div className="mt-8 flex gap-6 text-xs text-[#777772]"><span>OpenTelemetry compliant</span><span>Zero agent overhead</span></div>
+                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                        Unified telemetry for modern cloud infrastructure.
+                      </h2>
+                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                        Generate logs, traces, and metrics in one flow. The
+                        collector batches each signal and routes it to the tools
+                        your team already understands.
+                      </p>
+                      <div className="mt-8 flex gap-6 text-xs text-[#777772]">
+                        <span>OpenTelemetry compliant</span>
+                        <span>Zero agent overhead</span>
+                      </div>
                     </div>
                     <PipelineSandbox />
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
 
@@ -329,23 +403,37 @@ export default function Homepage() {
           <div className="px-5 py-20">
             <div className="mx-auto mb-14 flex max-w-6xl justify-center">
               <div className="inline-flex rounded-lg border border-[#dfdfda] bg-white/70 p-1 dark:border-[#3b3b3b] dark:bg-[#121212]">
-                {([
-                  ["arrivals", "See what arrives"],
-                  ["architecture", "Follow every signal"],
-                ] as const).map(([view, label]) => (
+                {(
+                  [
+                    ["arrivals", "See what arrives"],
+                    ["architecture", "Follow every signal"],
+                  ] as const
+                ).map(([view, label]) => (
                   <button
                     key={view}
-                    onClick={() => setSignalView(view)}
+                    onClick={() => selectSignalView(view)}
                     className="relative rounded-md px-4 py-2 text-[11px] font-medium text-[#777772] dark:text-neutral-400"
                   >
                     {signalView === view && (
                       <motion.span
                         layoutId="signal-tab"
-                        className="absolute inset-0 rounded-md bg-[#171716] dark:bg-[#f5f5f5]"
-                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-md bg-[#ff5a1f]"
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 34,
+                        }}
                       />
                     )}
-                    <span className={signalView === view ? "relative z-10 text-white dark:text-[#171716]" : "relative z-10"}>{label}</span>
+                    <span
+                      className={
+                        signalView === view
+                          ? "relative z-10 text-[#171716]"
+                          : "relative z-10"
+                      }
+                    >
+                      {label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -354,88 +442,94 @@ export default function Homepage() {
               <motion.div
                 className="flex w-[200%]"
                 animate={{ x: signalView === "arrivals" ? "0%" : "-50%" }}
-                transition={{ type: "spring", stiffness: 155, damping: 25, mass: 0.85 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 155,
+                  damping: 25,
+                  mass: 0.85,
+                }}
               >
-            <div className="flex w-1/2 min-h-[680px] items-center pr-[5%]">
-              <div className="mx-auto w-full max-w-5xl">
-                <div className="text-center">
-                  <p className="pg-label">Test the signal</p>
-                  <h2 className="mt-4 text-[clamp(2.7rem,5vw,5.5rem)] font-semibold tracking-[-.065em] leading-[.95]">
-                    See what arrives.
-                  </h2>
-                  <p className="mx-auto mt-4 max-w-lg text-[#73736e]">
-                    Generate a signal and inspect the context PulseGuard keeps
-                    with it.
-                  </p>
-                </div>
-                <div className="mt-7 flex flex-wrap justify-center gap-x-7 gap-y-3">
-                  {(["error", "log", "metric", "trace"] as EventType[]).map(
-                    (type) => (
-                      <button
-                        key={type}
-                        onClick={() => dispatch(type)}
-                        className="flex items-center gap-2 text-sm font-medium hover:text-[#ff5a1f]"
-                      >
-                        Dispatch {type} <ChevronRight size={14} />
-                      </button>
-                    ),
-                  )}
-                  <button
-                    disabled={!feed.length}
-                    onClick={() => setFeed([])}
-                    className="flex items-center gap-2 text-sm text-[#777772] disabled:opacity-35"
-                  >
-                    <Trash2 size={14} />
-                    Clear
-                  </button>
-                </div>
-                <div
-                  ref={feedRef}
-                  className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-transparent p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
-                  style={{
-                    backgroundColor: theme === "dark" ? "#101010" : "#ffffff",
-                    borderColor: theme === "dark" ? "#262626" : "#dfdfda",
-                  }}
-                >
-                  {feed.length === 0 ? (
-                    <div className="grid h-full place-items-center text-center text-[#777772] dark:text-neutral-500">
-                      <div>
-                        <Terminal className="mx-auto mb-3" size={23} />
-                        Dispatch a signal to inspect the payload.
-                      </div>
+                <div className="flex w-1/2 min-h-[680px] items-center pr-[5%]">
+                  <div className="mx-auto w-full max-w-5xl">
+                    <div className="text-center">
+                      <p className="pg-label">Test the signal</p>
+                      <h2 className="mt-4 text-[clamp(2.7rem,5vw,5.5rem)] font-semibold tracking-[-.065em] leading-[.95]">
+                        See what arrives.
+                      </h2>
+                      <p className="mx-auto mt-4 max-w-lg text-[#73736e]">
+                        Generate a signal and inspect the context PulseGuard
+                        keeps with it.
+                      </p>
                     </div>
-                  ) : (
-                    <AnimatePresence initial={false}>
-                      {feed.map((item) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, y: 7 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="border-b border-[#e8e8e3] py-4 last:border-0 dark:border-neutral-800"
-                        >
-                          <div className="mb-2 flex justify-between">
-                            <span className="text-[#ff5a1f]">
-                              {item.type.toUpperCase()}
-                            </span>
-                            <span className="text-[#8a8a85] dark:text-neutral-600">
-                              {item.timestamp}
-                            </span>
+                    <div className="mt-7 flex flex-wrap justify-center gap-x-7 gap-y-3">
+                      {(["error", "log", "metric", "trace"] as EventType[]).map(
+                        (type) => (
+                          <button
+                            key={type}
+                            onClick={() => dispatch(type)}
+                            className="flex items-center gap-2 text-sm font-medium hover:text-[#ff5a1f]"
+                          >
+                            Dispatch {type} <ChevronRight size={14} />
+                          </button>
+                        ),
+                      )}
+                      <button
+                        disabled={!feed.length}
+                        onClick={() => setFeed([])}
+                        className="flex items-center gap-2 text-sm text-[#777772] disabled:opacity-35"
+                      >
+                        <Trash2 size={14} />
+                        Clear
+                      </button>
+                    </div>
+                    <div
+                      ref={feedRef}
+                      className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-transparent p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
+                      style={{
+                        backgroundColor:
+                          theme === "dark" ? "#101010" : "#ffffff",
+                        borderColor: theme === "dark" ? "#262626" : "#dfdfda",
+                      }}
+                    >
+                      {feed.length === 0 ? (
+                        <div className="grid h-full place-items-center text-center text-[#777772] dark:text-neutral-500">
+                          <div>
+                            <Terminal className="mx-auto mb-3" size={23} />
+                            Dispatch a signal to inspect the payload.
                           </div>
-                          <pre className="text-[#777772] dark:text-neutral-500">
-                            {item.payload}
-                          </pre>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  )}
+                        </div>
+                      ) : (
+                        <AnimatePresence initial={false}>
+                          {feed.map((item) => (
+                            <motion.div
+                              key={item.id}
+                              initial={{ opacity: 0, y: 7 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="border-b border-[#e8e8e3] py-4 last:border-0 dark:border-neutral-800"
+                            >
+                              <div className="mb-2 flex justify-between">
+                                <span className="text-[#ff5a1f]">
+                                  {item.type.toUpperCase()}
+                                </span>
+                                <span className="text-[#8a8a85] dark:text-neutral-600">
+                                  {item.timestamp}
+                                </span>
+                              </div>
+                              <pre className="text-[#777772] dark:text-neutral-500">
+                                {item.payload}
+                              </pre>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="flex w-1/2 min-h-[680px] items-center pl-[5%]">
-              <div className="mx-auto w-full max-w-6xl">
-                <ArchitectureGraph />
-              </div>
-            </div>
+                <div className="flex w-1/2 min-h-[680px] items-center pl-[5%]">
+                  <div className="mx-auto w-full max-w-6xl">
+                    <ArchitectureGraph />
+                  </div>
+                </div>
               </motion.div>
             </div>
           </div>
@@ -465,12 +559,95 @@ export default function Homepage() {
           PULSEGUARD
         </div>
         <div className="mx-auto mt-10 max-w-[1440px] px-6 pb-10 sm:px-12">
-          <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-5"><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">Open-source, developer-first observability pipeline for modern distributed web assets. Standardized on OpenTelemetry, Loki, Tempo, and Prometheus.</p><div className="mt-5 flex gap-3"><a href="https://github.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Link size={16} /></a><a href="https://twitter.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><AtSign size={16} /></a><a href="https://discord.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><MessageCircle size={16} /></a></div></div>
-            <div className="md:col-span-3"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Platform sections</p><div className="mt-4 space-y-3 text-[11px] text-neutral-400"><button onClick={() => { scrollToSection("signals"); setSignalView("architecture"); }} className="block text-left hover:text-white">Topology architecture</button><button onClick={() => scrollToSection("signals")} className="block text-left hover:text-white">Metrics, logs & traces sandbox</button><button onClick={() => scrollToSection("integrate")} className="block text-left hover:text-white">Configuration explorer</button><button onClick={() => scrollToSection("faq")} className="block text-left hover:text-white">Frequently asked questions</button></div></div>
-            <div className="md:col-span-4"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Deployment status</p><div className="mt-4 space-y-3 rounded-lg border border-[#303030] bg-[#101010] p-4 font-mono text-[10px] text-neutral-400"><div className="flex justify-between border-b border-[#303030] pb-3"><span>Core collector stream</span><span className="text-[#ff5a1f]">STABLE V1.2.0</span></div><div className="flex justify-between"><span>Grafana integration</span><span className="text-[#ff5a1f]">PROVISIONED</span></div></div><p className="mt-4 text-[10px] leading-relaxed text-neutral-500">OpenTelemetry is a registered trademark of The Linux Foundation. Backends and templates are released under Apache 2.0 licenses.</p></div>
+          <div className="grid gap-10 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <div className="scale-[.84] origin-left invert">
+                <PulseGuardLogo />
+              </div>
+              <p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">
+                Open-source, developer-first observability pipeline for modern
+                distributed web assets. Standardized on OpenTelemetry, Loki,
+                Tempo, and Prometheus.
+              </p>
+              <div className="mt-5 flex gap-3">
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
+                >
+                  <Link size={16} />
+                </a>
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
+                >
+                  <AtSign size={16} />
+                </a>
+                <a
+                  href="https://discord.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
+                >
+                  <MessageCircle size={16} />
+                </a>
+              </div>
+            </div>
+            <div className="md:col-span-1">
+              <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">
+                Platform sections
+              </p>
+              <div className="mt-4 space-y-3 text-[11px] text-neutral-400">
+                <button
+                  onClick={() => {
+                    scrollToSection("signals");
+                    setSignalView("architecture");
+                  }}
+                  className="block text-left hover:text-white"
+                >
+                  Topology architecture
+                </button>
+                <button
+                  onClick={() => scrollToSection("signals")}
+                  className="block text-left hover:text-white"
+                >
+                  Metrics, logs & traces sandbox
+                </button>
+                <button
+                  onClick={() => scrollToSection("integrate")}
+                  className="block text-left hover:text-white"
+                >
+                  Configuration explorer
+                </button>
+                <button
+                  onClick={() => scrollToSection("faq")}
+                  className="block text-left hover:text-white"
+                >
+                  Frequently asked questions
+                </button>
+                <p className="mt-4 text-[10px] leading-relaxed text-neutral-500 w-sm">
+                  OpenTelemetry is a registered trademark of The Linux
+                  Foundation. Backends and templates are released under Apache
+                  2.0 licenses.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-[#303030] pt-6 text-xs text-neutral-500 sm:flex-row"><span>© {new Date().getFullYear()} PulseGuard. All rights reserved.</span><div className="flex gap-3"><span>Privacy policy</span><span>•</span><span>Terms of service</span><span>•</span><span className="font-mono text-[10px]">v1.2.0-b26</span></div></div>
+          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-[#303030] pt-6 text-xs text-neutral-500 sm:flex-row">
+            <span>
+              © {new Date().getFullYear()} PulseGuard. All rights reserved.
+            </span>
+            <div className="flex gap-3">
+              <span>Privacy policy</span>
+              <span>•</span>
+              <span>Terms of service</span>
+              <span>•</span>
+              <span className="font-mono text-[10px]">v1.2.0-b26</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
