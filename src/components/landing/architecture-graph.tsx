@@ -98,10 +98,20 @@ function NodeButton({
           ? "rounded-lg border border-[#ff5a1f] bg-[#ff5a1f]/10 px-4 py-3 text-center"
           : "rounded-lg border border-[#dfdfda] bg-transparent px-4 py-3 text-center hover:border-[#9a9a95] dark:border-[#3b3b3b] dark:bg-[#121212] dark:hover:border-[#5a5a5a]"
       }
-      style={{ backgroundColor: active ? undefined : isDark ? "#121212" : "transparent", borderColor: active ? "#ff5a1f" : isDark ? "#3b3b3b" : "#dfdfda" }}
+      style={{
+        backgroundColor: active
+          ? undefined
+          : isDark
+            ? "#121212"
+            : "transparent",
+        borderColor: active ? "#ff5a1f" : isDark ? "#3b3b3b" : "#dfdfda",
+      }}
     >
       <Icon className="mx-auto mb-1.5 text-[#ff5a1f]" size={16} />
-      <span className="block text-xs font-medium text-[#272725] dark:text-white" style={{ color: isDark ? "#f5f5f5" : "#272725" }}>
+      <span
+        className="block text-xs font-medium text-[#272725] dark:text-white"
+        style={{ color: isDark ? "#f5f5f5" : "#272725" }}
+      >
         {node.name}
       </span>
       <span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-[#777772] dark:text-[#a3a3a3]">

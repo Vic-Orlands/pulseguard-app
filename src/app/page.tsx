@@ -301,7 +301,11 @@ export default function Homepage() {
                 ))}
               </div>
             </div>
-            <AnimatePresence initial={false} mode="wait" custom={integrationDirection}>
+            <AnimatePresence
+              initial={false}
+              mode="wait"
+              custom={integrationDirection}
+            >
               {integrationView === "instrument" ? (
                 <motion.div
                   key="instrument"
@@ -309,57 +313,70 @@ export default function Homepage() {
                   initial={(direction) => ({ x: direction * -72, opacity: 0 })}
                   animate={{ x: 0, opacity: 1 }}
                   exit={(direction) => ({ x: direction * 72, opacity: 0 })}
-                  transition={{ type: "spring", stiffness: 175, damping: 26, mass: 0.8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 175,
+                    damping: 26,
+                    mass: 0.8,
+                  }}
                   className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
                 >
-                    <div>
-                      <p className="pg-label">Instrument once</p>
-                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
-                        Follow the request everywhere it goes.
-                      </h2>
-                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
-                        Start with a few lines. PulseGuard handles the context
-                        that makes every event useful.
-                      </p>
-                    </div>
-                    <div className="overflow-hidden rounded-xl border border-[#e1e1dc] bg-white shadow-[0_24px_65px_rgba(30,30,20,.06)] dark:border-[#3b3b3b] dark:bg-[#121212]">
-                      <div className="flex min-h-[72px] items-center border-b border-[#e5e5e0] dark:border-[#3b3b3b]">
-                        <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
-                          {(["react", "node", "go"] as Tab[]).map((item) => (
-                            <button
-                              key={item}
+                  <div>
+                    <p className="pg-label">Instrument once</p>
+                    <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                      Follow the request everywhere it goes.
+                    </h2>
+                    <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                      Start with a few lines. PulseGuard handles the context
+                      that makes every event useful.
+                    </p>
+                  </div>
+                  <div className="overflow-hidden rounded-xl border border-[#e1e1dc] bg-white shadow-[0_24px_65px_rgba(30,30,20,.06)] dark:border-[#3b3b3b] dark:bg-[#121212]">
+                    <div className="flex min-h-[72px] items-center border-b border-[#e5e5e0] dark:border-[#3b3b3b]">
+                      <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
+                        {(["react", "node", "go"] as Tab[]).map((item) => (
+                          <button
+                            key={item}
+                            className={
+                              tab === item
+                                ? "flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-medium text-[#272725] shadow-[0_5px_14px_rgba(30,30,20,.08)] dark:bg-[#1c1c1c] dark:text-[#f5f5f5]"
+                                : "flex shrink-0 items-center gap-2 border-l border-[#e5e5e0] px-5 py-3 text-xs text-[#777772] first:border-l-0 dark:border-[#303030] dark:text-neutral-400"
+                            }
+                            onClick={() => setTab(item)}
+                          >
+                            <span
                               className={
                                 tab === item
-                                  ? "flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-medium text-[#272725] shadow-[0_5px_14px_rgba(30,30,20,.08)] dark:bg-[#1c1c1c] dark:text-[#f5f5f5]"
-                                  : "flex shrink-0 items-center gap-2 border-l border-[#e5e5e0] px-5 py-3 text-xs text-[#777772] first:border-l-0 dark:border-[#303030] dark:text-neutral-400"
+                                  ? "grid size-4 place-items-center rounded-full bg-[#ff5a1f] text-[8px] text-[#171716]"
+                                  : "grid size-4 place-items-center rounded-full border border-current text-[8px]"
                               }
-                              onClick={() => setTab(item)}
                             >
-                              <span className={tab === item ? "grid size-4 place-items-center rounded-full bg-[#ff5a1f] text-[8px] text-[#171716]" : "grid size-4 place-items-center rounded-full border border-current text-[8px]"}>{item === "react" ? "R" : item === "node" ? "N" : "G"}</span>
                               {item === "react"
-                                ? "React / Next.js"
+                                ? "R"
                                 : item === "node"
-                                  ? "Node.js"
-                                  : "Go"}
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          className="mr-4 flex shrink-0 items-center gap-2 rounded-full border border-[#e1e1dc] bg-white px-4 py-2.5 text-xs text-[#4b4b47] dark:border-[#3b3b3b] dark:bg-[#121212] dark:text-neutral-300"
-                          onClick={copy}
-                        >
-                          {copied ? (
-                            <Check size={14} />
-                          ) : (
-                            <Clipboard size={14} />
-                          )}
-                          {copied ? "Copied" : "Copy"}
-                        </button>
+                                  ? "N"
+                                  : "G"}
+                            </span>
+                            {item === "react"
+                              ? "React / Next.js"
+                              : item === "node"
+                                ? "Node.js"
+                                : "Go"}
+                          </button>
+                        ))}
                       </div>
-                      <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-[#343430] dark:text-neutral-300 sm:p-10">
-                        {samples[tab]}
-                      </pre>
+                      <button
+                        className="mr-4 flex shrink-0 items-center gap-2 rounded-full border border-[#e1e1dc] bg-white px-4 py-2.5 text-xs text-[#4b4b47] dark:border-[#3b3b3b] dark:bg-[#121212] dark:text-neutral-300"
+                        onClick={copy}
+                      >
+                        {copied ? <Check size={14} /> : <Clipboard size={14} />}
+                        {copied ? "Copied" : "Copy"}
+                      </button>
                     </div>
+                    <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-[#343430] dark:text-neutral-300 sm:p-10">
+                      {samples[tab]}
+                    </pre>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
@@ -368,25 +385,30 @@ export default function Homepage() {
                   initial={(direction) => ({ x: direction * 72, opacity: 0 })}
                   animate={{ x: 0, opacity: 1 }}
                   exit={(direction) => ({ x: direction * -72, opacity: 0 })}
-                  transition={{ type: "spring", stiffness: 175, damping: 26, mass: 0.8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 175,
+                    damping: 26,
+                    mass: 0.8,
+                  }}
                   className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
                 >
-                    <div>
-                      <p className="pg-label">Pipeline in motion</p>
-                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
-                        Unified telemetry for modern cloud infrastructure.
-                      </h2>
-                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
-                        Generate logs, traces, and metrics in one flow. The
-                        collector batches each signal and routes it to the tools
-                        your team already understands.
-                      </p>
-                      <div className="mt-8 flex gap-6 text-xs text-[#777772]">
-                        <span>OpenTelemetry compliant</span>
-                        <span>Zero agent overhead</span>
-                      </div>
+                  <div>
+                    <p className="pg-label">Pipeline in motion</p>
+                    <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                      Unified telemetry for modern cloud infrastructure.
+                    </h2>
+                    <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                      Generate logs, traces, and metrics in one flow. The
+                      collector batches each signal and routes it to the tools
+                      your team already understands.
+                    </p>
+                    <div className="mt-8 flex gap-6 text-xs text-[#777772]">
+                      <span>OpenTelemetry compliant</span>
+                      <span>Zero agent overhead</span>
                     </div>
-                    <PipelineSandbox />
+                  </div>
+                  <PipelineSandbox />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -554,11 +576,15 @@ export default function Homepage() {
       <footer className="overflow-hidden bg-black pt-8 text-white">
         <div
           aria-hidden="true"
-          className="select-none whitespace-nowrap px-3 text-center text-[17vw] font-medium leading-none tracking-[-.1em] text-white/[0.07]"
+          className="relative select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/[0.07]"
         >
           PULSEGUARD
+          <div className="absolute inset-2 right-3 top-3 select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/20">
+            PULSEGUARD
+          </div>
         </div>
-        <div className="mx-auto mt-10 max-w-[1440px] px-6 pb-10 sm:px-12">
+
+        <div className="mx-auto mt-5 max-w-[1440px] px-6 pb-10 sm:px-12">
           <div className="grid gap-10 md:grid-cols-3">
             <div className="md:col-span-2">
               <div className="scale-[.84] origin-left invert">
@@ -571,7 +597,7 @@ export default function Homepage() {
               </p>
               <div className="mt-5 flex gap-3">
                 <a
-                  href="https://github.com"
+                  href="https://github.com/Vic-Orlands/pulseguard-app"
                   target="_blank"
                   rel="noreferrer"
                   className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
@@ -579,7 +605,7 @@ export default function Homepage() {
                   <Link size={16} />
                 </a>
                 <a
-                  href="https://twitter.com"
+                  href="https://x.com/MezieIV"
                   target="_blank"
                   rel="noreferrer"
                   className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
@@ -587,7 +613,7 @@ export default function Homepage() {
                   <AtSign size={16} />
                 </a>
                 <a
-                  href="https://discord.com"
+                  href="mailto:chimezieinnocent39@gmail.com"
                   target="_blank"
                   rel="noreferrer"
                   className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
