@@ -291,7 +291,7 @@ export default function Homepage() {
         <section
           id="signals"
           className="pg-shell overflow-hidden border-b border-[#e4e4df] bg-transparent dark:bg-[#090909]"
-          style={{ backgroundColor: theme === "dark" ? "#090909" : "transparent" }}
+          style={{ backgroundColor: theme === "dark" ? "#090909" : "transparent", borderColor: theme === "dark" ? "#3b3b3b" : "#dfdfda" }}
         >
           <div className={architectureOpen ? "pg-signal-track is-architecture" : "pg-signal-track"}>
             <div className="pg-signal-panel flex min-h-[780px] items-center px-5 py-28">
@@ -330,7 +330,7 @@ export default function Homepage() {
             <div
               ref={feedRef}
               className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-transparent p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
-              style={{ backgroundColor: theme === "dark" ? "#101010" : "transparent" }}
+              style={{ backgroundColor: theme === "dark" ? "#101010" : "#ffffff", borderColor: theme === "dark" ? "#262626" : "#dfdfda" }}
             >
               {feed.length === 0 ? (
                 <div className="grid h-full place-items-center text-center text-[#777772] dark:text-neutral-500">
