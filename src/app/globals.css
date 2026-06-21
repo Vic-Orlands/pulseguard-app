@@ -107,6 +107,8 @@ button {
 .dark .pg-page .text-\[\#454540\],
 .dark .pg-page .text-\[\#4b4b47\],
 .dark .pg-page .text-\[\#343430\] { color: #a3a3a3; }
+.pg-footer { background: linear-gradient(to bottom, var(--pg-paper) 0 9rem, #151515 15rem, #000 22rem); }
+.dark .pg-footer { background: linear-gradient(to bottom, #090909 0 9rem, #111 15rem, #000 22rem); }
 .dark .pg-page .bg-white { background-color: #121212; }
 .dark .pg-page .bg-\[\#f7f7f5\] { background-color: #090909; }
 .dark .pg-page .bg-\[\#101010\] { background-color: #050505; }

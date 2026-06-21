@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowRight, Check, ChevronRight, Clipboard, Moon, Search, Sun, Terminal, Trash2 } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Clipboard, Moon, Sun, Terminal, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { PulseGuardLogo } from "@/components/Icons";
@@ -29,6 +29,8 @@ sdk.start();`,
 defer shutdown(ctx)`,
 };
 
+const dashboardScreens = ["overview", "logs", "traces", "errors", "metrics"];
+
 function SoftSignal() {
   return <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,.14),transparent_44%),linear-gradient(90deg,transparent_0,rgba(220,220,215,.75)_1px,transparent_1px),linear-gradient(transparent_0,rgba(220,220,215,.75)_1px,transparent_1px)] [background-size:auto,78px_100%,100%_62px]" />;
 }
@@ -41,10 +43,15 @@ export default function Homepage() {
   const [tab, setTab] = useState<Tab>("react");
   const [copied, setCopied] = useState(false);
   const [feed, setFeed] = useState<FeedItem[]>([]);
+  const [activeScreen, setActiveScreen] = useState(0);
   const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
   useEffect(() => { if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight; }, [feed]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setActiveScreen((current) => (current + 1) % dashboardScreens.length), 4500);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const authenticate = (mode: "login" | "signup") => {
     localStorage.setItem("auth_mode", mode);
@@ -77,18 +84,15 @@ export default function Homepage() {
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center">
           <h1 className="max-w-4xl text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[.96] tracking-[-.07em]">Know what changed <span className="pg-signal">before your users do.</span></h1>
           <p className="mt-7 max-w-xl text-sm font-light leading-6 text-[#73736e] sm:text-base">Real-time observability for modern systems. Detect issues, own incidents, and ship with confidence.</p>
-          <div className="mt-8 flex items-center gap-6"><button className="pg-action pg-action-primary" onClick={() => authenticate("signup")}>Start monitoring</button><a className="flex items-center gap-2 text-xs font-light" href="#integrate">Explore the docs <ArrowRight size={14} /></a></div>
-          <div className="mt-20 w-full max-w-3xl rounded-2xl border border-[#e1e1dc] bg-white p-2 shadow-[0_22px_50px_rgba(30,30,20,.07)] sm:p-3">
-            <div className="mb-2 flex gap-1.5 px-2 pt-1"><span className="size-2 rounded-full border border-[#deded8]" /><span className="size-2 rounded-full border border-[#deded8]" /><span className="size-2 rounded-full border border-[#deded8]" /></div>
-            <div className="flex items-center gap-3 rounded-xl border border-[#e3e3de] px-4 py-3 text-left"><Search size={16} className="text-[#8a8a85]" /><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=160&q=80" alt="Placeholder circuit board" className="h-7 w-14 rounded-md object-cover" /><button className="ml-auto grid size-9 place-items-center rounded-lg bg-[#ff5a1f] text-white"><ArrowRight size={16} /></button></div>
-          </div>
+          <div className="mt-8 flex flex-col items-center gap-5"><button className="pg-action pg-action-primary" onClick={() => authenticate("signup")}>Start monitoring</button><a className="flex items-center gap-2 text-xs font-light" href="#integrate">Explore the docs <ArrowRight size={14} /></a></div>
+          <div className="mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]"><img src="/landing/overview.png" alt="PulseGuard incident overview" className="block w-full" /></div>
         </div>
       </section>
 
       <section id="product" className="pg-shell relative isolate flex min-h-[850px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-28 text-center">
         <SoftSignal />
-        <div className="relative z-10 w-full"><h2 className="text-[clamp(2.5rem,4.4vw,4.7rem)] font-medium tracking-[-.06em]">Everything starts with signals.</h2><p className="mx-auto mt-5 max-w-xl text-sm font-light text-[#73736e]">Search across logs, metrics, errors, and traces in real time.</p>
-          <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]"><div className="flex h-12 items-center border-b border-[#e5e5e0] px-5"><span className="size-2 rounded-full border border-[#deded8]" /><span className="ml-2 size-2 rounded-full border border-[#deded8]" /><span className="ml-2 size-2 rounded-full border border-[#deded8]" /></div><div className="grid min-h-[290px] md:grid-cols-[220px_1fr]"><div className="border-b border-[#e5e5e0] p-6 md:border-b-0 md:border-r"><p className="pg-label">Explore</p><div className="mt-8 space-y-5 text-sm"><p className="font-medium text-[#ff5a1f]">All signals</p><p className="text-[#777772]">Errors</p><p className="text-[#777772]">Traces</p><p className="text-[#777772]">Logs</p><p className="text-[#777772]">Metrics</p></div></div><div className="p-6 sm:p-9"><div className="flex items-center gap-3 border-b border-[#e5e5e0] pb-4"><Search size={16} /><span className="text-sm">service:checkout</span><span className="ml-auto text-xs text-[#777772]">Live</span></div><div className="mt-9 space-y-6">{[["High latency on checkout-api", "Trace · 1.02 s"], ["Connection pool approaching threshold", "Log · 10:24:31"], ["http.server.duration increased", "Metric · 312 ms"]].map(([title, detail], index) => <div key={title} className="flex items-center justify-between border-b border-[#efefeb] pb-4"><div className="flex items-center gap-3"><span className={index === 0 ? "size-2 rounded-full bg-[#ff5a1f]" : "size-2 rounded-full bg-[#b1b1ac]"} /><span className="text-sm">{title}</span></div><span className="text-xs text-[#777772]">{detail}</span></div>)}</div></div></div></div>
+        <div className="relative z-10 w-full"><h2 className="text-[clamp(2.5rem,4.4vw,4.7rem)] font-medium tracking-[-.06em]">Everything starts with signals.</h2><p className="mx-auto mt-5 max-w-xl text-sm font-light text-[#73736e]">Five focused ways to see what your software is doing.</p>
+          <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]"><img src={`/landing/${dashboardScreens[activeScreen]}.png`} alt={`${dashboardScreens[activeScreen]} dashboard preview`} className="block w-full transition-opacity duration-500" /></div><div className="mt-7 flex justify-center gap-2">{dashboardScreens.map((screen, index) => <button key={screen} onClick={() => setActiveScreen(index)} aria-label={`Show ${screen} dashboard`} className={activeScreen === index ? "h-2 w-6 rounded-full bg-[#ff5a1f] transition-all" : "size-2 rounded-full bg-[#c6c6c1] transition-all"} />)}</div>
         </div>
       </section>
 
@@ -99,6 +103,6 @@ export default function Homepage() {
       <section className="pg-shell flex min-h-[600px] items-center justify-center border-b border-[#e4e4df] px-5 py-28 text-center"><div><h2 className="max-w-4xl text-[clamp(3rem,6vw,6.4rem)] font-semibold leading-[.93] tracking-[-.075em]">The next incident should not be a mystery.</h2><button className="pg-action pg-action-primary mt-10" onClick={() => authenticate("signup")}>Create your project <ArrowRight size={16} /></button></div></section>
     </main>
 
-    <footer className="relative isolate overflow-hidden bg-[linear-gradient(to_bottom,#f7f7f5_0%,#272725_30%,#000_58%)] pt-44 text-white"><div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[35%] z-0 select-none overflow-hidden text-center text-[clamp(5rem,17vw,20rem)] font-medium leading-none tracking-[-.1em] text-white/[0.07]">PULSEGUARD</div><div className="pg-shell relative z-10 grid min-h-[570px] items-end gap-12 border-[#4a4a46] px-6 py-12 sm:px-12 lg:grid-cols-[1.4fr_1fr_1fr]"><div><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-7 max-w-xs text-sm leading-6 text-neutral-500">Observability for the parts of your product that cannot be left to guesswork.</p></div><div className="grid grid-cols-2 gap-8 text-sm"><div className="space-y-4 text-neutral-400"><p className="text-xs text-neutral-600">Product</p><a href="#product">Signals</a><a href="#integrate" className="block">Instrumentation</a><a href="#signals" className="block">Live console</a></div><div className="space-y-4 text-neutral-400"><p className="text-xs text-neutral-600">Company</p><a href="#integrate" className="block">Docs</a><a href="https://github.com" target="_blank" rel="noreferrer" className="block">GitHub</a></div></div><p className="text-xs text-neutral-600">© {new Date().getFullYear()} PulseGuard</p></div></footer>
+    <footer className="pg-footer relative isolate overflow-hidden pt-44 text-white"><div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[35%] z-0 select-none overflow-hidden text-center text-[clamp(5rem,17vw,20rem)] font-medium leading-none tracking-[-.1em] text-white/[0.07]">PULSEGUARD</div><div className="pg-shell relative z-10 grid min-h-[570px] items-end gap-12 border-[#4a4a46] px-6 py-12 sm:px-12 lg:grid-cols-[1.4fr_1fr_1fr]"><div><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-7 max-w-xs text-sm leading-6 text-neutral-500">Observability for the parts of your product that cannot be left to guesswork.</p></div><div className="grid grid-cols-2 gap-8 text-sm"><div className="space-y-4 text-neutral-400"><p className="text-xs text-neutral-600">Product</p><a href="#product">Signals</a><a href="#integrate" className="block">Instrumentation</a><a href="#signals" className="block">Live console</a></div><div className="space-y-4 text-neutral-400"><p className="text-xs text-neutral-600">Company</p><a href="#integrate" className="block">Docs</a><a href="https://github.com" target="_blank" rel="noreferrer" className="block">GitHub</a></div></div><p className="text-xs text-neutral-600">© {new Date().getFullYear()} PulseGuard</p></div></footer>
   </div>;
 }
