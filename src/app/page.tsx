@@ -87,6 +87,13 @@ export default function Homepage() {
     router.push("/signin");
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const copy = async () => {
     await navigator.clipboard.writeText(samples[tab]);
     setCopied(true);
@@ -132,9 +139,9 @@ export default function Homepage() {
             <PulseGuardLogo />
           </div>
           <nav className="hidden gap-8 text-xs font-light text-[#454540] md:flex">
-            <a href="#product">Product</a>
-            <a href="#integrate">Docs</a>
-            <a href="#signals">Signals</a>
+            <button onClick={() => scrollToSection("product")}>Product</button>
+            <button onClick={() => scrollToSection("integrate")}>Docs</button>
+            <button onClick={() => scrollToSection("signals")}>Signals</button>
           </nav>
           <div className="flex items-center gap-3">
             {mounted && (
@@ -177,12 +184,12 @@ export default function Homepage() {
               >
                 Start monitoring
               </button>
-              <a
+              <button
                 className="flex items-center gap-2 text-xs font-light"
-                href="#integrate"
+                onClick={() => scrollToSection("integrate")}
               >
                 Explore the docs <ArrowRight size={14} />
-              </a>
+              </button>
             </div>
             <div className="mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
               <img
@@ -398,19 +405,19 @@ export default function Homepage() {
           <div className="grid grid-cols-2 gap-8 text-sm">
             <div className="space-y-4 text-neutral-400">
               <p className="text-xs text-neutral-600">Product</p>
-              <a href="#product">Signals</a>
-              <a href="#integrate" className="block">
+              <button onClick={() => scrollToSection("product")}>Signals</button>
+              <button onClick={() => scrollToSection("integrate")} className="block">
                 Instrumentation
-              </a>
-              <a href="#signals" className="block">
+              </button>
+              <button onClick={() => scrollToSection("signals")} className="block">
                 Live console
-              </a>
+              </button>
             </div>
             <div className="space-y-4 text-neutral-400">
               <p className="text-xs text-neutral-600">Company</p>
-              <a href="#integrate" className="block">
+              <button onClick={() => scrollToSection("integrate")} className="block">
                 Docs
-              </a>
+              </button>
               <a
                 href="https://github.com"
                 target="_blank"
