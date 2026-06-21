@@ -303,7 +303,7 @@ export default function Homepage() {
                 : "pg-signal-track"
             }
           >
-            <div className="pg-signal-panel flex min-h-[780px] items-center px-5 py-28">
+            <div className="pg-signal-panel relative flex min-h-[780px] items-center px-5 py-28">
               <div className="mx-auto w-full max-w-5xl">
                 <div className="text-center">
                   <p className="pg-label">Test the signal</p>
@@ -383,6 +383,14 @@ export default function Homepage() {
                   Explore the pipeline <ChevronRight size={14} />
                 </button>
               </div>
+              <button
+                onClick={() => setArchitectureOpen(true)}
+                className="absolute inset-y-0 right-0 flex w-[10%] min-w-12 flex-col items-center justify-center gap-3 border-l border-[#dfdfda] bg-transparent text-[#777772] hover:text-[#ff5a1f] dark:border-[#3b3b3b] dark:text-[#a3a3a3]"
+                aria-label="Open pipeline architecture"
+              >
+                <span className="[writing-mode:vertical-rl] text-[10px] font-medium uppercase tracking-[.18em]">Pipeline</span>
+                <ChevronRight size={16} />
+              </button>
             </div>
             <div className="pg-architecture-panel flex min-h-[780px] items-center px-5 py-28">
               <div className="mx-auto w-full max-w-6xl">
