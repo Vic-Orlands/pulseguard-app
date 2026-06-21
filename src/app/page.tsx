@@ -271,15 +271,13 @@ export default function Homepage() {
             <AnimatePresence
               initial={false}
               mode="wait"
-              custom={integrationDirection}
             >
               {integrationView === "instrument" ? (
                 <motion.div
                   key="instrument"
-                  custom={integrationDirection}
-                  initial={(direction) => ({ x: direction * -72, opacity: 0 })}
+                  initial={{ x: integrationDirection * -72, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  exit={(direction) => ({ x: direction * 72, opacity: 0 })}
+                  exit={{ x: integrationDirection * 72, opacity: 0 }}
                   transition={{
                     type: "spring",
                     stiffness: 175,
@@ -348,10 +346,9 @@ export default function Homepage() {
               ) : (
                 <motion.div
                   key="telemetry"
-                  custom={integrationDirection}
-                  initial={(direction) => ({ x: direction * 72, opacity: 0 })}
+                  initial={{ x: integrationDirection * 72, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  exit={(direction) => ({ x: direction * -72, opacity: 0 })}
+                  exit={{ x: integrationDirection * -72, opacity: 0 }}
                   transition={{
                     type: "spring",
                     stiffness: 175,
@@ -577,7 +574,14 @@ export default function Homepage() {
         </section>
       </main>
 
-      <footer className="overflow-hidden bg-black pt-8 text-white">
+      <footer className="flex min-h-screen flex-col overflow-hidden bg-black text-white">
+        <div className="relative h-[48vh] min-h-[300px] w-full overflow-hidden bg-black">
+          <img
+            src="/landing/swan.jpg"
+            alt="Swan on dark water"
+            className="h-full w-full object-cover object-center"
+          />
+        </div>
         <div
           aria-hidden="true"
           className="relative select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/[0.07]"
