@@ -8,9 +8,6 @@ import {
   Check,
   ChevronRight,
   Clipboard,
-  AtSign,
-  Link,
-  MessageCircle,
   Moon,
   Sun,
   Terminal,
@@ -22,6 +19,12 @@ import { PulseGuardLogo } from "@/components/Icons";
 import { LandingFaq } from "@/components/landing/faq";
 import { ArchitectureGraph } from "@/components/landing/architecture-graph";
 import { PipelineSandbox } from "@/components/landing/pipeline-sandbox";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  NewTwitterIcon,
+  Mail01Icon,
+  GithubIcon,
+} from "@hugeicons/core-free-icons";
 
 type Tab = "react" | "node" | "go";
 type EventType = "error" | "log" | "metric" | "trace";
@@ -224,42 +227,6 @@ export default function Homepage() {
         </section>
 
         <section
-          id="product"
-          className="pg-shell relative isolate flex min-h-[850px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-28 text-center"
-        >
-          <SoftSignal />
-          <div className="relative z-10 w-full">
-            <h2 className="text-[clamp(2.5rem,4.4vw,4.7rem)] font-medium tracking-[-.06em]">
-              Everything starts with signals.
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm font-light text-[#73736e]">
-              Five focused ways to see what your software is doing.
-            </p>
-            <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]">
-              <img
-                src={`/landing/${dashboardScreens[activeScreen]}.png`}
-                alt={`${dashboardScreens[activeScreen]} dashboard preview`}
-                className="block w-full transition-opacity duration-500"
-              />
-            </div>
-            <div className="mt-7 flex justify-center gap-2">
-              {dashboardScreens.map((screen, index) => (
-                <button
-                  key={screen}
-                  onClick={() => setActiveScreen(index)}
-                  aria-label={`Show ${screen} dashboard`}
-                  className={
-                    activeScreen === index
-                      ? "h-2 w-6 rounded-full bg-[#ff5a1f] transition-all"
-                      : "size-2 rounded-full bg-[#c6c6c1] transition-all"
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section
           id="integrate"
           className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-20"
         >
@@ -416,6 +383,42 @@ export default function Homepage() {
         </section>
 
         <section
+          id="product"
+          className="pg-shell relative isolate flex min-h-[850px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-28 text-center"
+        >
+          <SoftSignal />
+          <div className="relative z-10 w-full">
+            <h2 className="text-[clamp(2.5rem,4.4vw,4.7rem)] font-medium tracking-[-.06em]">
+              Everything starts with signals.
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm font-light text-[#73736e]">
+              Five focused ways to see what your software is doing.
+            </p>
+            <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]">
+              <img
+                src={`/landing/${dashboardScreens[activeScreen]}.png`}
+                alt={`${dashboardScreens[activeScreen]} dashboard preview`}
+                className="block w-full transition-opacity duration-500"
+              />
+            </div>
+            <div className="mt-7 flex justify-center gap-2">
+              {dashboardScreens.map((screen, index) => (
+                <button
+                  key={screen}
+                  onClick={() => setActiveScreen(index)}
+                  aria-label={`Show ${screen} dashboard`}
+                  className={
+                    activeScreen === index
+                      ? "h-2 w-6 rounded-full bg-[#ff5a1f] transition-all"
+                      : "size-2 rounded-full bg-[#c6c6c1] transition-all"
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
           id="signals"
           className="pg-shell overflow-hidden border-b border-[#e4e4df] bg-transparent dark:bg-[#090909]"
           style={{
@@ -471,7 +474,7 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="flex w-1/2 min-h-[680px] items-center pr-[5%]">
+                <div className="flex w-1/2 min-h-[680px] items-center">
                   <div className="mx-auto w-full max-w-5xl">
                     <div className="text-center">
                       <p className="pg-label">Test the signal</p>
@@ -547,7 +550,7 @@ export default function Homepage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex w-1/2 min-h-[680px] items-center pl-[5%]">
+                <div className="flex w-1/2 min-h-[680px] items-center">
                   <div className="mx-auto w-full max-w-6xl">
                     <ArchitectureGraph />
                   </div>
@@ -556,6 +559,8 @@ export default function Homepage() {
             </div>
           </div>
         </section>
+
+        <LandingFaq />
 
         <section className="pg-shell flex min-h-[600px] items-center justify-center border-b border-[#e4e4df] px-5 py-28 text-center">
           <div>
@@ -570,7 +575,6 @@ export default function Homepage() {
             </button>
           </div>
         </section>
-        <LandingFaq />
       </main>
 
       <footer className="overflow-hidden bg-black pt-8 text-white">
@@ -597,12 +601,28 @@ export default function Homepage() {
               </p>
               <div className="mt-5 flex gap-3">
                 <a
+                  href="mailto:chimezieinnocent39@gmail.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
+                >
+                  <HugeiconsIcon
+                    icon={Mail01Icon}
+                    size={16}
+                    strokeWidth={1.5}
+                  />
+                </a>
+                <a
                   href="https://github.com/Vic-Orlands/pulseguard-app"
                   target="_blank"
                   rel="noreferrer"
                   className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
                 >
-                  <Link size={16} />
+                  <HugeiconsIcon
+                    icon={GithubIcon}
+                    size={16}
+                    strokeWidth={1.5}
+                  />
                 </a>
                 <a
                   href="https://x.com/MezieIV"
@@ -610,15 +630,11 @@ export default function Homepage() {
                   rel="noreferrer"
                   className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
                 >
-                  <AtSign size={16} />
-                </a>
-                <a
-                  href="mailto:chimezieinnocent39@gmail.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
-                >
-                  <MessageCircle size={16} />
+                  <HugeiconsIcon
+                    icon={NewTwitterIcon}
+                    size={16}
+                    strokeWidth={1.5}
+                  />
                 </a>
               </div>
             </div>
