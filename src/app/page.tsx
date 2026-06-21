@@ -318,10 +318,10 @@ export default function Homepage() {
             </div>
             <div
               ref={feedRef}
-              className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#262626] bg-[#101010] p-6 font-mono text-[11px] text-neutral-300"
+              className="mt-10 h-[280px] overflow-y-auto rounded-xl border border-[#dfdfda] bg-white p-6 font-mono text-[11px] text-[#4b4b47] dark:border-[#262626] dark:bg-[#101010] dark:text-neutral-300"
             >
               {feed.length === 0 ? (
-                <div className="grid h-full place-items-center text-center text-neutral-500">
+                <div className="grid h-full place-items-center text-center text-[#777772] dark:text-neutral-500">
                   <div>
                     <Terminal className="mx-auto mb-3" size={23} />
                     Dispatch a signal to inspect the payload.
@@ -334,17 +334,17 @@ export default function Homepage() {
                       key={item.id}
                       initial={{ opacity: 0, y: 7 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="border-b border-neutral-800 py-4 last:border-0"
+                      className="border-b border-[#e8e8e3] py-4 last:border-0 dark:border-neutral-800"
                     >
                       <div className="mb-2 flex justify-between">
                         <span className="text-[#ff5a1f]">
                           {item.type.toUpperCase()}
                         </span>
-                        <span className="text-neutral-600">
+                        <span className="text-[#8a8a85] dark:text-neutral-600">
                           {item.timestamp}
                         </span>
                       </div>
-                      <pre className="text-neutral-500">{item.payload}</pre>
+                      <pre className="text-[#777772] dark:text-neutral-500">{item.payload}</pre>
                     </motion.div>
                   ))}
                 </AnimatePresence>
