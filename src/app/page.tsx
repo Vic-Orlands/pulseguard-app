@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -24,6 +25,7 @@ import {
   NewTwitterIcon,
   Mail01Icon,
   GithubIcon,
+  Linkedin02Icon,
 } from "@hugeicons/core-free-icons";
 
 type Tab = "react" | "node" | "go";
@@ -217,10 +219,12 @@ export default function Homepage() {
               </button>
             </div>
             <div className="mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
-              <img
+              <Image
                 src="/landing/overview.png"
                 alt="PulseGuard incident overview"
                 className="block w-full"
+                width={1200}
+                height={630}
               />
             </div>
           </div>
@@ -268,10 +272,7 @@ export default function Homepage() {
                 ))}
               </div>
             </div>
-            <AnimatePresence
-              initial={false}
-              mode="wait"
-            >
+            <AnimatePresence initial={false} mode="wait">
               {integrationView === "instrument" ? (
                 <motion.div
                   key="instrument"
@@ -392,10 +393,12 @@ export default function Homepage() {
               Five focused ways to see what your software is doing.
             </p>
             <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]">
-              <img
+              <Image
                 src={`/landing/${dashboardScreens[activeScreen]}.png`}
                 alt={`${dashboardScreens[activeScreen]} dashboard preview`}
                 className="block w-full transition-opacity duration-500"
+                width={1200}
+                height={630}
               />
             </div>
             <div className="mt-7 flex justify-center gap-2">
@@ -576,10 +579,11 @@ export default function Homepage() {
 
       <footer className="flex min-h-screen flex-col overflow-hidden bg-black text-white">
         <div className="relative h-[48vh] min-h-[300px] w-full overflow-hidden bg-black">
-          <img
+          <Image
             src="/landing/swan.jpg"
             alt="Swan on dark water"
-            className="h-full w-full object-cover object-center"
+            className="h-full w-full object-cover object-center ml-10"
+            fill
           />
         </div>
         <div
@@ -592,7 +596,7 @@ export default function Homepage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-5 max-w-[1440px] px-6 pb-10 sm:px-12">
+        <div className="mt-5  px-6 pb-10 sm:px-12">
           <div className="grid gap-10 md:grid-cols-3">
             <div className="md:col-span-2">
               <div className="scale-[.84] origin-left invert">
@@ -636,6 +640,18 @@ export default function Homepage() {
                 >
                   <HugeiconsIcon
                     icon={NewTwitterIcon}
+                    size={16}
+                    strokeWidth={1.5}
+                  />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/victor-innocent/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"
+                >
+                  <HugeiconsIcon
+                    icon={Linkedin02Icon}
                     size={16}
                     strokeWidth={1.5}
                   />
@@ -691,7 +707,9 @@ export default function Homepage() {
               <span>•</span>
               <span>Terms of service</span>
               <span>•</span>
-              <span className="font-mono text-[10px]">v1.2.0-b26</span>
+              <span className="font-mono text-[10px]">
+                Built for Developers
+              </span>
             </div>
           </div>
         </div>
