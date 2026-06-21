@@ -8,12 +8,12 @@ import {
   Check,
   ChevronRight,
   Clipboard,
-  Github,
-  MessageSquare,
+  AtSign,
+  Link,
+  MessageCircle,
   Moon,
   Sun,
   Terminal,
-  Twitter,
   Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -448,7 +448,7 @@ export default function Homepage() {
         </div>
         <div className="mx-auto mt-10 max-w-[1440px] px-6 pb-10 sm:px-12">
           <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-5"><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">Open-source, developer-first observability pipeline for modern distributed web assets. Standardized on OpenTelemetry, Loki, Tempo, and Prometheus.</p><div className="mt-5 flex gap-3"><a href="https://github.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Github size={16} /></a><a href="https://twitter.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Twitter size={16} /></a><a href="https://discord.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><MessageSquare size={16} /></a></div></div>
+            <div className="md:col-span-5"><div className="scale-[.84] origin-left invert"><PulseGuardLogo /></div><p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">Open-source, developer-first observability pipeline for modern distributed web assets. Standardized on OpenTelemetry, Loki, Tempo, and Prometheus.</p><div className="mt-5 flex gap-3"><a href="https://github.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><Link size={16} /></a><a href="https://twitter.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><AtSign size={16} /></a><a href="https://discord.com" target="_blank" rel="noreferrer" className="grid size-9 place-items-center rounded-lg border border-[#303030] bg-[#151515] text-neutral-400 hover:text-white"><MessageCircle size={16} /></a></div></div>
             <div className="md:col-span-3"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Platform sections</p><div className="mt-4 space-y-3 text-[11px] text-neutral-400"><button onClick={() => { scrollToSection("signals"); setArchitectureOpen(true); }} className="block text-left hover:text-white">Topology architecture</button><button onClick={() => scrollToSection("signals")} className="block text-left hover:text-white">Metrics, logs & traces sandbox</button><button onClick={() => scrollToSection("integrate")} className="block text-left hover:text-white">Configuration explorer</button><button onClick={() => scrollToSection("faq")} className="block text-left hover:text-white">Frequently asked questions</button></div></div>
             <div className="md:col-span-4"><p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Deployment status</p><div className="mt-4 space-y-3 rounded-lg border border-[#303030] bg-[#101010] p-4 font-mono text-[10px] text-neutral-400"><div className="flex justify-between border-b border-[#303030] pb-3"><span>Core collector stream</span><span className="text-[#ff5a1f]">STABLE V1.2.0</span></div><div className="flex justify-between"><span>Grafana integration</span><span className="text-[#ff5a1f]">PROVISIONED</span></div></div><p className="mt-4 text-[10px] leading-relaxed text-neutral-500">OpenTelemetry is a registered trademark of The Linux Foundation. Backends and templates are released under Apache 2.0 licenses.</p></div>
           </div>
