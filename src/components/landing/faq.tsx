@@ -29,11 +29,11 @@ const faqs = [
 export function LandingFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  return <section id="faq" className="pg-shell border-b border-[#e4e4df] px-5 py-28 sm:px-10">
+  return <section id="faq" className="pg-shell border-b border-[#e4e4df] bg-[#f7f7f5] px-5 py-28 dark:bg-[#090909] sm:px-10">
     <div className="mx-auto max-w-4xl">
-      <div className="mx-auto mb-14 max-w-2xl text-center">
+      <div className="mx-auto mb-12 max-w-4xl text-center">
         <div className="mx-auto flex size-8 items-center justify-center rounded-lg border border-[#dfdfda] text-[#ff5a1f] dark:border-[#3b3b3b]"><HelpCircle size={15} /></div>
-        <h2 className="mt-5 text-[clamp(2.5rem,4.4vw,4.7rem)] font-medium tracking-[-.06em]">Frequently asked questions.</h2>
+        <h2 className="mx-auto mt-4 max-w-4xl text-[clamp(3rem,6vw,6.4rem)] font-semibold leading-[.93] tracking-[-.075em]">Frequently asked questions.</h2>
         <p className="mx-auto mt-4 max-w-xl text-sm font-light leading-6 text-[#73736e]">Everything you need to know about context propagation, instrumentation, and the observability stack.</p>
       </div>
       <div className="space-y-3">
@@ -44,7 +44,9 @@ export function LandingFaq() {
               <span className="text-sm font-medium text-[#272725] dark:text-white">{faq.question}</span>
               <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-[#dfdfda] text-[#777772] dark:border-[#3b3b3b] dark:text-[#a3a3a3]">{isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
             </button>
-            {isOpen && <div className="border-t border-[#e8e8e3] px-5 pb-5 pt-4 text-sm font-light leading-6 text-[#73736e] dark:border-[#303030] dark:text-[#a3a3a3]">{faq.answer}</div>}
+            <div className={isOpen ? "grid grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-out" : "grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out"}>
+              <div className="overflow-hidden"><div className="border-t border-[#e8e8e3] px-5 pb-5 pt-4 text-sm font-light leading-6 text-[#73736e] dark:border-[#303030] dark:text-[#a3a3a3]">{faq.answer}</div></div>
+            </div>
           </div>;
         })}
       </div>
