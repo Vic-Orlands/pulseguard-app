@@ -157,66 +157,66 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-sm text-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-              <HugeiconsIcon icon={Settings01Icon} className="w-6 h-6 text-purple-400" />
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-1.5 bg-primary/10 border border-primary/20 rounded-lg">
+              <HugeiconsIcon icon={Settings01Icon} className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-sm font-bold text-foreground">
               Alert Configuration
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+            className="cursor-pointer w-7 h-7 rounded bg-muted flex items-center justify-center hover:bg-accent hover:text-foreground text-muted-foreground transition-colors"
           >
-            <HugeiconsIcon icon={Cancel01Icon} className="w-6 h-6" />
+            <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <div className="flex h-[calc(95vh-140px)]">
           {/* Sidebar */}
-          <div className="w-64 bg-slate-800/50 border-r border-slate-700 p-4">
-            <nav className="space-y-2">
+          <div className="w-64 bg-muted/40 border-r border-border p-4">
+            <nav className="space-y-1.5">
               <button
                 onClick={() => setActiveTab("notifications")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                className={`w-full text-left px-3 py-2 rounded text-xs transition-colors cursor-pointer ${
                   activeTab === "notifications"
-                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <HugeiconsIcon icon={Mail01Icon} className="w-5 h-5" />
+                <div className="flex items-center space-x-2">
+                  <HugeiconsIcon icon={Mail01Icon} className="w-4 h-4" />
                   <span>Notifications</span>
                 </div>
               </button>
               <button
                 onClick={() => setActiveTab("triggers")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                className={`w-full text-left px-3 py-2 rounded text-xs transition-colors cursor-pointer ${
                   activeTab === "triggers"
-                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <HugeiconsIcon icon={Alert01Icon} className="w-5 h-5" />
+                <div className="flex items-center space-x-2">
+                  <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
                   <span>Alert Triggers</span>
                 </div>
               </button>
               <button
                 onClick={() => setActiveTab("general")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                className={`w-full text-left px-3 py-2 rounded text-xs transition-colors cursor-pointer ${
                   activeTab === "general"
-                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <HugeiconsIcon icon={Settings01Icon} className="w-5 h-5" />
+                <div className="flex items-center space-x-2">
+                  <HugeiconsIcon icon={Settings01Icon} className="w-4 h-4" />
                   <span>General Settings</span>
                 </div>
               </button>
@@ -226,27 +226,27 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
           {/* Main Content */}
           <div className="flex-1 overflow-y-auto p-6">
             {activeTab === "notifications" && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Notification Groups */}
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-white">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-foreground">
                       Notification Groups
                     </h3>
                     <button
                       onClick={() => setShowAddGroup(true)}
-                      className="flex items-center space-x-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-4 py-2 rounded-lg transition-colors"
+                      className="flex items-center space-x-1.5 bg-primary/10 hover:bg-primary/15 text-primary px-3 py-1.5 rounded text-xs transition-colors cursor-pointer"
                     >
-                      <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" />
+                      <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
                       <span>Add Group</span>
                     </button>
                   </div>
 
-                  <div className="grid gap-4">
+                  <div className="grid gap-3">
                     {groups.map((group) => (
                       <div
                         key={group.id}
-                        className="bg-slate-700/30 border border-slate-600 rounded-lg p-4"
+                        className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground"
                       >
                         {editingGroup && editingGroup.id === group.id ? (
                           <div className="space-y-4">
@@ -259,12 +259,12 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                   name: e.target.value,
                                 }))
                               }
-                              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                               placeholder="Group name"
                             />
 
                             <div>
-                              <label className="block text-sm text-slate-300 mb-2">
+                              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                                 Slack Channel
                               </label>
                               <input
@@ -276,23 +276,23 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                     slackChannel: e.target.value,
                                   }))
                                 }
-                                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 placeholder="#channel-name"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-sm text-slate-300 mb-2">
+                              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                                 Email Addresses
                               </label>
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 {editingGroup.emails.map((email, index) => (
                                   <div
                                     key={index}
-                                    className="flex items-center justify-between bg-slate-800 p-2 rounded"
+                                    className="flex items-center justify-between bg-muted/50 border border-border p-2 rounded text-xs"
                                   >
-                                    <span className="text-white">{email}</span>
-                                    <div className="flex items-center space-x-2">
+                                    <span className="text-foreground">{email}</span>
+                                    <div className="flex items-center space-x-1.5">
                                       <button
                                         onClick={() =>
                                           handleToggleExcludedEmail(
@@ -300,12 +300,12 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                             email
                                           )
                                         }
-                                        className={`p-1 rounded ${
+                                        className={`p-1 rounded text-[10px] transition-colors cursor-pointer ${
                                           editingGroup.excludedEmails.includes(
                                             email
                                           )
-                                            ? "bg-red-500/20 text-red-300"
-                                            : "bg-green-500/20 text-green-300"
+                                            ? "bg-destructive/10 text-destructive border border-destructive/20"
+                                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                                         }`}
                                         title={
                                           editingGroup.excludedEmails.includes(
@@ -318,9 +318,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         {editingGroup.excludedEmails.includes(
                                           email
                                         ) ? (
-                                          <HugeiconsIcon icon={ViewOffIcon} className="w-4 h-4" />
+                                          <HugeiconsIcon icon={ViewOffIcon} className="w-3.5 h-3.5" />
                                         ) : (
-                                          <HugeiconsIcon icon={ViewIcon} className="w-4 h-4" />
+                                          <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
                                         )}
                                       </button>
                                       <button
@@ -330,9 +330,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                             email
                                           )
                                         }
-                                        className="p-1 text-red-400 hover:bg-red-500/20 rounded"
+                                        className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
                                       >
-                                        <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+                                        <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
                                       </button>
                                     </div>
                                   </div>
@@ -341,7 +341,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                   <input
                                     type="email"
                                     placeholder="Add email address"
-                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white"
+                                    className="flex-1 px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     onKeyUp={(e) => {
                                       if (e.key === "Enter") {
                                         handleAddEmailToGroup(
@@ -359,49 +359,49 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             <div className="flex justify-end space-x-2">
                               <button
                                 onClick={() => setEditingGroup(null)}
-                                className="px-4 py-2 text-slate-400 hover:text-white"
+                                className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                               >
                                 Cancel
                               </button>
                               <button
                                 onClick={handleSaveGroup}
-                                className="flex items-center space-x-2 bg-green-500/20 text-green-300 px-4 py-2 rounded"
+                                className="flex items-center space-x-1.5 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded text-xs transition-colors cursor-pointer"
                               >
-                                <HugeiconsIcon icon={Tick01Icon} className="w-4 h-4" />
+                                <HugeiconsIcon icon={Tick01Icon} className="w-3.5 h-3.5" />
                                 <span>Save</span>
                               </button>
                             </div>
                           </div>
                         ) : (
                           <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-medium text-white">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-foreground text-xs">
                                 {group.name}
                               </h4>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center space-x-1.5">
                                 <button
                                   onClick={() => handleEditGroup(group)}
-                                  className="p-1 text-slate-400 hover:text-purple-400"
+                                  className="p-1 text-muted-foreground hover:text-primary rounded hover:bg-muted transition-colors cursor-pointer"
                                 >
-                                  <HugeiconsIcon icon={PencilEdit01Icon} className="w-4 h-4" />
+                                  <HugeiconsIcon icon={PencilEdit01Icon} className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteGroup(group.id)}
-                                  className="p-1 text-slate-400 hover:text-red-400"
+                                  className="p-1 text-muted-foreground hover:text-destructive rounded hover:bg-muted transition-colors cursor-pointer"
                                 >
-                                  <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+                                  <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
 
-                            <div className="text-sm text-slate-400 mb-2">
+                            <div className="text-[10px] text-muted-foreground mb-1.5">
                               {group.emails.length} emails •{" "}
                               {group.excludedEmails.length} excluded
                             </div>
 
                             {group.slackChannel && (
-                              <div className="flex items-center space-x-2 text-sm text-green-400">
-                                <HugeiconsIcon icon={Message01Icon} className="w-4 h-4" />
+                              <div className="flex items-center space-x-1.5 text-[10px] text-emerald-600 dark:text-emerald-400">
+                                <HugeiconsIcon icon={Message01Icon} className="w-3.5 h-3.5" />
                                 <span>{group.slackChannel}</span>
                               </div>
                             )}
@@ -413,11 +413,11 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
 
                   {/* Add Group Form */}
                   {showAddGroup && (
-                    <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-4 mt-4">
-                      <h4 className="font-medium text-white mb-4">
+                    <div className="bg-muted/30 border border-border rounded p-4 mt-3">
+                      <h4 className="font-semibold text-foreground text-xs mb-3">
                         Add New Group
                       </h4>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <input
                           type="text"
                           value={newGroup.name}
@@ -427,7 +427,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               name: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           placeholder="Group name"
                         />
                         <input
@@ -439,14 +439,14 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               slackChannel: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           placeholder="Slack channel (optional)"
                         />
                         <div>
                           <input
                             type="email"
                             placeholder="Add email addresses (press Enter)"
-                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                            className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             onKeyUp={(e) => {
                               if (e.key === "Enter" && e.target.value) {
                                 setNewGroup((prev) => ({
@@ -458,13 +458,13 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             }}
                           />
                           {newGroup.emails.length > 0 && (
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-2 space-y-1.5">
                               {newGroup.emails.map((email, index) => (
                                 <div
                                   key={index}
-                                  className="flex items-center justify-between bg-slate-800 p-2 rounded text-sm"
+                                  className="flex items-center justify-between bg-muted/50 border border-border p-2 rounded text-xs"
                                 >
-                                  <span className="text-white">{email}</span>
+                                  <span className="text-foreground">{email}</span>
                                   <button
                                     onClick={() =>
                                       setNewGroup((prev) => ({
@@ -474,9 +474,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         ),
                                       }))
                                     }
-                                    className="text-red-400 hover:text-red-300"
+                                    className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
                                   >
-                                    <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" />
+                                    <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               ))}
@@ -486,13 +486,13 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                         <div className="flex justify-end space-x-2">
                           <button
                             onClick={() => setShowAddGroup(false)}
-                            className="px-4 py-2 text-slate-400 hover:text-white"
+                            className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
                           <button
                             onClick={handleAddGroup}
-                            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded"
+                            className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs rounded transition-colors cursor-pointer"
                           >
                             Add Group
                           </button>
@@ -504,16 +504,16 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
 
                 {/* Individual Email Addresses */}
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-sm font-bold text-foreground mb-3">
                     Individual Email Addresses
                   </h3>
-                  <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-4">
-                    <div className="flex space-x-2 mb-4">
+                  <div className="bg-muted/30 border border-border rounded p-4">
+                    <div className="flex space-x-2 mb-3">
                       <input
                         type="email"
                         value={newEmail}
                         onChange={(e) => setNewEmail(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                        className="flex-1 px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         placeholder="Enter email address"
                         onKeyUp={(e) =>
                           e.key === "Enter" && handleAddIndividualEmail()
@@ -521,27 +521,27 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                       />
                       <button
                         onClick={handleAddIndividualEmail}
-                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded"
+                        className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs rounded transition-colors cursor-pointer"
                       >
                         Add
                       </button>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {individualEmails.map((email, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between bg-slate-800 p-2 rounded"
+                          className="flex items-center justify-between bg-muted/50 border border-border p-2 rounded text-xs"
                         >
-                          <span className="text-white">{email}</span>
+                          <span className="text-foreground">{email}</span>
                           <button
                             onClick={() =>
                               setIndividualEmails((prev) =>
                                 prev.filter((_, i) => i !== index)
                               )
                             }
-                            className="text-red-400 hover:text-red-300"
+                            className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
                           >
-                            <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+                            <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
@@ -552,11 +552,11 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
             )}
 
             {activeTab === "triggers" && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Log Alerts */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-white">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-foreground">
                       Log Alerts
                     </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -571,22 +571,22 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {alertTriggers.logs.enabled && (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-3">
+                        <label className="block text-xs font-semibold text-muted-foreground mb-2">
                           Severity Levels
                         </label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                           {["critical", "error", "warning", "info"].map(
                             (level) => (
                               <label
                                 key={level}
-                                className="flex items-center space-x-2 cursor-pointer"
+                                className="flex items-center space-x-2 cursor-pointer text-xs"
                               >
                                 <input
                                   type="checkbox"
@@ -610,9 +610,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                       },
                                     }));
                                   }}
-                                  className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                                  className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                                 />
-                                <span className="text-slate-300 capitalize">
+                                <span className="text-foreground capitalize">
                                   {level}
                                 </span>
                               </label>
@@ -622,10 +622,10 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-3">
+                        <label className="block text-xs font-semibold text-muted-foreground mb-2">
                           Log Types
                         </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                           {[
                             "authentication",
                             "database",
@@ -636,7 +636,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           ].map((type) => (
                             <label
                               key={type}
-                              className="flex items-center space-x-2 cursor-pointer"
+                              className="flex items-center space-x-2 cursor-pointer text-xs"
                             >
                               <input
                                 type="checkbox"
@@ -660,9 +660,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                     },
                                   }));
                                 }}
-                                className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                                className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                               />
-                              <span className="text-slate-300 capitalize">
+                              <span className="text-foreground capitalize text-xs">
                                 {type}
                               </span>
                             </label>
@@ -674,9 +674,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Error Alerts */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-white">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-foreground">
                       Error Alerts
                     </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -694,17 +694,17 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {alertTriggers.errors.enabled && (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-3">
+                        <label className="block text-xs font-semibold text-muted-foreground mb-2">
                           Error Types
                         </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                           {[
                             "500",
                             "404",
@@ -715,7 +715,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           ].map((type) => (
                             <label
                               key={type}
-                              className="flex items-center space-x-2 cursor-pointer"
+                              className="flex items-center space-x-2 cursor-pointer text-xs"
                             >
                               <input
                                 type="checkbox"
@@ -736,21 +736,21 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                     },
                                   }));
                                 }}
-                                className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                                className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                               />
-                              <span className="text-slate-300">{type}</span>
+                              <span className="text-foreground text-xs">{type}</span>
                             </label>
                           ))}
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-3">
+                        <label className="block text-xs font-semibold text-muted-foreground mb-2">
                           Thresholds
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm text-slate-400 mb-2">
+                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                               Error Rate
                             </label>
                             <div className="flex space-x-2">
@@ -775,7 +775,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                     },
                                   }))
                                 }
-                                className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                                className="flex-1 px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                               />
                               <select
                                 value={
@@ -796,7 +796,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                     },
                                   }))
                                 }
-                                className="px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                                className="px-2 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                               >
                                 <option value="percent">%</option>
                                 <option value="count">count</option>
@@ -804,7 +804,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm text-slate-400 mb-2">
+                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                               Error Count
                             </label>
                             <input
@@ -827,7 +827,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                   },
                                 }))
                               }
-                              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
                           </div>
                         </div>
@@ -839,19 +839,19 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
             )}
 
             {activeTab === "general" && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Alert Frequency */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-white mb-6">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <h3 className="text-sm font-bold text-foreground mb-4">
                     Alert Frequency
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-3">
+                      <label className="block text-xs font-semibold text-muted-foreground mb-2">
                         Notification Frequency
                       </label>
                       <div className="space-y-3">
-                        <label className="flex items-center space-x-3 cursor-pointer">
+                        <label className="flex items-start space-x-2.5 cursor-pointer">
                           <input
                             type="radio"
                             name="frequency"
@@ -861,20 +861,20 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             }
                             onChange={(e) =>
                               setGeneralConfig((prev) => ({
-                                ...prev,
-                                alertFrequency: e.target.value,
+                                  ...prev,
+                                  alertFrequency: e.target.value,
                               }))
                             }
-                            className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600"
+                            className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
                           />
                           <div>
-                            <span className="text-white">Immediate</span>
-                            <p className="text-sm text-slate-400">
+                            <span className="text-foreground text-xs font-semibold">Immediate</span>
+                            <p className="text-[10px] text-muted-foreground">
                               Send alerts as soon as they occur
                             </p>
                           </div>
                         </label>
-                        <label className="flex items-center space-x-3 cursor-pointer">
+                        <label className="flex items-start space-x-2.5 cursor-pointer">
                           <input
                             type="radio"
                             name="frequency"
@@ -886,16 +886,16 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                 alertFrequency: e.target.value,
                               }))
                             }
-                            className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600"
+                            className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
                           />
                           <div>
-                            <span className="text-white">Batched</span>
-                            <p className="text-sm text-slate-400">
+                            <span className="text-foreground text-xs font-semibold">Batched</span>
+                            <p className="text-[10px] text-muted-foreground">
                               Group alerts and send periodically
                             </p>
                           </div>
                         </label>
-                        <label className="flex items-center space-x-3 cursor-pointer">
+                        <label className="flex items-start space-x-2.5 cursor-pointer">
                           <input
                             type="radio"
                             name="frequency"
@@ -907,11 +907,11 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                 alertFrequency: e.target.value,
                               }))
                             }
-                            className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600"
+                            className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
                           />
                           <div>
-                            <span className="text-white">Digest</span>
-                            <p className="text-sm text-slate-400">
+                            <span className="text-foreground text-xs font-semibold">Digest</span>
+                            <p className="text-[10px] text-muted-foreground">
                               Send summary reports on schedule
                             </p>
                           </div>
@@ -921,7 +921,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
 
                     {generalConfig.alertFrequency === "batched" && (
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">
+                        <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                           Batch Window (minutes)
                         </label>
                         <input
@@ -933,7 +933,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               batchWindow: parseInt(e.target.value),
                             }))
                           }
-                          className="w-32 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="w-24 px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           min="1"
                           max="1440"
                         />
@@ -942,7 +942,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
 
                     {generalConfig.alertFrequency === "digest" && (
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">
+                        <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                           Digest Schedule
                         </label>
                         <select
@@ -953,7 +953,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               digestSchedule: e.target.value,
                             }))
                           }
-                          className="px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="px-2 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
                           <option value="hourly">Hourly</option>
                           <option value="daily">Daily</option>
@@ -965,13 +965,13 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Quiet Hours */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-white">
+                      <h3 className="text-sm font-bold text-foreground">
                         Quiet Hours
                       </h3>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         Suppress non-critical alerts during specified hours
                       </p>
                     </div>
@@ -990,14 +990,14 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {generalConfig.quietHours.enabled && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">
+                        <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                           Start Time
                         </label>
                         <input
@@ -1012,11 +1012,11 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               },
                             }))
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">
+                        <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                           End Time
                         </label>
                         <input
@@ -1031,7 +1031,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               },
                             }))
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                          className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                       </div>
                     </div>
@@ -1039,13 +1039,13 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Escalation Rules */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-white">
+                      <h3 className="text-sm font-bold text-foreground">
                         Escalation Rules
                       </h3>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         Automatically escalate unacknowledged alerts
                       </p>
                     </div>
@@ -1064,14 +1064,14 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {generalConfig.escalationRules.enabled && (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">
+                        <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                           Initial Escalation After (minutes)
                         </label>
                         <input
@@ -1086,24 +1086,20 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               },
                             }))
                           }
-                          className="w-32 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
-                          min="1"
-                        />
-                      </div>
-
-                      <div>
-                        <h4 className="text-lg font-medium text-white mb-4">
+                          className="w-24 px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        <div>
+                        <h4 className="text-xs font-semibold text-foreground mb-3">
                           Escalation Levels
                         </h4>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {generalConfig.escalationRules.escalationLevels.map(
                             (level, index) => (
                               <div
                                 key={index}
-                                className="bg-slate-800 p-4 rounded-lg"
+                                className="bg-muted/40 border border-border p-3 rounded"
                               >
-                                <div className="flex items-center justify-between mb-3">
-                                  <h5 className="font-medium text-white">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-bold text-foreground text-xs">
                                     Level {level.level}
                                   </h5>
                                   <button
@@ -1119,14 +1115,14 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         },
                                       }))
                                     }
-                                    className="text-red-400 hover:text-red-300"
+                                    className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
                                   >
-                                    <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+                                    <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                   <div>
-                                    <label className="block text-sm text-slate-400 mb-2">
+                                    <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                                       Escalate After (minutes)
                                     </label>
                                     <input
@@ -1149,20 +1145,20 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                           },
                                         }));
                                       }}
-                                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                                      className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-sm text-slate-400 mb-2">
+                                    <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                                       Notify Emails
                                     </label>
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                       {level.notify.map((email, emailIndex) => (
                                         <div
                                           key={emailIndex}
-                                          className="flex items-center space-x-2"
+                                          className="flex items-center space-x-1.5 text-xs text-foreground"
                                         >
-                                          <span className="text-white text-sm">
+                                          <span className="text-foreground">
                                             {email}
                                           </span>
                                           <button
@@ -1187,7 +1183,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                                 },
                                               }));
                                             }}
-                                            className="text-red-400 hover:text-red-300"
+                                            className="p-0.5 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
                                           >
                                             <HugeiconsIcon icon={Cancel01Icon} className="w-3 h-3" />
                                           </button>
@@ -1196,7 +1192,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                       <input
                                         type="email"
                                         placeholder="Add email"
-                                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm"
+                                        className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                         onKeyUp={(e) => {
                                           if (
                                             e.key === "Enter" &&
@@ -1241,18 +1237,18 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               };
                               setGeneralConfig((prev) => ({
                                 ...prev,
-                                escalationRules: {
-                                  ...prev.escalationRules,
-                                  escalationLevels: [
-                                    ...prev.escalationRules.escalationLevels,
-                                    newLevel,
-                                  ],
-                                },
+                                  escalationRules: {
+                                    ...prev.escalationRules,
+                                    escalationLevels: [
+                                      ...prev.escalationRules.escalationLevels,
+                                      newLevel,
+                                    ],
+                                  },
                               }));
                             }}
-                            className="flex items-center space-x-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-4 py-2 rounded-lg transition-colors"
+                            className="flex items-center space-x-1.5 bg-primary/10 hover:bg-primary/15 text-primary px-3 py-1.5 rounded text-xs transition-colors cursor-pointer"
                           >
-                            <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" />
+                            <HugeiconsIcon icon={Add01Icon} className="w-3.5 h-3.5" />
                             <span>Add Escalation Level</span>
                           </button>
                         </div>
@@ -1262,31 +1258,31 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Alert Retention */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-white mb-6">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <h3 className="text-sm font-bold text-foreground mb-4">
                     Alert Retention
                   </h3>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">
+                      <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                         Keep Alerts For (days)
                       </label>
                       <input
                         type="number"
                         defaultValue="30"
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                        className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         min="1"
                         max="365"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">
+                      <label className="block text-[10px] font-medium text-muted-foreground mb-1">
                         Archive After (days)
                       </label>
                       <input
                         type="number"
                         defaultValue="90"
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                        className="w-full px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         min="1"
                         max="365"
                       />
@@ -1295,54 +1291,54 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Alert Formatting */}
-                <div className="bg-slate-700/30 border border-slate-600 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-white mb-6">
+                <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
+                  <h3 className="text-sm font-bold text-foreground mb-4">
                     Alert Formatting
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <label className="flex items-center space-x-3 cursor-pointer">
+                      <label className="flex items-center space-x-2.5 cursor-pointer">
                         <input
                           type="checkbox"
                           defaultChecked
-                          className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                          className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                         />
-                        <span className="text-white">
+                        <span className="text-foreground text-xs">
                           Include timestamp in alerts
                         </span>
                       </label>
                     </div>
                     <div>
-                      <label className="flex items-center space-x-3 cursor-pointer">
+                      <label className="flex items-center space-x-2.5 cursor-pointer">
                         <input
                           type="checkbox"
                           defaultChecked
-                          className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                          className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                         />
-                        <span className="text-white">
+                        <span className="text-foreground text-xs">
                           Include severity level
                         </span>
                       </label>
                     </div>
                     <div>
-                      <label className="flex items-center space-x-3 cursor-pointer">
+                      <label className="flex items-center space-x-2.5 cursor-pointer">
                         <input
                           type="checkbox"
                           defaultChecked
-                          className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                          className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                         />
-                        <span className="text-white">
+                        <span className="text-foreground text-xs">
                           Include source information
                         </span>
                       </label>
                     </div>
                     <div>
-                      <label className="flex items-center space-x-3 cursor-pointer">
+                      <label className="flex items-center space-x-2.5 cursor-pointer">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded"
+                          className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                         />
-                        <span className="text-white">
+                        <span className="text-foreground text-xs">
                           Include stack trace for errors
                         </span>
                       </label>
@@ -1355,10 +1351,10 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end space-x-4 p-6 border-t border-slate-700">
+        <div className="flex items-center justify-end space-x-2.5 p-4 border-t border-border bg-card">
           <button
             onClick={onClose}
-            className="px-6 py-2 text-slate-400 hover:text-white transition-colors"
+            className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -1367,15 +1363,15 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
               // Test configuration - send a test alert
               console.log("Sending test alert...");
             }}
-            className="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-secondary hover:bg-secondary/90 text-secondary-foreground border border-border text-xs rounded transition-colors cursor-pointer"
           >
             Test Configuration
           </button>
           <button
             onClick={handleSaveConfiguration}
-            className="flex items-center space-x-2 px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-primary hover:bg-primary/95 text-primary-foreground text-xs rounded transition-colors cursor-pointer"
           >
-            <HugeiconsIcon icon={FloppyDiskIcon} className="w-4 h-4" />
+            <HugeiconsIcon icon={FloppyDiskIcon} className="w-3.5 h-3.5" />
             <span>Save Configuration</span>
           </button>
         </div>

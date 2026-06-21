@@ -21,16 +21,18 @@ export function CustomAlertDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent className="bg-gray-900 text-gray-400 border border-blue-900/40">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+      <AlertDialogContent className="bg-card text-foreground border border-border shadow-md p-5 max-w-sm rounded-lg">
+        <AlertDialogHeader className="mb-4">
+          <AlertDialogTitle className="text-sm font-bold text-foreground">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-xs text-muted-foreground mt-0.5">{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="border-blue-900/40">
+        <AlertDialogFooter className="flex space-x-2.5">
+          <AlertDialogCancel className="flex-1 border-border text-foreground hover:bg-muted text-xs h-8 shadow-none font-semibold cursor-pointer">
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Continue</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 shadow-none font-semibold cursor-pointer">
+            Continue
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -415,18 +415,18 @@ const AlertPage = ({ project }: { project: Project }) => {
     if (!isOpen) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-6 border-b border-slate-700">
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-sm text-foreground">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <h2 className="text-sm font-bold text-foreground">{title}</h2>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+              className="cursor-pointer w-7 h-7 rounded bg-muted flex items-center justify-center hover:bg-accent hover:text-foreground text-muted-foreground transition-colors"
             >
-              <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
+              <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="p-6">{children}</div>
+          <div className="p-5">{children}</div>
         </div>
       </div>
     );
@@ -811,10 +811,10 @@ const AlertPage = ({ project }: { project: Project }) => {
     );
 
     const GroupDialog = () => (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md mx-4">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-white">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50">
+        <div className="bg-card border border-border rounded-lg p-5 w-full max-w-md mx-4 shadow-sm text-foreground">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-foreground">
               {editingGroup ? "Edit Group" : "Create New Group"}
             </h3>
             <button
@@ -823,15 +823,15 @@ const AlertPage = ({ project }: { project: Project }) => {
                 setEditingGroup(null);
                 setNewGroupForm({ name: "", emails: [] });
               }}
-              className="text-slate-400 hover:text-white"
+              className="cursor-pointer w-7 h-7 rounded bg-muted flex items-center justify-center hover:bg-accent hover:text-foreground text-muted-foreground transition-colors"
             >
-              <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
+              <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Group Name
               </label>
               <input
@@ -841,50 +841,50 @@ const AlertPage = ({ project }: { project: Project }) => {
                   setNewGroupForm((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder="Enter group name"
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Select Members
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
                 {config.emails.map((email) => (
                   <label
                     key={email}
-                    className="flex items-center space-x-3 p-2 hover:bg-slate-700/50 rounded-lg cursor-pointer"
+                    className="flex items-center space-x-2.5 p-1.5 hover:bg-muted/50 rounded cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={newGroupForm.emails.includes(email)}
                       onChange={() => toggleEmailInGroup(email)}
-                      className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+                      className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
                     />
-                    <span className="text-white text-sm">{email}</span>
+                    <span className="text-foreground text-xs">{email}</span>
                   </label>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 mt-6">
+          <div className="flex justify-end space-x-2 mt-5">
             <button
               onClick={() => {
                 setShowGroupDialog(false);
                 setEditingGroup(null);
                 setNewGroupForm({ name: "", emails: [] });
               }}
-              className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveGroup}
               disabled={!newGroupForm.name.trim()}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-primary hover:bg-primary/95 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground rounded text-xs transition-colors"
             >
-              <HugeiconsIcon icon={FloppyDiskIcon} className="w-4 h-4" />
+              <HugeiconsIcon icon={FloppyDiskIcon} className="w-3.5 h-3.5" />
               <span>{editingGroup ? "Update" : "Create"} Group</span>
             </button>
           </div>
@@ -1483,9 +1483,9 @@ const AlertPage = ({ project }: { project: Project }) => {
         onClose={() => setShowCreateModal(false)}
         title="Create New Alert"
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               Alert Name
             </label>
             <input
@@ -1494,14 +1494,14 @@ const AlertPage = ({ project }: { project: Project }) => {
               onChange={(e) =>
                 setNewAlert((prev) => ({ ...prev, name: e.target.value }))
               }
-              className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               placeholder="Enter alert name"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Type
               </label>
               <select
@@ -1509,7 +1509,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 onChange={(e) =>
                   setNewAlert((prev) => ({ ...prev, type: e.target.value }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="error">Error</option>
                 <option value="performance">Performance</option>
@@ -1518,7 +1518,7 @@ const AlertPage = ({ project }: { project: Project }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Severity
               </label>
               <select
@@ -1526,7 +1526,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 onChange={(e) =>
                   setNewAlert((prev) => ({ ...prev, severity: e.target.value }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -1537,7 +1537,7 @@ const AlertPage = ({ project }: { project: Project }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               Alert For
             </label>
             <select
@@ -1550,7 +1550,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   logPattern: "",
                 }))
               }
-              className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="error">Errors</option>
               <option value="log">Logs</option>
@@ -1559,7 +1559,7 @@ const AlertPage = ({ project }: { project: Project }) => {
 
           {newAlert.alertFor === "error" ? (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Error Types
               </label>
               <select
@@ -1574,7 +1574,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     ),
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
               >
                 <option value="database">Database Errors</option>
                 <option value="http">HTTP Errors</option>
@@ -1584,7 +1584,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Log Pattern
               </label>
               <input
@@ -1597,13 +1597,13 @@ const AlertPage = ({ project }: { project: Project }) => {
                   }))
                 }
                 placeholder="Enter log pattern (e.g., 'ERROR *')"
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               Email Notifications
             </label>
             <select
@@ -1621,7 +1621,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   },
                 }))
               }
-              className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
             >
               {config.emails.map((email) => (
                 <option key={email} value={email}>
@@ -1632,7 +1632,7 @@ const AlertPage = ({ project }: { project: Project }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               Groups
             </label>
             <select
@@ -1650,7 +1650,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   },
                 }))
               }
-              className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
             >
               {config.groups.map((group) => (
                 <option key={group.name} value={group.name}>
@@ -1661,7 +1661,7 @@ const AlertPage = ({ project }: { project: Project }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               Exclude Emails from Groups
             </label>
             <select
@@ -1679,7 +1679,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   },
                 }))
               }
-              className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
             >
               {config.emails.map((email) => (
                 <option key={email} value={email}>
@@ -1689,7 +1689,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </select>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2.5">
             <input
               type="checkbox"
               id="slack"
@@ -1703,16 +1703,16 @@ const AlertPage = ({ project }: { project: Project }) => {
                   },
                 }))
               }
-              className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+              className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
             />
-            <label htmlFor="slack" className="text-sm text-slate-300">
+            <label htmlFor="slack" className="text-xs text-muted-foreground select-none cursor-pointer">
               Send to Slack
             </label>
           </div>
 
           {newAlert.notifications.slack && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Slack Channel
               </label>
               <select
@@ -1726,7 +1726,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     },
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="">Select a channel</option>
                 {config.slackChannels.map((channel) => (
@@ -1738,10 +1738,10 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-2 pt-3 border-t border-border mt-5">
             <button
               onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -1752,7 +1752,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 (newAlert.notifications.slack &&
                   !newAlert.notifications.slackChannel)
               }
-              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
             >
               Create Alert
             </button>
@@ -1767,9 +1767,9 @@ const AlertPage = ({ project }: { project: Project }) => {
         title="Edit Alert"
       >
         {editingAlert && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Alert Name
               </label>
               <input
@@ -1778,13 +1778,13 @@ const AlertPage = ({ project }: { project: Project }) => {
                 onChange={(e) =>
                   setEditingAlert((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Type
                 </label>
                 <select
@@ -1795,7 +1795,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       type: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="error">Error</option>
                   <option value="performance">Performance</option>
@@ -1804,7 +1804,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Severity
                 </label>
                 <select
@@ -1815,7 +1815,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       severity: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -1826,7 +1826,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Alert For
               </label>
               <select
@@ -1839,7 +1839,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     logPattern: "",
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="error">Errors</option>
                 <option value="log">Logs</option>
@@ -1848,7 +1848,7 @@ const AlertPage = ({ project }: { project: Project }) => {
 
             {editingAlert.alertFor === "error" ? (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Error Types
                 </label>
                 <select
@@ -1863,7 +1863,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       ),
                     }))
                   }
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
                 >
                   <option value="database">Database Errors</option>
                   <option value="http">HTTP Errors</option>
@@ -1873,7 +1873,7 @@ const AlertPage = ({ project }: { project: Project }) => {
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Log Pattern
                 </label>
                 <input
@@ -1886,13 +1886,13 @@ const AlertPage = ({ project }: { project: Project }) => {
                     }))
                   }
                   placeholder="Enter log pattern (e.g., 'ERROR *')"
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Email Notifications
               </label>
               <select
@@ -1910,7 +1910,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     },
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
               >
                 {config.emails.map((email) => (
                   <option key={email} value={email}>
@@ -1921,7 +1921,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Groups
               </label>
               <select
@@ -1939,7 +1939,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     },
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
               >
                 {config.groups.map((group) => (
                   <option key={group.name} value={group.name}>
@@ -1950,7 +1950,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                 Exclude Emails from Groups
               </label>
               <select
@@ -1968,7 +1968,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     },
                   }))
                 }
-                className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
               >
                 {config.emails.map((email) => (
                   <option key={email} value={email}>
@@ -1978,7 +1978,7 @@ const AlertPage = ({ project }: { project: Project }) => {
               </select>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2.5">
               <input
                 type="checkbox"
                 id="edit-slack"
@@ -1992,16 +1992,16 @@ const AlertPage = ({ project }: { project: Project }) => {
                     },
                   }))
                 }
-                className="w-4 h-4 text-purple-500 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+                className="w-3.5 h-3.5 text-primary bg-background border-border rounded focus:ring-ring"
               />
-              <label htmlFor="edit-slack" className="text-sm text-slate-300">
+              <label htmlFor="edit-slack" className="text-xs text-muted-foreground select-none cursor-pointer">
                 Send to Slack
               </label>
             </div>
 
             {editingAlert.notifications.slack && (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Slack Channel
                 </label>
                 <select
@@ -2015,7 +2015,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       },
                     }))
                   }
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="">Select a channel</option>
                   {config.slackChannels.map((channel) => (
@@ -2027,10 +2027,10 @@ const AlertPage = ({ project }: { project: Project }) => {
               </div>
             )}
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-2 pt-3 border-t border-border mt-5">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -2040,7 +2040,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   editingAlert.notifications.slack &&
                   !editingAlert.notifications.slackChannel
                 }
-                className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
               >
                 Save Changes
               </button>
