@@ -21,9 +21,9 @@ export const getSeverityColor = (severity: number) => {
     case 50:
       return "bg-red-500/20 text-red-400 border-red-500/30";
     case 40:
-      return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      return "bg-neutral-500/20 text-neutral-300 border-neutral-500/30";
     case 30:
-      return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      return "bg-neutral-500/20 text-neutral-300 border-neutral-500/30";
     default:
       return "bg-gray-500/20 text-gray-400 border-gray-500/30";
   }
@@ -33,12 +33,12 @@ export const getSeverityColor = (severity: number) => {
 export const getTypeIcon = (type: string) => {
   switch (type) {
     case "initialization":
-      return <HugeiconsIcon icon={PlayCircleIcon} className="w-5 h-5 text-green-400" />;
+      return <HugeiconsIcon icon={PlayCircleIcon} className="w-5 h-5 text-neutral-200" />;
     case "shutdown":
       return <HugeiconsIcon icon={StopCircleIcon} className="w-5 h-5 text-red-400" />;
     case "error":
       return <HugeiconsIcon icon={AlertCircleIcon} className="w-5 h-5 text-red-400" />;
     default:
-      return <HugeiconsIcon icon={Activity01Icon} className="w-5 h-5 text-blue-400" />;
+      return <HugeiconsIcon icon={Activity01Icon} className="w-5 h-5 text-neutral-200" />;
   }
 };

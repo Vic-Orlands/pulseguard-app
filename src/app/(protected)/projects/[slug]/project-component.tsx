@@ -128,7 +128,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="dashboard-shell min-h-screen bg-background text-foreground">
       <Navbar
         alerts={alerts}
         activeTab={activeTab}
