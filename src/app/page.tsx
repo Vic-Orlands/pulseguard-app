@@ -194,7 +194,7 @@ export default function Homepage() {
       </header>
 
       <main className="pg-grid">
-        <section className="pg-shell relative isolate flex min-h-[800px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 pb-24 pt-14 text-center sm:min-h-[860px]">
+        <section className="pg-shell relative isolate flex min-h-[640px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 pb-16 pt-16 text-center sm:min-h-[720px]">
           <SoftSignal />
           <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center">
             <h1 className="max-w-4xl text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[.96] tracking-[-.07em]">
@@ -219,7 +219,7 @@ export default function Homepage() {
                 Explore the docs <ArrowRight size={14} />
               </button>
             </div>
-            <div className="mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
+            <div className="mt-12 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
               <Image
                 src="/landing/overview.png"
                 alt="PulseGuard incident overview"
@@ -233,7 +233,7 @@ export default function Homepage() {
 
         <section
           id="integrate"
-          className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-20"
+          className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-12 sm:py-16"
         >
           <div className="w-full">
             <div className="mb-14 flex justify-center">
@@ -286,8 +286,8 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="flex w-1/2 min-h-[620px] items-center px-4 sm:px-6 lg:px-8">
-                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                <div className="flex w-1/2 py-8 lg:py-12 items-center px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-2">
                     <div>
                       <p className="pg-label">Instrument once</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -366,8 +366,8 @@ export default function Homepage() {
                   </div>
                 </div>
 
-                <div className="flex w-1/2 min-h-[620px] items-center px-4 sm:px-6 lg:px-8">
-                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.7fr_1.3fr]">
+                <div className="flex w-1/2 py-8 lg:py-12 items-center px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-2">
                     <div>
                       <p className="pg-label">Pipeline in motion</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -389,7 +389,7 @@ export default function Homepage() {
 
         <section
           id="product"
-          className="pg-shell relative isolate flex min-h-[850px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-28 text-center"
+          className="pg-shell relative isolate overflow-hidden border-b border-[#e4e4df] px-5 py-12 sm:py-20 text-center"
         >
           <SoftSignal />
           <div className="relative z-10 w-full">
@@ -399,7 +399,7 @@ export default function Homepage() {
             <p className="mx-auto mt-5 max-w-xl text-sm font-light text-[#73736e]">
               Five focused ways to see what your software is doing.
             </p>
-            <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]">
+            <div className="mx-auto mt-8 sm:mt-12 max-w-5xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white text-left shadow-[0_28px_70px_rgba(30,30,20,.06)]">
               <Image
                 src={`/landing/${dashboardScreens[activeScreen]}.png`}
                 alt={`${dashboardScreens[activeScreen]} dashboard preview`}
@@ -432,8 +432,8 @@ export default function Homepage() {
             backgroundColor: theme === "dark" ? "#090909" : "transparent",
           }}
         >
-          <div className="px-5 py-20">
-            <div className="mx-auto mb-14 flex max-w-6xl justify-center">
+          <div className="px-5 py-12 sm:py-16">
+            <div className="mx-auto mb-10 flex max-w-6xl justify-center">
               <div className="inline-flex rounded-lg border border-[#dfdfda] bg-white/70 p-1 dark:border-[#3b3b3b] dark:bg-[#121212]">
                 {(
                   [
@@ -481,7 +481,7 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="flex w-1/2 min-h-[680px] items-center">
+                <div className="flex w-1/2 py-6 sm:py-10 items-center">
                   <div className="mx-auto w-full max-w-5xl">
                     <div className="text-center">
                       <p className="pg-label">Test the signal</p>
@@ -557,7 +557,7 @@ export default function Homepage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex w-1/2 min-h-[680px] items-center">
+                <div className="flex w-1/2 py-6 sm:py-10 items-center">
                   <div className="mx-auto w-full max-w-6xl">
                     <ArchitectureGraph />
                   </div>
@@ -567,7 +567,7 @@ export default function Homepage() {
           </div>
         </section>
 
-        <section className="pg-shell flex min-h-[600px] items-center justify-center border-b border-[#e4e4df] px-5 py-28 text-center">
+        <section className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-12 sm:py-20 text-center">
           <div>
             <h2 className="max-w-4xl text-[clamp(3rem,6vw,6.4rem)] font-semibold leading-[.93] tracking-[-.075em]">
               The next incident should not be a mystery.
@@ -597,10 +597,10 @@ export default function Homepage() {
         </div>
         <div
           aria-hidden="true"
-          className="relative select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/[0.07]"
+          className="relative select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/[0.05]"
         >
           PULSEGUARD
-          <div className="absolute inset-2 right-3 top-3 select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/20">
+          <div className="absolute inset-0 select-none whitespace-nowrap px-3 text-center text-[17vw] font-semibold leading-none tracking-[-.1em] text-white/20 translate-x-[1px] translate-y-[1px] sm:translate-x-[2px] sm:translate-y-[2px]">
             PULSEGUARD
           </div>
         </div>

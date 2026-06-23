@@ -38,7 +38,7 @@ export function LandingFaq() {
   return (
     <section
       id="faq"
-      className="pg-shell border-b border-[#e4e4df] dark:border-[#dfdfda] bg-transparent px-5 py-28 dark:bg-[#090909] sm:px-10"
+      className="pg-shell border-b border-[#e4e4df] dark:border-[#dfdfda] bg-transparent px-5 py-12 sm:py-20 dark:bg-[#090909] sm:px-10"
     >
       <div className="mx-auto max-w-4xl">
         <div className="mx-auto mb-12 max-w-4xl text-center">
