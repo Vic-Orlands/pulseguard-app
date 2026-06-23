@@ -273,126 +273,115 @@ export default function Homepage() {
                 ))}
               </div>
             </div>
-            <AnimatePresence initial={false} mode="wait">
-              {integrationView === "instrument" ? (
-                <motion.div
-                  key="instrument"
-                  initial={{ x: integrationDirection * -72, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: integrationDirection * 72, opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 175,
-                    damping: 26,
-                    mass: 0.8,
-                  }}
-                  className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
-                >
-                  <div>
-                    <p className="pg-label">Instrument once</p>
-                    <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
-                      Follow the request everywhere it goes.
-                    </h2>
-                    <p className="mt-7 max-w-md leading-7 text-[#73736e]">
-                      Start with a few lines. PulseGuard handles the context
-                      that makes every event useful.
-                    </p>
-                  </div>
-                  <div className="overflow-hidden rounded-xl border shadow-[0_24px_65px_rgba(20,20,10,.06)] border-[#3b3b3b] bg-[#121212]">
-                    <div className="flex min-h-[72px] items-center border-b border-[#3b3b3b]">
-                      <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
-                        {(["react", "node", "go"] as Tab[]).map((item) => (
-                          <button
-                            key={item}
-                            className={clsx(
-                              tab === item
-                                ? "font-medium text-[#f5f5f5]"
-                                : "text-neutral-400 hover:text-neutral-200",
-                              "relative flex shrink-0 items-center gap-2 px-5 py-3 text-xs rounded-full transition-colors duration-200",
-                            )}
-                            onClick={() => setTab(item)}
-                          >
-                            {tab === item && (
-                              <motion.div
-                                layoutId="active-tab-pill"
-                                className="absolute inset-0 rounded-full border border-[#303030] bg-[#1c1c1c] shadow-[0_5px_14px_rgba(30,30,20,.08)]"
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 300,
-                                  damping: 30,
-                                }}
-                              />
-                            )}
-                            <span
+            <div className="mx-auto max-w-6xl overflow-hidden">
+              <motion.div
+                className="flex w-[200%]"
+                animate={{ x: integrationView === "instrument" ? "0%" : "-50%" }}
+                transition={{
+                  type: "spring",
+                  stiffness: 155,
+                  damping: 25,
+                  mass: 0.85,
+                }}
+              >
+                <div className="flex w-1/2 min-h-[620px] items-center">
+                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                    <div>
+                      <p className="pg-label">Instrument once</p>
+                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                        Follow the request everywhere it goes.
+                      </h2>
+                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                        Start with a few lines. PulseGuard handles the context
+                        that makes every event useful.
+                      </p>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border shadow-[0_24px_65px_rgba(20,20,10,.06)] border-[#3b3b3b] bg-[#121212]">
+                      <div className="flex min-h-[72px] items-center border-b border-[#3b3b3b]">
+                        <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
+                          {(["react", "node", "go"] as Tab[]).map((item) => (
+                            <button
+                              key={item}
                               className={clsx(
-                                "relative z-10 grid size-4 place-items-center rounded-full text-[8px] transition-colors duration-200",
                                 tab === item
-                                  ? "bg-[#ff5a1f] text-[#171716]"
-                                  : "border border-current"
+                                  ? "font-medium text-[#f5f5f5]"
+                                  : "text-neutral-400 hover:text-neutral-200",
+                                "relative flex shrink-0 items-center gap-2 px-5 py-3 text-xs rounded-full transition-colors duration-200",
                               )}
+                              onClick={() => setTab(item)}
                             >
-                              {item === "react"
-                                ? "R"
-                                : item === "node"
-                                  ? "N"
-                                  : "G"}
-                            </span>
-                            <span className="relative z-10">
-                              {item === "react"
-                                ? "React / Next.js"
-                                : item === "node"
-                                  ? "Node.js"
-                                  : "Go"}
-                            </span>
-                          </button>
-                        ))}
+                              {tab === item && (
+                                <motion.div
+                                  layoutId="active-tab-pill"
+                                  className="absolute inset-0 rounded-full border border-[#303030] bg-[#1c1c1c] shadow-[0_5px_14px_rgba(30,30,20,.08)]"
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 30,
+                                  }}
+                                />
+                              )}
+                              <span
+                                className={clsx(
+                                  "relative z-10 grid size-4 place-items-center rounded-full text-[8px] transition-colors duration-200",
+                                  tab === item
+                                    ? "bg-[#ff5a1f] text-[#171716]"
+                                    : "border border-current",
+                                )}
+                              >
+                                {item === "react"
+                                  ? "R"
+                                  : item === "node"
+                                    ? "N"
+                                    : "G"}
+                              </span>
+                              <span className="relative z-10">
+                                {item === "react"
+                                  ? "React / Next.js"
+                                  : item === "node"
+                                    ? "Node.js"
+                                    : "Go"}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          className="mr-4 flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-xs border-[#3b3b3b] bg-[#121212] text-neutral-300"
+                          onClick={copy}
+                        >
+                          {copied ? <Check size={14} /> : <Clipboard size={14} />}
+                          {copied ? "Copied" : "Copy"}
+                        </button>
                       </div>
-                      <button
-                        className="mr-4 flex shrink-0 items-center gap-2 rounded-full border border-[#e1e1dc] bg-white px-4 py-2.5 text-xs text-[#4b4b47] dark:border-[#3b3b3b] dark:bg-[#121212] dark:text-neutral-300"
-                        onClick={copy}
-                      >
-                        {copied ? <Check size={14} /> : <Clipboard size={14} />}
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                    <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-[#343430] dark:text-neutral-300 sm:p-10">
-                      {samples[tab]}
-                    </pre>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="telemetry"
-                  initial={{ x: integrationDirection * 72, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: integrationDirection * -72, opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 175,
-                    damping: 26,
-                    mass: 0.8,
-                  }}
-                  className="grid min-h-[620px] w-full items-center gap-20 lg:grid-cols-[.8fr_1.2fr]"
-                >
-                  <div>
-                    <p className="pg-label">Pipeline in motion</p>
-                    <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
-                      Unified telemetry for modern cloud infrastructure.
-                    </h2>
-                    <p className="mt-7 max-w-md leading-7 text-[#73736e]">
-                      Generate logs, traces, and metrics in one flow. The
-                      collector batches each signal and routes it to the tools
-                      your team already understands.
-                    </p>
-                    <div className="mt-8 flex gap-6 text-xs text-[#777772]">
-                      <span>OpenTelemetry compliant</span>
-                      <span>Zero agent overhead</span>
+                      <pre className="min-h-[280px] overflow-x-auto p-7 font-mono text-xs leading-7 text-neutral-300 sm:p-10">
+                        {samples[tab]}
+                      </pre>
                     </div>
                   </div>
-                  <PipelineSandbox />
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+
+                <div className="flex w-1/2 min-h-[620px] items-center">
+                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                    <div>
+                      <p className="pg-label">Pipeline in motion</p>
+                      <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
+                        Unified telemetry for modern cloud infrastructure.
+                      </h2>
+                      <p className="mt-7 max-w-md leading-7 text-[#73736e]">
+                        Generate logs, traces, and metrics in one flow. The
+                        collector batches each signal and routes it to the tools
+                        your team already understands.
+                      </p>
+                      <div className="mt-8 flex gap-6 text-xs text-[#777772]">
+                        <span>OpenTelemetry compliant</span>
+                        <span>Zero agent overhead</span>
+                      </div>
+                    </div>
+                    <PipelineSandbox />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </section>
 
