@@ -367,7 +367,7 @@ export default function Homepage() {
                 </div>
 
                 <div className="flex w-1/2 min-h-[620px] items-center">
-                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.7fr_1.3fr]">
                     <div>
                       <p className="pg-label">Pipeline in motion</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -378,10 +378,6 @@ export default function Homepage() {
                         collector batches each signal and routes it to the tools
                         your team already understands.
                       </p>
-                      <div className="mt-8 flex gap-6 text-xs text-[#777772]">
-                        <span>OpenTelemetry compliant</span>
-                        <span>Zero agent overhead</span>
-                      </div>
                     </div>
                     <PipelineSandbox />
                   </div>
@@ -571,8 +567,6 @@ export default function Homepage() {
           </div>
         </section>
 
-        <LandingFaq />
-
         <section className="pg-shell flex min-h-[600px] items-center justify-center border-b border-[#e4e4df] px-5 py-28 text-center">
           <div>
             <h2 className="max-w-4xl text-[clamp(3rem,6vw,6.4rem)] font-semibold leading-[.93] tracking-[-.075em]">
@@ -586,6 +580,8 @@ export default function Homepage() {
             </button>
           </div>
         </section>
+
+        <LandingFaq />
       </main>
 
       <footer className="flex min-h-screen flex-col overflow-hidden bg-black text-white">
@@ -609,10 +605,10 @@ export default function Homepage() {
           </div>
         </div>
 
-        <div className="mt-5  px-6 pb-10 sm:px-12">
+        <div className="mt-5 px-6 pb-10 sm:px-12">
           <div className="grid gap-10 md:grid-cols-3">
             <div className="md:col-span-2">
-              <div className="scale-[.84] origin-left invert">
+              <div className="scale-[.84] origin-left invert dark:invert-0">
                 <PulseGuardLogo />
               </div>
               <p className="mt-5 max-w-sm text-[11px] leading-relaxed text-neutral-400">
@@ -671,7 +667,7 @@ export default function Homepage() {
                 </a>
               </div>
             </div>
-            <div className="md:col-span-1">
+            <div className="md:col-span-1 ml-auto">
               <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">
                 Platform sections
               </p>

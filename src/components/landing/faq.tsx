@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
-import { useTheme } from "next-themes";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const faqs = [
   {
@@ -35,14 +34,11 @@ const faqs = [
 
 export function LandingFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   return (
     <section
       id="faq"
-      className="pg-shell border-b border-[#e4e4df] bg-transparent px-5 py-28 dark:bg-[#090909] sm:px-10"
-      style={{ backgroundColor: isDark ? "#090909" : "transparent", borderColor: isDark ? "#3b3b3b" : "#dfdfda" }}
+      className="pg-shell border-b border-[#e4e4df] dark:border-[#dfdfda] bg-transparent px-5 py-28 dark:bg-[#090909] sm:px-10"
     >
       <div className="mx-auto max-w-4xl">
         <div className="mx-auto mb-12 max-w-4xl text-center">
@@ -61,16 +57,15 @@ export function LandingFaq() {
               <div
                 key={faq.question}
                 className="overflow-hidden rounded-xl border border-[#dfdfda] bg-transparent transition-colors hover:border-[#b9b9b3] dark:border-[#3b3b3b] dark:bg-[#121212] dark:hover:border-[#5a5a5a]"
-                style={{ backgroundColor: isDark ? "#121212" : "transparent", borderColor: isDark ? "#3b3b3b" : "#dfdfda" }}
               >
                 <button
                   className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left"
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                 >
-                  <span className="text-sm font-medium text-[#272725] dark:text-white" style={{ color: isDark ? "#f5f5f5" : "#272725" }}>
+                  <span className="text-sm font-medium text-[#272725] dark:text-white">
                     {faq.question}
                   </span>
-                  <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-[#dfdfda] text-[#777772] dark:border-[#3b3b3b] dark:text-[#a3a3a3]" style={{ borderColor: isDark ? "#3b3b3b" : "#dfdfda" }}>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-[#dfdfda] text-[#777772] dark:border-[#3b3b3b] dark:text-[#a3a3a3]">
                     {isOpen ? (
                       <ChevronUp size={14} />
                     ) : (
@@ -86,7 +81,7 @@ export function LandingFaq() {
                   }
                 >
                   <div className="overflow-hidden">
-                    <div className="border-t border-[#e8e8e3] px-5 pb-5 pt-4 text-sm font-light leading-6 text-[#73736e] dark:border-[#303030] dark:text-[#a3a3a3]" style={{ borderColor: isDark ? "#303030" : "#dfdfda" }}>
+                    <div className="border-t border-[#e8e8e3] px-5 pb-5 pt-4 text-sm font-light leading-6 text-[#73736e] dark:border-[#303030] dark:text-[#a3a3a3]">
                       {faq.answer}
                     </div>
                   </div>
