@@ -286,8 +286,8 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="flex w-1/2 min-h-[620px] items-center">
-                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                <div className="flex w-1/2 min-h-[620px] items-center px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.8fr_1.2fr]">
                     <div>
                       <p className="pg-label">Instrument once</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -366,8 +366,8 @@ export default function Homepage() {
                   </div>
                 </div>
 
-                <div className="flex w-1/2 min-h-[620px] items-center">
-                  <div className="w-full grid items-center gap-20 lg:grid-cols-[.7fr_1.3fr]">
+                <div className="flex w-1/2 min-h-[620px] items-center px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.7fr_1.3fr]">
                     <div>
                       <p className="pg-label">Pipeline in motion</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -589,7 +589,7 @@ export default function Homepage() {
           <Image
             src="/landing/swan.jpg"
             alt="Swan on dark water"
-            className="h-full w-full object-cover object-center ml-10"
+            className="h-full w-full object-cover object-center"
             fill
             priority
             loading="eager"
@@ -667,7 +667,7 @@ export default function Homepage() {
                 </a>
               </div>
             </div>
-            <div className="md:col-span-1 ml-auto">
+            <div className="md:col-span-1 md:ml-auto">
               <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">
                 Platform sections
               </p>

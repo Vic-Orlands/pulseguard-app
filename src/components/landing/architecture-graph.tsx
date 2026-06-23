@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 const nodes = {
   app: {
     name: "Next.js Application",
+    shortName: "Next.js",
     sub: "Telemetry generation",
     icon: Cpu,
     details: [
@@ -25,6 +26,7 @@ const nodes = {
   },
   otel: {
     name: "OpenTelemetry Collector",
+    shortName: "OTel Collector",
     sub: "Filtering and routing",
     icon: Network,
     details: [
@@ -35,6 +37,7 @@ const nodes = {
   },
   loki: {
     name: "Grafana Loki",
+    shortName: "Loki",
     sub: "Structured log storage",
     icon: Database,
     details: [
@@ -45,6 +48,7 @@ const nodes = {
   },
   tempo: {
     name: "Grafana Tempo",
+    shortName: "Tempo",
     sub: "Trace waterfalls",
     icon: Layers,
     details: [
@@ -55,6 +59,7 @@ const nodes = {
   },
   prometheus: {
     name: "Prometheus",
+    shortName: "Prometheus",
     sub: "Metrics backend",
     icon: Radio,
     details: [
@@ -65,6 +70,7 @@ const nodes = {
   },
   grafana: {
     name: "Grafana Dashboards",
+    shortName: "Grafana",
     sub: "Unified visualization",
     icon: LayoutGrid,
     details: [
@@ -95,8 +101,8 @@ function NodeButton({
       onClick={onClick}
       className={
         active
-          ? "rounded-lg border border-[#ff5a1f] bg-[#ff5a1f]/10 px-4 py-3 text-center"
-          : "rounded-lg border border-[#dfdfda] bg-transparent px-4 py-3 text-center hover:border-[#9a9a95] dark:border-[#3b3b3b] dark:bg-[#121212] dark:hover:border-[#5a5a5a]"
+          ? "rounded-lg border border-[#ff5a1f] bg-[#ff5a1f]/10 px-2 py-2.5 sm:px-4 sm:py-3 text-center transition-colors"
+          : "rounded-lg border border-[#dfdfda] bg-transparent px-2 py-2.5 sm:px-4 sm:py-3 text-center hover:border-[#9a9a95] dark:border-[#3b3b3b] dark:bg-[#121212] dark:hover:border-[#5a5a5a] transition-colors"
       }
       style={{
         backgroundColor: active
@@ -109,12 +115,13 @@ function NodeButton({
     >
       <Icon className="mx-auto mb-1.5 text-[#ff5a1f]" size={16} />
       <span
-        className="block text-xs font-medium text-[#272725] dark:text-white"
+        className="block text-[10px] sm:text-xs font-medium text-[#272725] dark:text-white"
         style={{ color: isDark ? "#f5f5f5" : "#272725" }}
       >
-        {node.name}
+        <span className="inline sm:hidden">{node.shortName}</span>
+        <span className="hidden sm:inline">{node.name}</span>
       </span>
-      <span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-[#777772] dark:text-[#a3a3a3]">
+      <span className="mt-1 hidden sm:block font-mono text-[9px] uppercase tracking-wider text-[#777772] dark:text-[#a3a3a3]">
         {node.sub}
       </span>
     </button>
