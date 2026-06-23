@@ -276,7 +276,9 @@ export default function Homepage() {
             <div className="mx-auto max-w-6xl overflow-hidden">
               <motion.div
                 className="flex w-[200%]"
-                animate={{ x: integrationView === "instrument" ? "0%" : "-50%" }}
+                animate={{
+                  x: integrationView === "instrument" ? "0%" : "-50%",
+                }}
                 transition={{
                   type: "spring",
                   stiffness: 155,
@@ -349,7 +351,11 @@ export default function Homepage() {
                           className="mr-4 flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-xs border-[#3b3b3b] bg-[#121212] text-neutral-300"
                           onClick={copy}
                         >
-                          {copied ? <Check size={14} /> : <Clipboard size={14} />}
+                          {copied ? (
+                            <Check size={14} />
+                          ) : (
+                            <Clipboard size={14} />
+                          )}
                           {copied ? "Copied" : "Copy"}
                         </button>
                       </div>
