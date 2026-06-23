@@ -193,3 +193,14 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .pg-page *, .pg-page *::before, .pg-page *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-dash {
+  stroke-dasharray: 6 6;
+  animation: dash 1.2s linear infinite;
+}
