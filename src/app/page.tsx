@@ -194,7 +194,7 @@ export default function Homepage() {
       </header>
 
       <main className="pg-grid">
-        <section className="pg-shell relative isolate flex min-h-[800px] items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 pb-24 pt-14 text-center sm:min-h-[860px]">
+        <section className="pg-shell relative isolate flex lg:min-h-[800px] h-fit items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 pb-12 pt-20 sm:pb-24 sm:pt-28 text-center">
           <SoftSignal />
           <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center">
             <h1 className="max-w-4xl text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[.96] tracking-[-.07em]">
@@ -219,7 +219,7 @@ export default function Homepage() {
                 Explore the docs <ArrowRight size={14} />
               </button>
             </div>
-            <div className="mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
+            <div className="mt-10 sm:mt-16 lg:mt-20 w-full max-w-6xl overflow-hidden rounded-2xl border border-[#e1e1dc] bg-white shadow-[0_22px_50px_rgba(30,30,20,.07)]">
               <Image
                 src="/landing/overview.png"
                 alt="PulseGuard incident overview"
@@ -233,7 +233,7 @@ export default function Homepage() {
 
         <section
           id="integrate"
-          className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-20"
+          className="pg-shell overflow-hidden border-b border-[#e4e4df] px-5 py-10 sm:py-20 lg:py-28"
         >
           <div className="w-full">
             <div className="mb-14 flex justify-center">
@@ -286,8 +286,8 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="shrink-0 w-1/2 flex items-start lg:items-center lg:min-h-[620px] h-fit py-8 lg:py-0 px-4 sm:px-6 lg:px-8">
-                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.8fr_1.2fr]">
+                <div className="shrink-0 w-1/2 flex items-start h-fit py-4 lg:py-0 px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-start gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-2">
                     <div>
                       <p className="pg-label">Instrument once</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -366,8 +366,8 @@ export default function Homepage() {
                   </div>
                 </div>
 
-                <div className="shrink-0 w-1/2 flex items-start lg:items-center lg:min-h-[620px] h-fit py-8 lg:py-0 px-4 sm:px-6 lg:px-8">
-                  <div className="w-full grid items-center gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-[.7fr_1.3fr]">
+                <div className="shrink-0 w-1/2 flex items-start h-fit py-4 lg:py-0 px-4 sm:px-6 lg:px-8">
+                  <div className="w-full grid items-start gap-8 lg:gap-16 xl:gap-20 lg:grid-cols-2">
                     <div>
                       <p className="pg-label">Pipeline in motion</p>
                       <h2 className="mt-5 text-[clamp(2.8rem,4.5vw,5rem)] font-semibold leading-[.95] tracking-[-.065em]">
@@ -389,7 +389,7 @@ export default function Homepage() {
 
         <section
           id="product"
-          className="pg-shell relative isolate flex lg:min-h-[850px] h-fit items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-16 sm:py-24 lg:py-28 text-center"
+          className="pg-shell relative isolate flex xl:min-h-[850px] h-fit items-center justify-center overflow-hidden border-b border-[#e4e4df] px-5 py-10 sm:py-20 lg:py-28 text-center"
         >
           <SoftSignal />
           <div className="relative z-10 w-full">
@@ -432,7 +432,7 @@ export default function Homepage() {
             backgroundColor: theme === "dark" ? "#090909" : "transparent",
           }}
         >
-          <div className="px-5 py-12 sm:py-16 lg:py-20">
+          <div className="px-5 py-10 sm:py-16 lg:py-20">
             <div className="mx-auto mb-14 flex max-w-6xl justify-center">
               <div className="inline-flex rounded-lg border border-[#dfdfda] bg-white/70 p-1 dark:border-[#3b3b3b] dark:bg-[#121212]">
                 {(
@@ -481,7 +481,7 @@ export default function Homepage() {
                   mass: 0.85,
                 }}
               >
-                <div className="shrink-0 w-1/2 flex items-start lg:items-center lg:min-h-[680px] h-fit py-8 lg:py-0">
+                <div className="shrink-0 w-1/2 flex items-start h-fit py-4 lg:py-0">
                   <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                       <p className="pg-label">Test the signal</p>
@@ -557,7 +557,7 @@ export default function Homepage() {
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 w-1/2 flex items-start lg:items-center lg:min-h-[680px] h-fit py-8 lg:py-0">
+                <div className="shrink-0 w-1/2 flex items-start h-fit py-4 lg:py-0">
                   <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                     <ArchitectureGraph />
                   </div>
@@ -567,7 +567,7 @@ export default function Homepage() {
           </div>
         </section>
 
-        <section className="pg-shell flex lg:min-h-[600px] h-fit items-center justify-center border-b border-[#e4e4df] px-5 py-16 sm:py-24 lg:py-28 text-center">
+        <section className="pg-shell flex xl:min-h-[600px] h-fit items-center justify-center border-b border-[#e4e4df] px-5 py-10 sm:py-20 lg:py-28 text-center">
           <div>
             <h2 className="max-w-4xl text-[clamp(3rem,6vw,6.4rem)] font-semibold leading-[.93] tracking-[-.075em]">
               The next incident should not be a mystery.
