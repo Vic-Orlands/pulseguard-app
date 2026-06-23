@@ -59,25 +59,25 @@ export default function ProjectCard({
           delay: index * 0.05,
           ease: "easeOut",
         }}
-        className="bg-card border border-border rounded-lg hover:border-muted-foreground/30 transition-all duration-200 group"
+        className="pg-panel rounded-xl hover:border-[#ff5a1f]/30 transition-all duration-200 group relative overflow-hidden"
       >
-        <div className="p-4 pb-3 border-b border-border/50">
+        <div className="p-4 pb-3 border-b border-[#dfdfda]/50">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5 mb-1.5">
-                <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                <h3 className="text-sm font-semibold text-[#1d1d1b] truncate group-hover:text-[#ff5a1f] transition-colors">
                   {project.name}
                 </h3>
                 <Badge className={`${getPlatformColor(project.platform)} text-[10px] px-1.5 py-0 rounded font-medium shadow-none`}>
                   {project.platform}
                 </Badge>
               </div>
-              <p className="text-muted-foreground text-xs leading-relaxed">
+              <p className="text-[#73736e] text-xs leading-relaxed">
                 {project.description}
               </p>
             </div>
 
-            <Button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-background text-muted-foreground border border-border hover:bg-muted hover:text-foreground text-xs py-1 h-7 px-3 rounded shadow-none">
+            <Button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white text-[#73736e] border border-[#dfdfda] hover:bg-[#f7f7f5] hover:text-[#1d1d1b] text-xs py-1 h-7 px-3 rounded-lg shadow-none cursor-pointer">
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -92,7 +92,7 @@ export default function ProjectCard({
 
         <div className="p-4 pt-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-5 text-xs text-[#73736e]">
               <div className="flex items-center gap-1.5">
                 <HugeiconsIcon icon={Calendar01Icon} className="h-3.5 w-3.5" />
                 <span>{formatDate(project.createdAt)}</span>
@@ -130,16 +130,16 @@ export default function ProjectCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -3 }}
       transition={{ duration: 0.2 }}
-      className="h-full bg-card border border-border rounded-lg p-5 hover:border-muted-foreground/30 transition-all duration-200 group cursor-pointer shadow-xs"
+      className="h-full pg-panel rounded-xl p-5 hover:border-[#ff5a1f]/30 transition-all duration-200 group cursor-pointer shadow-xs relative overflow-hidden"
       onClick={() => router.push(href)}
     >
       <div className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-3.5">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground mb-1 truncate group-hover:text-primary transition-colors">
+            <h3 className="text-sm font-semibold text-[#1d1d1b] mb-1 truncate group-hover:text-[#ff5a1f] transition-colors">
               {project.name}
             </h3>
-            <p className="text-muted-foreground text-xs line-clamp-2">
+            <p className="text-[#73736e] text-xs line-clamp-2">
               {project.description}
             </p>
           </div>
@@ -153,7 +153,7 @@ export default function ProjectCard({
         </div>
 
         <div className="space-y-2.5 mt-auto">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-[#73736e]">
             <div className="flex items-center gap-1.5">
               <HugeiconsIcon icon={Calendar01Icon} className="h-3.5 w-3.5" />
               <span>{formatDate(project.createdAt)}</span>
@@ -180,7 +180,7 @@ export default function ProjectCard({
               </span>
             </div>
 
-            <HugeiconsIcon icon={LinkSquare01Icon} className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <HugeiconsIcon icon={LinkSquare01Icon} className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[#ff5a1f]" />
           </div>
         </div>
       </div>

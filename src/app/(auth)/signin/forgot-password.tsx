@@ -62,9 +62,9 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
       transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-5">
-        <h1 className="text-lg font-bold text-foreground">Forgot Password?</h1>
-        <p className="text-xs text-muted-foreground">
+      <div className="text-center mb-6">
+        <h1 className="text-lg font-bold text-[#1d1d1b]">Forgot Password?</h1>
+        <p className="text-xs text-[#73736e] mt-1">
           Enter your email to receive a password reset link.
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
+          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
           <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
           <div>
@@ -82,7 +82,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
       )}
 
       {success && (
-        <Alert className="mb-3 border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs py-2 px-3 flex items-center gap-2">
+        <Alert className="mb-4 border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs py-2 px-3 flex items-center gap-2">
           <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 text-emerald-500 shrink-0" />
           <div>
             <AlertDescription className="text-xs font-medium leading-none">{success}</AlertDescription>
@@ -90,7 +90,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField label="Email" error={errors.email?.message}>
           <InputWithIcon
             icon={Mail01Icon}
@@ -104,7 +104,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
         <motion.button
           type="submit"
           disabled={isPending}
-          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center"
+          className="w-full bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center h-10 cursor-pointer"
           whileHover={{ scale: isPending ? 1 : 1.01 }}
           whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
@@ -116,10 +116,10 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
         </motion.button>
       </form>
 
-      <div className="mt-5 text-center">
+      <div className="mt-6 text-center">
         <button
           type="button"
-          className="text-primary hover:underline cursor-pointer text-xs"
+          className="text-[#1d1d1b] hover:text-[#ff5a1f] hover:underline cursor-pointer text-xs transition-colors"
           onClick={() => onToggleMode("login")}
           aria-label="Back to login"
         >
@@ -129,3 +129,4 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
     </motion.div>
   );
 }
+

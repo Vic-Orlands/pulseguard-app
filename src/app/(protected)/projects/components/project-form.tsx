@@ -94,28 +94,28 @@ export default function ProjectForm({
       {/* Header */}
       <DialogHeader className="flex flex-row items-center justify-between mb-4">
         <div>
-          <DialogTitle className="text-sm font-bold text-foreground">
+          <DialogTitle className="text-sm font-bold text-[#1d1d1b]">
             Create New Project
           </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+          <DialogDescription className="text-xs text-[#73736e]">
             Set up your project details
           </DialogDescription>
         </div>
         <button
           onClick={onCancel}
           disabled={isLoading}
-          className="w-7 h-7 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 text-foreground transition-colors cursor-pointer"
+          className="w-7 h-7 rounded-full bg-[#f7f7f5] flex items-center justify-center hover:bg-white text-[#1d1d1b] border border-[#dfdfda] transition-colors cursor-pointer"
         >
           <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
         </button>
       </DialogHeader>
 
       {/* Form Content */}
-      <form onSubmit={handleSubmit} className="space-y-3.5 flex-1">
-        <motion.div custom={0} variants={fieldVariants} className="space-y-1">
+      <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+        <motion.div custom={0} variants={fieldVariants} className="space-y-1.5">
           <label
             htmlFor="name"
-            className="block text-xs font-semibold text-foreground/80"
+            className="block text-xs font-semibold text-[#1d1d1b]"
           >
             Project Name
           </label>
@@ -124,7 +124,7 @@ export default function ProjectForm({
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus-visible:ring-0 h-8"
+            className="bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs placeholder:text-[#858580] focus:border-[#1d1d1b] focus-visible:ring-0 h-9 rounded-lg transition-colors"
             disabled={isLoading}
           />
           <AnimatePresence>
@@ -141,10 +141,10 @@ export default function ProjectForm({
           </AnimatePresence>
         </motion.div>
 
-        <motion.div custom={1} variants={fieldVariants} className="space-y-1">
+        <motion.div custom={1} variants={fieldVariants} className="space-y-1.5">
           <label
             htmlFor="description"
-            className="block text-xs font-semibold text-foreground/80"
+            className="block text-xs font-semibold text-[#1d1d1b]"
           >
             Description
           </label>
@@ -153,7 +153,7 @@ export default function ProjectForm({
             name="description"
             value={formData.description}
             onChange={handleChange}
-            className="bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus-visible:ring-0 min-h-[90px]"
+            className="bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs placeholder:text-[#858580] focus:border-[#1d1d1b] focus-visible:ring-0 min-h-[90px] rounded-lg transition-colors"
             disabled={isLoading}
           />
           <AnimatePresence>
@@ -170,10 +170,10 @@ export default function ProjectForm({
           </AnimatePresence>
         </motion.div>
 
-        <motion.div custom={2} variants={fieldVariants} className="space-y-1">
+        <motion.div custom={2} variants={fieldVariants} className="space-y-1.5">
           <label
             htmlFor="platform"
-            className="block text-xs font-semibold text-foreground/80"
+            className="block text-xs font-semibold text-[#1d1d1b]"
           >
             Platform
           </label>
@@ -185,10 +185,10 @@ export default function ProjectForm({
             }}
             disabled={isLoading}
           >
-            <SelectTrigger className="bg-background border border-border text-foreground text-xs focus:border-primary focus-visible:ring-0 h-8">
+            <SelectTrigger className="bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs focus:border-[#1d1d1b] focus-visible:ring-0 h-9 rounded-lg">
               <SelectValue placeholder="Select platform" />
             </SelectTrigger>
-            <SelectContent className="bg-popover border border-border text-foreground">
+            <SelectContent className="bg-white border border-[#dfdfda] text-[#1d1d1b]">
               <SelectItem value="Next.js">Next.js</SelectItem>
               <SelectItem value="React">React</SelectItem>
               <SelectItem value="Node.js">Node.js</SelectItem>
@@ -222,7 +222,7 @@ export default function ProjectForm({
               variant="outline"
               onClick={onCancel}
               disabled={isLoading}
-              className="w-full border border-border text-foreground hover:bg-muted text-xs h-8 shadow-none font-semibold"
+              className="w-full bg-[#f7f7f5] border border-[#dfdfda] text-[#1d1d1b] hover:bg-white text-xs h-9 rounded-lg shadow-none font-semibold cursor-pointer"
             >
               Cancel
             </Button>
@@ -231,7 +231,7 @@ export default function ProjectForm({
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none"
+              className="w-full bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-9 font-semibold rounded-lg shadow-none cursor-pointer"
             >
               Create Project
             </Button>
@@ -241,3 +241,4 @@ export default function ProjectForm({
     </motion.div>
   );
 }
+

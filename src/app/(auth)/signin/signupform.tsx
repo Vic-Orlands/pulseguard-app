@@ -213,10 +213,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       setValue("avatarType", "predefined");
                       setValue("avatar", selectedAvatar);
                     }}
-                    className={`flex-1 py-1.5 px-4 rounded-md text-xs font-semibold transition ${
+                    className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition cursor-pointer ${
                       avatarType === "predefined"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground border border-border hover:bg-muted"
+                        ? "bg-[#171716] text-white"
+                        : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
                     }`}
                   >
                     <HugeiconsIcon icon={Camera01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
@@ -229,12 +229,16 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       setValue("avatarType", "upload");
                       if (uploadedAvatar) setValue("avatar", uploadedAvatar);
                     }}
-                    className={`flex-1 py-1.5 px-4 rounded-md text-xs font-semibold transition ${
+                    className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition cursor-pointer ${
                       avatarType === "upload"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground border border-border hover:bg-muted"
+                        ? "bg-[#171716] text-white"
+                        : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
                     }`}
                   >
+                    <HugeiconsIcon icon={Upload01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
+                    Upload Image
+                  </button>
+                </div>
                     <HugeiconsIcon icon={Upload01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
                     Upload Image
                   </button>
@@ -248,23 +252,23 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         key={index}
                         type="button"
                         onClick={() => handleAvatarSelect(avatar)}
-                        className={`relative group overflow-hidden rounded-lg border-2 transition ${
+                        className={`relative group overflow-hidden rounded-lg border-2 transition cursor-pointer ${
                           selectedAvatar === avatar
-                            ? "border-primary ring-2 ring-primary/20"
-                            : "border-border hover:border-muted-foreground/30"
+                            ? "border-[#1d1d1b] ring-2 ring-[#ff5a1f]/20"
+                            : "border-[#dfdfda] hover:border-[#73736e]"
                         }`}
                       >
                         <Image
                           src={avatar}
                           alt={`Avatar ${index + 1}`}
-                          className="w-full h-16 object-cover bg-muted"
+                          className="w-full h-16 object-cover bg-white"
                           width={64}
                           height={64}
                           unoptimized={isDiceBearAvatar(avatar)}
                         />
                         {selectedAvatar === avatar && (
-                          <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-primary" />
+                          <div className="absolute inset-0 bg-[#ff5a1f]/10 flex items-center justify-center">
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-[#ff5a1f]" />
                           </div>
                         )}
                       </button>
@@ -286,7 +290,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       htmlFor="avatar-upload"
                       className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted transition"
                     >
-                      {uploadedAvatar ? (
+                    {uploadedAvatar ? (
                         <Image
                           src={uploadedAvatar}
                           alt="Uploaded avatar"
@@ -296,8 +300,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         />
                       ) : (
                         <>
-                          <HugeiconsIcon icon={Upload01Icon} className="h-6 w-6 text-muted-foreground mb-1.5" />
-                          <span className="text-xs text-muted-foreground">
+                          <HugeiconsIcon icon={Upload01Icon} className="h-6 w-6 text-[#73736e] mb-1.5" />
+                          <span className="text-xs text-[#73736e]">
                             Click to upload image
                           </span>
                         </>
@@ -307,7 +311,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                 )}
 
                 {/* Current Avatar Preview */}
-                <div className="flex items-center gap-3 p-2.5 bg-background border border-border rounded-lg">
+                <div className="flex items-center gap-3 p-2.5 bg-[#f7f7f5] border border-[#dfdfda] rounded-lg">
                   <Image
                     src={
                       avatarType === "upload"
@@ -349,14 +353,14 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               <input
                 type="text"
                 placeholder="Your Company"
-                className="px-4 py-1.5 w-full rounded-md bg-background border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
+                className="px-4 py-2 w-full rounded-lg bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs placeholder:text-[#858580] focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] focus:border-[#1d1d1b] transition-all"
                 {...register("company")}
               />
             </FormField>
 
             <FormField label="Role (Optional)" error={errors.role?.message}>
               <Select onValueChange={(value) => setValue("role", value)}>
-                <SelectTrigger className="w-full rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent">
+                <SelectTrigger className="w-full rounded-lg bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-9 focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] focus:border-transparent">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border border-border text-foreground">
@@ -401,7 +405,6 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
     }
   };
 
-  return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -409,12 +412,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
       transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-5">
-        <h1 className="text-lg font-bold text-foreground">Create an account</h1>
-        <p className="text-xs text-muted-foreground">Sign up for PulseGuard</p>
+      <div className="text-center mb-6">
+        <h1 className="text-lg font-bold text-[#1d1d1b]">Create an account</h1>
+        <p className="text-xs text-[#73736e] mt-1">Sign up for PulseGuard</p>
       </div>
 
-      <div className="flex mb-5 items-center justify-center">
+      <div className="flex mb-6 items-center justify-center">
         <div className="flex items-center w-full max-w-md">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex-1 relative">
@@ -423,8 +426,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                   step > i
                     ? "bg-emerald-600 dark:bg-emerald-500 text-white"
                     : step === i
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background text-muted-foreground border border-border"
+                    ? "bg-[#171716] text-white"
+                    : "bg-white text-[#73736e] border border-[#dfdfda]"
                 }`}
                 animate={{
                   scale: step === i ? [1, 1.05, 1] : 1,
@@ -441,7 +444,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                   <span className="text-xs font-semibold">{i}</span>
                 )}
               </motion.div>
-              <div className="text-[10px] font-medium text-muted-foreground text-center mt-1">
+              <div className="text-[10px] font-medium text-[#73736e] text-center mt-1">
                 {i === 1
                   ? "Account"
                   : i === 2
@@ -454,7 +457,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               {i < 4 && (
                 <div
                   className={`absolute top-3.5 left-full w-full h-[1px] -translate-x-5/12 -z-10 ${
-                    step > i ? "bg-emerald-600 dark:bg-emerald-500" : "bg-border"
+                    step > i ? "bg-emerald-600 dark:bg-emerald-500" : "bg-[#dfdfda]"
                   }`}
                 />
               )}
@@ -466,7 +469,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
+          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
           <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
           <div>
@@ -475,7 +478,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         </Alert>
       )}
 
-      <form className="space-y-3.5">
+      <form className="space-y-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={`step-${step}`}
@@ -488,12 +491,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
           </motion.div>
         </AnimatePresence>
 
-        <div className="flex gap-3 mt-5">
+        <div className="flex gap-3 mt-6">
           {step > 1 && (
             <motion.button
               type="button"
               onClick={prevStep}
-              className="flex-1 bg-background border border-border text-foreground py-1.5 rounded-md hover:bg-muted text-xs font-semibold transition"
+              className="flex-1 bg-[#f7f7f5] border border-[#dfdfda] text-[#1d1d1b] py-2 rounded-lg hover:bg-white text-xs font-semibold transition cursor-pointer"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -506,7 +509,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             disabled={isPending}
             className={`${
               step > 1 ? "flex-1" : "w-full"
-            } bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center gap-1.5`}
+            } bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-10`}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
@@ -522,14 +525,14 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         </div>
       </form>
 
-      <div className="text-center mt-5">
-        <p className="text-xs text-muted-foreground">
+      <div className="text-center mt-6">
+        <p className="text-xs text-[#73736e]">
           Already have an account?{" "}
           <button
             type="button"
             aria-label="Sign in"
             onClick={() => onToggleMode("login")}
-            className="text-primary font-semibold hover:underline cursor-pointer"
+            className="text-[#1d1d1b] font-semibold hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
           >
             Sign in
           </button>

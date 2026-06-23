@@ -148,9 +148,9 @@ export default function ResetPasswordPage() {
         transition={{ duration: 0.3 }}
         className="w-full text-foreground"
       >
-        <div className="text-center mb-5">
-          <h1 className="text-lg font-bold text-foreground">Invalid Reset Link</h1>
-          <p className="text-xs text-muted-foreground mt-1">
+        <div className="text-center mb-6">
+          <h1 className="text-lg font-bold text-[#1d1d1b]">Invalid Reset Link</h1>
+          <p className="text-xs text-[#73736e] mt-1">
             This password reset link is invalid or has expired.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function ResetPasswordPage() {
             router.push("/signin");
             localStorage.setItem("auth_mode", "forgot-password");
           }}
-          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition"
+          className="w-full bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition cursor-pointer h-10"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
         >
@@ -199,9 +199,9 @@ export default function ResetPasswordPage() {
       transition={{ duration: 0.3 }}
       className="w-full text-foreground"
     >
-      <div className="text-center mb-5">
-        <h1 className="text-lg font-bold text-foreground">Reset Your Password</h1>
-        <p className="text-xs text-muted-foreground mt-1">Enter your new password below.</p>
+      <div className="text-center mb-6">
+        <h1 className="text-lg font-bold text-[#1d1d1b]">Reset Your Password</h1>
+        <p className="text-xs text-[#73736e] mt-1">Enter your new password below.</p>
       </div>
 
       {error && (
@@ -309,7 +309,7 @@ export default function ResetPasswordPage() {
         <motion.button
           type="submit"
           disabled={isPending || success !== ""}
-          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed h-10 cursor-pointer"
           whileHover={{ scale: isPending ? 1 : 1.01 }}
           whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
@@ -326,10 +326,10 @@ export default function ResetPasswordPage() {
         </motion.button>
       </form>
 
-      <div className="mt-5 text-center">
+      <div className="mt-6 text-center">
         <button
           type="button"
-          className="text-primary hover:underline cursor-pointer text-xs"
+          className="text-[#1d1d1b] hover:text-[#ff5a1f] hover:underline cursor-pointer text-xs transition-colors"
           onClick={() => {
             router.push("/signin");
             localStorage.setItem("auth_mode", "login");

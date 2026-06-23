@@ -302,12 +302,12 @@ export default function UserSettingsNew() {
 
   // Render components
   const renderProfileTab = () => (
-    <Card className="bg-card border border-border shadow-none rounded-lg">
-      <CardHeader className="py-3 px-4 border-b border-border/50">
-        <CardTitle className="text-xs font-semibold text-foreground">
+    <Card className="pg-panel shadow-none rounded-xl border border-[#dfdfda]">
+      <CardHeader className="py-3 px-4 border-b border-[#dfdfda]/50">
+        <CardTitle className="text-xs font-semibold text-[#1d1d1b]">
           Profile Information
         </CardTitle>
-        <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+        <CardDescription className="text-[10px] text-[#73736e] mt-0.5">
           Update your personal details and avatar
         </CardDescription>
       </CardHeader>
@@ -421,14 +421,14 @@ export default function UserSettingsNew() {
 
   const renderProjectsTab = () => (
     <div className="space-y-4">
-      <Card className="bg-card border border-border shadow-none rounded-lg">
-        <CardHeader className="py-3 px-4 border-b border-border/50">
+      <Card className="pg-panel shadow-none rounded-xl border border-[#dfdfda]">
+        <CardHeader className="py-3 px-4 border-b border-[#dfdfda]/50">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xs font-semibold text-foreground">
+              <CardTitle className="text-xs font-semibold text-[#1d1d1b]">
                 Your Projects
               </CardTitle>
-              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+              <CardDescription className="text-[10px] text-[#73736e] mt-0.5">
                 Manage all your monitoring projects
               </CardDescription>
             </div>
@@ -589,12 +589,12 @@ export default function UserSettingsNew() {
   );
 
   const renderAppearanceTab = () => (
-    <Card className="bg-card border border-border shadow-none rounded-lg">
-      <CardHeader className="py-3 px-4 border-b border-border/50">
-        <CardTitle className="text-xs font-semibold text-foreground">
+    <Card className="pg-panel shadow-none rounded-xl border border-[#dfdfda]">
+      <CardHeader className="py-3 px-4 border-b border-[#dfdfda]/50">
+        <CardTitle className="text-xs font-semibold text-[#1d1d1b]">
           Appearance Settings
         </CardTitle>
-        <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+        <CardDescription className="text-[10px] text-[#73736e] mt-0.5">
           Customize the visual theme of your dashboard preferences
         </CardDescription>
       </CardHeader>
@@ -641,7 +641,7 @@ export default function UserSettingsNew() {
   );
 
   const renderDangerZoneTab = () => (
-    <Card className="bg-destructive/5 border border-destructive/20 shadow-none rounded-lg">
+    <Card className="bg-red-500/5 border border-destructive/20 shadow-none rounded-xl">
       <CardHeader className="py-3 px-4 border-b border-destructive/25">
         <CardTitle className="text-xs font-semibold text-destructive">Danger Zone</CardTitle>
         <CardDescription className="text-[10px] text-destructive/80 mt-0.5">
@@ -852,8 +852,12 @@ export default function UserSettingsNew() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-10">
-      <div className="max-w-full lg:max-w-10/12 mx-auto">
+    <div className="pg-page pg-grid min-h-screen py-10 relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,.14),transparent_44%),linear-gradient(90deg,transparent_0,rgba(223,223,218,.36)_1px,transparent_1px),linear-gradient(transparent_0,rgba(223,223,218,.36)_1px,transparent_1px)] [background-size:auto,78px_100%,100%_62px]"
+      />
+      <div className="pg-shell px-6 z-10 relative">
         {error && <CustomErrorMessage error={error} />}
       </div>
 
@@ -861,16 +865,16 @@ export default function UserSettingsNew() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
+        className="pg-shell px-6 z-10 relative"
       >
         <div
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
           <div>
-            <h1 className="text-lg font-bold text-foreground mb-0.5">
+            <h1 className="text-lg font-bold text-[#1d1d1b] mb-0.5">
               Account Settings
             </h1>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-[#73736e] text-xs">
               Manage your account, projects, and preferences
             </p>
           </div>
@@ -894,7 +898,7 @@ export default function UserSettingsNew() {
               type="submit"
               onClick={handleSaveChanges}
               disabled={!hasUnsavedChanges || isSaving}
-              className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none px-4 rounded-md"
+              className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 font-semibold shadow-none px-4 rounded-lg cursor-pointer"
             >
               {isSaving ? (
                 <>
@@ -911,7 +915,7 @@ export default function UserSettingsNew() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-border mb-6">
+        <div className="flex items-center justify-between border-b border-[#dfdfda] mb-6">
           <div className="flex space-x-4">
             {[
               { id: "profile", label: "Profile", icon: UserIcon },
@@ -924,8 +928,8 @@ export default function UserSettingsNew() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 border-b-2 cursor-pointer py-2 px-1 text-xs font-semibold transition-all duration-200 h-9 ${
                   activeTab === tab.id
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-[#ff5a1f] text-[#1d1d1b]"
+                    : "border-transparent text-[#73736e] hover:text-[#1d1d1b]"
                 }`}
               >
                 <HugeiconsIcon icon={tab.icon} className="h-3.5 w-3.5" />
@@ -937,7 +941,7 @@ export default function UserSettingsNew() {
           <Button
             variant="ghost"
             onClick={() => window.history.back()}
-            className="border-none text-muted-foreground hover:text-foreground text-xs hover:bg-muted"
+            className="border-none text-[#73736e] hover:text-[#1d1d1b] text-xs hover:bg-[#f7f7f5] rounded-lg cursor-pointer"
           >
             Back Home
             <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5 rotate-[-90deg] ml-1.5" />
@@ -953,12 +957,12 @@ export default function UserSettingsNew() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-card border border-border shadow-none rounded-lg">
+            <Card className="pg-panel shadow-none rounded-xl border border-[#dfdfda]">
               <CardContent className="p-5">
                 <div className="text-center space-y-3">
-                  <Avatar className="h-14 w-14 mx-auto border border-border">
+                  <Avatar className="h-14 w-14 mx-auto border border-[#dfdfda]">
                     <AvatarImage src={userForm.avatar} />
-                    <AvatarFallback className="bg-muted text-muted-foreground font-bold text-lg">
+                    <AvatarFallback className="bg-white text-[#73736e] font-bold text-lg">
                       {userForm.name
                         ?.split(" ")
                         .map((n) => n[0])
@@ -966,10 +970,10 @@ export default function UserSettingsNew() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-foreground text-sm">
+                    <h3 className="font-semibold text-[#1d1d1b] text-sm">
                       {user?.name}
                     </h3>
-                    <p className="text-muted-foreground text-[10px] mb-2 mt-0.5">
+                    <p className="text-[#73736e] text-[10px] mb-2 mt-0.5">
                       Signed in with {curentUserDetails || "password"}
                     </p>
                     <Badge
@@ -989,17 +993,17 @@ export default function UserSettingsNew() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border border-border shadow-none rounded-lg">
-              <CardHeader className="py-3 px-4 border-b border-border/50">
-                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Zap className="h-4 w-4 text-amber-500" />
+            <Card className="pg-panel shadow-none rounded-xl border border-[#dfdfda]">
+              <CardHeader className="py-3 px-4 border-b border-[#dfdfda]/50">
+                <CardTitle className="text-xs font-semibold text-[#1d1d1b] flex items-center gap-1.5">
+                  <Zap className="h-4 w-4 text-[#ff5a1f]" />
                   Quick Actions
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3">
                 <Button
                   variant="outline"
-                  className="w-full border-border text-foreground hover:bg-muted text-xs justify-start h-8 shadow-none"
+                  className="w-full bg-white border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] text-xs justify-start h-8 shadow-none rounded-lg cursor-pointer"
                 >
                   <HugeiconsIcon icon={Download01Icon} className="h-3.5 w-3.5 mr-2" />
                   Export Data

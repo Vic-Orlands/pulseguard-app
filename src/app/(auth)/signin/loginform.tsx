@@ -100,15 +100,15 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
       transition={{ duration: 0.3 }}
       className="w-full"
     >
-      <div className="text-center mb-5">
-        <h1 className="text-lg font-bold text-foreground">Welcome back</h1>
-        <p className="text-xs text-muted-foreground">Sign in to your PulseGuard account</p>
+      <div className="text-center mb-6">
+        <h1 className="text-lg font-bold text-[#1d1d1b]">Welcome back</h1>
+        <p className="text-xs text-[#73736e] mt-1">Sign in to your PulseGuard account</p>
       </div>
 
       {error && (
         <Alert
           variant="destructive"
-          className="mb-3 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
+          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
         >
           <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
           <div>
@@ -117,7 +117,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField label="Email" error={errors.email?.message}>
           <InputWithIcon
             icon={Mail01Icon}
@@ -146,18 +146,18 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-border bg-background text-primary focus:ring-primary cursor-pointer"
+              className="h-3.5 w-3.5 rounded border-[#dfdfda] bg-white text-[#1d1d1b] focus:ring-[#1d1d1b] cursor-pointer"
             />
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-xs text-foreground/80 cursor-pointer"
+              className="ml-2 block text-xs text-[#4b4b47] cursor-pointer"
             >
               Remember me
             </label>
           </div>
           <p
             onClick={() => onToggleMode("forgot-password")}
-            className="text-xs text-primary hover:underline cursor-pointer"
+            className="text-xs text-[#1d1d1b] hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
           >
             Forgot password?
           </p>
@@ -166,7 +166,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         <motion.button
           type="submit"
           disabled={isPending}
-          className="w-full bg-primary text-primary-foreground py-1.5 rounded-md hover:bg-primary/95 text-xs font-semibold transition flex items-center justify-center"
+          className="w-full bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center h-10 cursor-pointer"
           whileHover={{ scale: isPending ? 1 : 1.01 }}
           whileTap={{ scale: isPending ? 1 : 0.99 }}
         >
@@ -181,13 +181,13 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </motion.button>
       </form>
 
-      <div className="mt-5">
+      <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
+            <div className="w-full border-t border-[#dfdfda]"></div>
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="px-2 text-muted-foreground bg-card">
+            <span className="px-2 text-[#73736e] bg-white">
               Or continue with
             </span>
           </div>
@@ -197,7 +197,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           <motion.button
             type="button"
             onClick={() => handleOAuthLogin("github")}
-            className="w-full flex items-center justify-center gap-2 bg-background border border-border py-1.5 px-4 rounded-md hover:bg-muted transition text-foreground"
+            className="w-full flex items-center justify-center gap-2 bg-[#f7f7f5] border border-[#dfdfda] py-2 px-4 rounded-lg hover:bg-white transition text-[#1d1d1b] h-10 cursor-pointer"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
@@ -206,7 +206,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           <motion.button
             type="button"
             onClick={() => handleOAuthLogin("google")}
-            className="w-full flex items-center justify-center gap-2 bg-background border border-border py-1.5 px-4 rounded-md hover:bg-muted transition text-foreground"
+            className="w-full flex items-center justify-center gap-2 bg-[#f7f7f5] border border-[#dfdfda] py-2 px-4 rounded-lg hover:bg-white transition text-[#1d1d1b] h-10 cursor-pointer"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
@@ -232,14 +232,14 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </div>
       </div>
 
-      <div className="text-center mt-5">
-        <p className="text-xs text-muted-foreground">
+      <div className="text-center mt-6">
+        <p className="text-xs text-[#73736e]">
           Don&apos;t have an account?{" "}
           <button
             type="button"
             aria-label="Sign up"
             onClick={() => onToggleMode("signup")}
-            className="text-primary font-semibold hover:underline cursor-pointer"
+            className="text-[#1d1d1b] font-semibold hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
           >
             Sign up
           </button>
@@ -248,3 +248,4 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
     </motion.div>
   );
 };
+

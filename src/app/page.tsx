@@ -226,6 +226,7 @@ export default function Homepage() {
                 className="block w-full"
                 width={1200}
                 height={630}
+                loading="eager"
               />
             </div>
           </div>

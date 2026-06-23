@@ -76,7 +76,7 @@ const CreateProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="bg-card border border-border rounded-lg shadow-sm overflow-hidden text-foreground"
+              className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden text-foreground"
             >
               <AnimatePresence mode="wait">
                 {step === "creating" && (
@@ -350,12 +350,16 @@ export default function ProjectSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-10">
+    <div className="pg-page pg-grid min-h-screen py-10 relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,.14),transparent_44%),linear-gradient(90deg,transparent_0,rgba(223,223,218,.36)_1px,transparent_1px),linear-gradient(transparent_0,rgba(223,223,218,.36)_1px,transparent_1px)] [background-size:auto,78px_100%,100%_62px]"
+      />
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-full lg:max-w-10/12 mx-auto px-5 lg:p-0"
+        className="pg-shell px-6 z-10 relative"
       >
         {/* Header with user menu */}
         <motion.div
@@ -365,10 +369,10 @@ export default function ProjectSelectionPage() {
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
           <div>
-            <h1 className="text-lg font-bold text-foreground mb-1">
+            <h1 className="text-lg font-bold text-[#1d1d1b] mb-1">
               Your Projects
             </h1>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-[#73736e] text-xs">
               Select a project to go to the project dashboard
             </p>
           </div>
@@ -382,7 +386,7 @@ export default function ProjectSelectionPage() {
             <div className="relative flex-1 md:w-56">
               <Input
                 placeholder="Search projects..."
-                className="pl-2 pt-0 w-full bg-card border border-border text-foreground text-xs h-8 focus:ring-1 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
+                className="pl-3 w-full bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] placeholder:text-[#858580] transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -394,7 +398,7 @@ export default function ProjectSelectionPage() {
                 variant="outline"
                 size="sm"
                 disabled={isRefreshing}
-                className="bg-card border border-border text-foreground hover:bg-muted h-8 shadow-none"
+                className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] h-8 rounded-lg shadow-none cursor-pointer"
               >
                 <HugeiconsIcon
                   icon={Refresh01Icon}
@@ -408,7 +412,7 @@ export default function ProjectSelectionPage() {
                 <Button
                   variant="default"
                   onClick={handleNewProjectClick}
-                  className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none"
+                  className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 font-semibold rounded-lg shadow-none cursor-pointer"
                 >
                   <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
                   New Project
@@ -443,7 +447,7 @@ export default function ProjectSelectionPage() {
                             stiffness: 300,
                             layout: { duration: 0.4, ease: "easeInOut" },
                           }}
-                          className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
+                          className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ProjectForm
@@ -481,7 +485,7 @@ export default function ProjectSelectionPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-60 bg-popover border border-border text-foreground rounded-lg shadow-sm"
+                  className="w-60 bg-white border border-[#dfdfda] text-[#1d1d1b] rounded-lg shadow-sm"
                   align="end"
                   forceMount
                 >
@@ -517,21 +521,21 @@ export default function ProjectSelectionPage() {
                     <Button
                       onClick={() => router.push("/settings")}
                       variant="ghost"
-                      className="w-full justify-start rounded-md h-8 text-xs text-foreground hover:bg-muted transition"
+                      className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5] transition"
                     >
                       <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5 mr-1.5" />
                       <span>Account Settings</span>
                     </Button>
                   </div>
 
-                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuSeparator className="bg-[#dfdfda]" />
 
                   <div className="p-1">
                     <CustomAlertDialog
                       trigger={
                         <Button
                           variant="ghost"
-                          className="w-full justify-start rounded-md h-8 text-xs text-foreground hover:bg-destructive/10 hover:text-destructive transition"
+                          className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:bg-destructive/10 hover:text-destructive transition"
                         >
                           <HugeiconsIcon icon={Logout01Icon} className="h-3.5 w-3.5 mr-1.5" />
                           <span>Sign out</span>
@@ -568,7 +572,7 @@ export default function ProjectSelectionPage() {
                 <Button
                   size="icon"
                   onClick={toggleViewMode}
-                  className="bg-card border border-border text-foreground hover:bg-muted h-8 w-8 shadow-none hidden lg:flex"
+                  className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] h-8 w-8 rounded-lg shadow-none hidden lg:flex cursor-pointer"
                   title={
                     viewMode === "grid"
                       ? "Switch to List Layout"
@@ -680,13 +684,13 @@ export default function ProjectSelectionPage() {
                     <DialogTrigger asChild>
                       <Button
                         onClick={handleNewProjectClick}
-                        className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 font-semibold shadow-none"
+                        className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 font-semibold rounded-lg shadow-none cursor-pointer"
                       >
                         <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
                         New Project
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-foreground p-0">
+                    <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-[#1d1d1b] p-0">
                       <AnimatePresence>
                         {showForm && (
                           <>
@@ -715,7 +719,7 @@ export default function ProjectSelectionPage() {
                                   stiffness: 300,
                                   layout: { duration: 0.4, ease: "easeInOut" },
                                 }}
-                                className="bg-card border border-border rounded-lg shadow-sm overflow-hidden"
+                                className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ProjectForm

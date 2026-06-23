@@ -117,10 +117,10 @@ export default function Header({
   const currentUser = user && normalizePostgresString(user.avatar);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-card text-foreground">
+    <header className="sticky top-0 z-40 w-full border-b border-[#e4e4df] bg-[#f7f7f5]/90 backdrop-blur-md text-[#1d1d1b]">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-2.5">
-        <div className="flex items-center gap-1">
+      <div className="pg-shell flex items-center justify-between px-6 py-2.5">
+        <div className="flex items-center gap-1 scale-[0.9] origin-left">
           <PulseGuardLogo />
         </div>
 
@@ -161,7 +161,7 @@ export default function Header({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-56 bg-card border border-border text-foreground shadow-sm rounded-lg"
+              className="w-56 bg-white border border-[#dfdfda] text-[#1d1d1b] shadow-sm rounded-lg"
               forceMount
               sideOffset={8}
               align="end"
@@ -198,21 +198,21 @@ export default function Header({
                 <Button
                   onClick={() => router.push("/settings")}
                   variant="ghost"
-                  className="w-full justify-start rounded-md h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-all group shadow-none"
+                  className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5] transition-all group shadow-none cursor-pointer"
                 >
                   <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5 mr-2" />
                   <span className="font-medium">Account Settings</span>
                 </Button>
               </div>
 
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator className="bg-[#dfdfda]" />
 
               <div className="p-1">
                 <CustomAlertDialog
                   trigger={
                     <Button
                       variant="ghost"
-                      className="w-full justify-start rounded-md h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all group shadow-none"
+                      className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:text-destructive hover:bg-destructive/10 transition-all group shadow-none cursor-pointer"
                     >
                       <HugeiconsIcon icon={Logout01Icon} className="h-3.5 w-3.5 mr-2" />
                       <span className="font-medium">Sign out</span>
@@ -238,23 +238,25 @@ export default function Header({
       </div>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex px-6 border-t border-border overflow-x-auto bg-card">
-        <Tabs value={activeTab} className="w-full">
-          <TabsList className="bg-transparent p-0 h-auto w-full space-x-1 justify-start">
-            <BackToProjectButton
-              isMobile={false}
-              onClick={handleBackToProjects}
-            />
-            {navItems.map((item) => (
-              <NavButton
-                key={item.id}
-                item={item}
-                activeTab={activeTab}
-                onClick={() => setActiveTab(item.id as NavItem)}
+      <nav className="hidden md:flex border-t border-[#dfdfda] overflow-x-auto bg-transparent">
+        <div className="pg-shell flex px-6">
+          <Tabs value={activeTab} className="w-full">
+            <TabsList className="bg-transparent p-0 h-auto w-full space-x-1 justify-start">
+              <BackToProjectButton
+                isMobile={false}
+                onClick={handleBackToProjects}
               />
-            ))}
-          </TabsList>
-        </Tabs>
+              {navItems.map((item) => (
+                <NavButton
+                  key={item.id}
+                  item={item}
+                  activeTab={activeTab}
+                  onClick={() => setActiveTab(item.id as NavItem)}
+                />
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
       </nav>
 
       {/* Mobile Navigation */}
@@ -290,10 +292,10 @@ function NavButton({
   return (
     <Button
       variant="ghost"
-      className={`rounded-none flex items-center px-3 py-2 text-xs font-medium border-b-2 transition-all duration-75 h-9 shadow-none ${
+      className={`rounded-none flex items-center px-3 py-2 text-xs font-medium border-b-2 transition-all duration-75 h-9 shadow-none cursor-pointer ${
         isActive
-          ? "border-primary text-foreground bg-accent/30 font-semibold"
-          : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/10"
+          ? "border-[#ff5a1f] text-[#1d1d1b] bg-[#f7f7f5]/40 font-semibold"
+          : "border-transparent text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5]/40"
       }`}
       onClick={onClick}
     >
@@ -316,7 +318,7 @@ function BackToProjectButton({
   const trigger = isMobile ? (
     <Button
       variant="ghost"
-      className="w-full justify-start text-xs py-2 mb-2 text-muted-foreground hover:bg-muted hover:text-foreground shadow-none"
+      className="w-full justify-start text-xs py-2 mb-2 text-[#73736e] hover:bg-[#f7f7f5] hover:text-[#1d1d1b] shadow-none cursor-pointer"
     >
       <div className="flex items-center gap-3">
         <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
@@ -326,7 +328,7 @@ function BackToProjectButton({
   ) : (
     <Button
       variant="ghost"
-      className="rounded-none flex items-center gap-1.5 py-2 text-xs font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/10 mr-4 h-9 shadow-none"
+      className="rounded-none flex items-center gap-1.5 py-2 text-xs font-medium border-b-2 border-transparent text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5]/40 mr-4 h-9 shadow-none cursor-pointer"
     >
       <HugeiconsIcon icon={ArrowLeft01Icon} className="h-3.5 w-3.5" />
       <span>Back to Projects</span>

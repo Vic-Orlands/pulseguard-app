@@ -128,21 +128,21 @@ export default function DashboardComponent({ project }: { project: Project }) {
   };
 
   return (
-    <div className="dashboard-shell min-h-screen bg-background text-foreground">
+    <div className="pg-page dashboard-shell min-h-screen">
       <Navbar
         alerts={alerts}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      <main className="px-10 py-6 pb-24">
+      <main className="pg-shell px-10 py-6 pb-24 z-10 relative">
         {/* header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <CardTitle className="text-lg font-bold text-foreground">
+            <CardTitle className="text-lg font-bold text-[#1d1d1b]">
               {project.name}
             </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+            <CardDescription className="text-xs text-[#73736e] mt-0.5">
               Monitor your application and resolve errors across all environments
             </CardDescription>
           </div>
@@ -150,14 +150,14 @@ export default function DashboardComponent({ project }: { project: Project }) {
             <a href="/documentation" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                className="bg-card border border-border text-foreground hover:bg-muted text-xs h-8 px-3 shadow-none font-medium"
+                className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
               >
                 <HugeiconsIcon icon={HelpCircleIcon} className="h-3.5 w-3.5 mr-1.5" />
                 Documentation
               </Button>
             </a>
             <Button
-              className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs h-8 px-3 font-semibold shadow-none"
+              className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
               onClick={() => setActiveTab("connect-platform")}
             >
               <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />
@@ -175,3 +175,4 @@ export default function DashboardComponent({ project }: { project: Project }) {
     </div>
   );
 }
+
