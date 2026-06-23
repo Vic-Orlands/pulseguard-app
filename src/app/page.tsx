@@ -27,6 +27,7 @@ import {
   GithubIcon,
   Linkedin02Icon,
 } from "@hugeicons/core-free-icons";
+import clsx from "clsx";
 
 type Tab = "react" | "node" | "go";
 type EventType = "error" | "log" | "metric" | "trace";
@@ -297,25 +298,38 @@ export default function Homepage() {
                       that makes every event useful.
                     </p>
                   </div>
-                  <div className="overflow-hidden rounded-xl border border-[#e1e1dc] bg-white shadow-[0_24px_65px_rgba(30,30,20,.06)] dark:border-[#3b3b3b] dark:bg-[#121212]">
-                    <div className="flex min-h-[72px] items-center border-b border-[#e5e5e0] dark:border-[#3b3b3b]">
+                  <div className="overflow-hidden rounded-xl border shadow-[0_24px_65px_rgba(20,20,10,.06)] border-[#3b3b3b] bg-[#121212]">
+                    <div className="flex min-h-[72px] items-center border-b border-[#3b3b3b]">
                       <div className="flex h-full flex-1 items-center overflow-x-auto px-3">
                         {(["react", "node", "go"] as Tab[]).map((item) => (
                           <button
                             key={item}
-                            className={
+                            className={clsx(
                               tab === item
-                                ? "flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-medium text-[#272725] shadow-[0_5px_14px_rgba(30,30,20,.08)] dark:bg-[#1c1c1c] dark:text-[#f5f5f5]"
-                                : "flex shrink-0 items-center gap-2 border-l border-[#e5e5e0] px-5 py-3 text-xs text-[#777772] first:border-l-0 dark:border-[#303030] dark:text-neutral-400"
-                            }
+                                ? "font-medium text-[#f5f5f5]"
+                                : "text-neutral-400 hover:text-neutral-200",
+                              "relative flex shrink-0 items-center gap-2 px-5 py-3 text-xs rounded-full transition-colors duration-200",
+                            )}
                             onClick={() => setTab(item)}
                           >
+                            {tab === item && (
+                              <motion.div
+                                layoutId="active-tab-pill"
+                                className="absolute inset-0 rounded-full border border-[#303030] bg-[#1c1c1c] shadow-[0_5px_14px_rgba(30,30,20,.08)]"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 300,
+                                  damping: 30,
+                                }}
+                              />
+                            )}
                             <span
-                              className={
+                              className={clsx(
+                                "relative z-10 grid size-4 place-items-center rounded-full text-[8px] transition-colors duration-200",
                                 tab === item
-                                  ? "grid size-4 place-items-center rounded-full bg-[#ff5a1f] text-[8px] text-[#171716]"
-                                  : "grid size-4 place-items-center rounded-full border border-current text-[8px]"
-                              }
+                                  ? "bg-[#ff5a1f] text-[#171716]"
+                                  : "border border-current"
+                              )}
                             >
                               {item === "react"
                                 ? "R"
@@ -323,11 +337,13 @@ export default function Homepage() {
                                   ? "N"
                                   : "G"}
                             </span>
-                            {item === "react"
-                              ? "React / Next.js"
-                              : item === "node"
-                                ? "Node.js"
-                                : "Go"}
+                            <span className="relative z-10">
+                              {item === "react"
+                                ? "React / Next.js"
+                                : item === "node"
+                                  ? "Node.js"
+                                  : "Go"}
+                            </span>
                           </button>
                         ))}
                       </div>
