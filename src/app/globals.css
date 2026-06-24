@@ -147,13 +147,16 @@ button {
 }
 
 .pg-grid {
-  background-image:
-    linear-gradient(rgb(223 223 218 / 0.36) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(223 223 218 / 0.36) 1px, transparent 1px);
-  background-position: center top;
-  background-size:
-    100% 280px,
-    min(24vw, 340px) 100%;
+  background-color: #ffffff !important;
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.35) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.dark .pg-grid {
+  background-color: #000000 !important;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px) !important;
+  background-size: 30px 30px !important;
+  background-position: 0 0 !important;
 }
 
 .pg-shell {
@@ -242,11 +245,7 @@ button {
   .pg-shell {
     border-inline: 0;
   }
-  .pg-grid {
-    background-size:
-      100% 220px,
-      150px 100%;
-  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -261,12 +260,10 @@ button {
 
 @media (prefers-color-scheme: dark) {
   .pg-grid {
-    background-image:
-      linear-gradient(rgb(223 223 218 / 0.2) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(223 223 218 / 0.2) 1px, transparent 1px);
-
-
- 
+    background-color: #000000 !important;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px) !important;
+    background-size: 30px 30px !important;
+    background-position: 0 0 !important;
   }
 }
 
