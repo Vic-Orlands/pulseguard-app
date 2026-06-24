@@ -86,10 +86,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Log the error
-      logger.error("Client error received", {
+      logger.error({
         ...errorEvent,
         stack: errorEvent.error?.stack,
-      });
+      }, "Client error received");
 
       span.setStatus({ code: SpanStatusCode.OK });
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         message: (error as { message?: string })?.message || "Unknown error",
       });
 
-      logger.error("Failed to process error event", { error });
+      logger.error({ error }, "Failed to process error event");
       return NextResponse.json(
         { success: false, message: "Failed to process error" },
         { status: 500 }

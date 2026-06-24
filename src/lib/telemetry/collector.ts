@@ -103,7 +103,7 @@ export async function startTelemetryCollector(): Promise<() => Promise<void>> {
   try {
     // Initialize resources
     const resource = initializeResources();
-    logger.debug("Resource attributes", { attributes: resource.attributes });
+    logger.debug({ attributes: resource.attributes }, "Resource attributes");
 
     // Configure Prometheus exporter
     const prometheusExporter = new PrometheusExporter({
@@ -159,7 +159,7 @@ export async function startTelemetryCollector(): Promise<() => Promise<void>> {
 
     return shutdownTelemetry;
   } catch (error) {
-    logger.error("Failed to initialize telemetry collector", { error });
+    logger.error({ error }, "Failed to initialize telemetry collector");
     sdkInstance = null;
     return async () => {};
   }
@@ -176,7 +176,7 @@ async function shutdownTelemetry() {
     await sdkInstance.shutdown();
     logger.info("Telemetry collector shut down successfully");
   } catch (error) {
-    logger.error("Error shutting down telemetry collector", { error });
+    logger.error({ error }, "Error shutting down telemetry collector");
   } finally {
     sdkInstance = null;
   }

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      logger.info("Session ended", { sessionId: sessionData.sessionId });
+      logger.info({ sessionId: sessionData.sessionId }, "Session ended");
       span.setStatus({ code: SpanStatusCode.OK });
       return NextResponse.json({ success: true });
     } catch (error: unknown) {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : "Unknown error",
       });
-      logger.error("Failed to end session", { error });
+      logger.error({ error }, "Failed to end session");
       return NextResponse.json(
         { success: false, message: "Failed to end session" },
         { status: 500 }

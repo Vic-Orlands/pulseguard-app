@@ -60,7 +60,7 @@ export const Metrics = {
       error_type: errorType,
       ...attributes,
     });
-    logger.debug("Error metric recorded", { errorType, ...attributes });
+    logger.debug({ errorType, ...attributes }, "Error metric recorded");
   },
 
   // Track a page view

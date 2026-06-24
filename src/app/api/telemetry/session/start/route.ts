@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      logger.info("Session started", { sessionId: sessionData.sessionId });
+      logger.info({ sessionId: sessionData.sessionId }, "Session started");
       span.setStatus({ code: SpanStatusCode.OK });
       return NextResponse.json({
         success: true,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : "Unknown error",
       });
-      logger.error("Failed to start session", { error });
+      logger.error({ error }, "Failed to start session");
       return NextResponse.json(
         { success: false, message: "Failed to start session" },
         { status: 500 }

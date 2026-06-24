@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
         const response = await processRequest(request, span, requestStartTime);
         span.end();
         return response;
-      }
+      },
     );
   });
 }
@@ -47,7 +47,7 @@ export async function proxy(request: NextRequest) {
 async function processRequest(
   request: NextRequest,
   span: Span,
-  startTime: number
+  startTime: number,
 ): Promise<NextResponse> {
   try {
     setRequestAttributes(span, request);
@@ -67,7 +67,7 @@ async function processRequest(
       request.nextUrl.pathname,
       request.method,
       statusCode,
-      duration
+      duration,
     );
 
     // Add tracing header to response.
@@ -98,7 +98,7 @@ function setResponseAttributes(
   span: Span,
   response: NextResponse,
   duration: number,
-  statusCode: number
+  statusCode: number,
 ) {
   span.setAttributes({
     "http.status_code": statusCode,
@@ -118,12 +118,15 @@ function handleRequestError(span: Span, request: NextRequest, error: unknown) {
 
   span.recordException(error as Error);
 
-  logger.error("API request failed", {
-    path: request.nextUrl.pathname,
-    method: request.method,
-    error: errorMessage,
-    stack: error instanceof Error ? error.stack : undefined,
-  });
+  logger.error(
+    {
+      path: request.nextUrl.pathname,
+      method: request.method,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+    "API request failed",
+  );
 
   Metrics.trackError("APIError", {
     path: request.nextUrl.pathname,
@@ -134,7 +137,7 @@ function handleRequestError(span: Span, request: NextRequest, error: unknown) {
 
 function createErrorResponse(
   request: NextRequest,
-  error: unknown
+  error: unknown,
 ): NextResponse {
   const statusCode = 500;
   const duration =
@@ -145,7 +148,7 @@ function createErrorResponse(
     request.nextUrl.pathname,
     request.method,
     statusCode,
-    duration
+    duration,
   );
 
   return NextResponse.json(
@@ -154,7 +157,7 @@ function createErrorResponse(
       message: error instanceof Error ? error.message : "Unknown error",
       request_id: request.headers.get("x-request-id") || undefined,
     },
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 

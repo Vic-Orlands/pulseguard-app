@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
             timestamp: Date.now(),
           }),
         }).catch((err) =>
-          logger.error("Failed to create session for pageview", { err })
+          logger.error({ err }, "Failed to create session for pageview")
         );
       }
 
@@ -49,9 +49,7 @@ export async function POST(request: NextRequest) {
         referrer: pageViewData.referrer,
       });
 
-      logger.info(`Processing pageview: ${pageViewData.page}`, {
-        pageViewData,
-      });
+      logger.info({ pageViewData }, `Processing pageview: ${pageViewData.page}`);
 
       span.setStatus({ code: SpanStatusCode.OK });
       return NextResponse.json({ success: true });
@@ -61,7 +59,7 @@ export async function POST(request: NextRequest) {
         message: error instanceof Error ? error.message : "Unknown error",
       });
 
-      logger.error("Failed to process pageview", { error });
+      logger.error({ error }, "Failed to process pageview");
       return NextResponse.json(
         {
           success: false,

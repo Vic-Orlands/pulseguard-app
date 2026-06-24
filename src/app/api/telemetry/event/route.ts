@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
             timestamp: Date.now(),
           }),
         }).catch((err) =>
-          logger.error("Failed to create session for event", { err })
+          logger.error({ err }, "Failed to create session for event")
         );
       }
 
@@ -49,9 +49,7 @@ export async function POST(request: NextRequest) {
         url: eventData.url,
       });
 
-      logger.info(`Processing event: ${eventData.eventName}`, {
-        eventData,
-      });
+      logger.info({ eventData }, `Processing event: ${eventData.eventName}`);
 
       span.setStatus({ code: SpanStatusCode.OK });
       return NextResponse.json({ success: true });
@@ -61,7 +59,7 @@ export async function POST(request: NextRequest) {
         message: error instanceof Error ? error.message : "Unknown error",
       });
 
-      logger.error("Failed to process event", { error });
+      logger.error({ error }, "Failed to process event");
       return NextResponse.json(
         {
           success: false,
