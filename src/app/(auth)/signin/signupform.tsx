@@ -239,10 +239,6 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                     Upload Image
                   </button>
                 </div>
-                    <HugeiconsIcon icon={Upload01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
-                    Upload Image
-                  </button>
-                </div>
 
                 {/* Avatar Selection */}
                 {avatarType === "predefined" && (
