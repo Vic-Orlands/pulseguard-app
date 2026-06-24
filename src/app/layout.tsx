@@ -17,7 +17,7 @@ if (!currentProjectId) {
 }
 setProjectId(currentProjectId);
 
-const geistSans = Inter({
+const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <TelemetryProvider

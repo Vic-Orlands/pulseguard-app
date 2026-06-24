@@ -76,6 +76,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-rendering: optimizelegibility;
+  overflow-x: clip;
 }
 
 button {
@@ -150,30 +154,14 @@ button {
 
 .pg-grid {
   background-color: var(--background) !important;
-  background-image:
-    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--background) 0%, 
-      color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
-      color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
-      color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
-      color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
-      color-mix(in oklab, var(--background) 88%, var(--deep)) 100%);
-  background-size: 12px 12px, 100% 100%;
-  background-repeat: repeat, no-repeat;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.06) 0.75px, transparent 0.75px);
+  background-size: 8px 8px;
 }
 
 .dark .pg-grid {
   background-color: var(--background) !important;
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--background) 0%, 
-      color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
-      color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
-      color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
-      color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
-      color-mix(in oklab, var(--background) 88%, var(--deep)) 100%) !important;
-  background-size: 16px 16px, 100% 100% !important;
-  background-repeat: repeat, no-repeat !important;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0.75px, transparent 0.75px) !important;
+  background-size: 8px 8px !important;
   background-position: 0 0 !important;
 }
 
@@ -263,7 +251,6 @@ button {
   .pg-shell {
     border-inline: 0;
   }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -279,16 +266,8 @@ button {
 @media (prefers-color-scheme: dark) {
   .pg-grid {
     background-color: var(--background) !important;
-    background-image:
-      radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--background) 0%, 
-        color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
-        color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
-        color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
-        color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
-        color-mix(in oklab, var(--background) 88%, var(--deep)) 100%) !important;
-    background-size: 16px 16px, 100% 100% !important;
-    background-repeat: repeat, no-repeat !important;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0.75px, transparent 0.75px) !important;
+    background-size: 8px 8px !important;
     background-position: 0 0 !important;
   }
 }
