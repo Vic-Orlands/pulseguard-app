@@ -148,14 +148,14 @@ button {
 
 .pg-grid {
   background-color: #ffffff !important;
-  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.35) 1px, transparent 0);
-  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+  background-size: 12px 12px;
 }
 
 .dark .pg-grid {
   background-color: #000000 !important;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px) !important;
-  background-size: 30px 30px !important;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
+  background-size: 16px 16px !important;
   background-position: 0 0 !important;
 }
 
@@ -261,8 +261,8 @@ button {
 @media (prefers-color-scheme: dark) {
   .pg-grid {
     background-color: #000000 !important;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px) !important;
-    background-size: 30px 30px !important;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
+    background-size: 16px 16px !important;
     background-position: 0 0 !important;
   }
 }

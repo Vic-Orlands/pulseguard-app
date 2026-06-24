@@ -8,8 +8,8 @@ export default function AnimatedBackground() {
         className="absolute inset-0 block dark:hidden"
         style={{
           background: "#ffffff",
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.35) 1px, transparent 0)",
-          backgroundSize: "20px 20px",
+          backgroundImage: "radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px)",
+          backgroundSize: "12px 12px",
         }}
       />
       {/* Dark mode white dotted pattern */}
@@ -18,9 +18,9 @@ export default function AnimatedBackground() {
         style={{
           background: "#000000",
           backgroundImage: `
-            radial-gradient(circle, rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px)
+            radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px)
           `,
-          backgroundSize: "30px 30px",
+          backgroundSize: "16px 16px",
           backgroundPosition: "0 0",
         }}
       />
