@@ -22,6 +22,7 @@
   --border: #dfdfda;
   --input: #dfdfda;
   --ring: #1d1d1b;
+  --deep: #dfdfda;
 }
 
 .dark {
@@ -44,6 +45,7 @@
   --border: #2c2c2c;
   --input: #2c2c2c;
   --ring: #d4d4d4;
+  --deep: #161616;
 }
 
 @theme inline {
@@ -147,15 +149,31 @@ button {
 }
 
 .pg-grid {
-  background-color: #ffffff !important;
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
-  background-size: 12px 12px;
+  background-color: var(--background) !important;
+  background-image:
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--background) 0%, 
+      color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
+      color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
+      color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
+      color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
+      color-mix(in oklab, var(--background) 88%, var(--deep)) 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-repeat: repeat, no-repeat;
 }
 
 .dark .pg-grid {
-  background-color: #000000 !important;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
-  background-size: 16px 16px !important;
+  background-color: var(--background) !important;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--background) 0%, 
+      color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
+      color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
+      color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
+      color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
+      color-mix(in oklab, var(--background) 88%, var(--deep)) 100%) !important;
+  background-size: 16px 16px, 100% 100% !important;
+  background-repeat: repeat, no-repeat !important;
   background-position: 0 0 !important;
 }
 
@@ -260,9 +278,17 @@ button {
 
 @media (prefers-color-scheme: dark) {
   .pg-grid {
-    background-color: #000000 !important;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
-    background-size: 16px 16px !important;
+    background-color: var(--background) !important;
+    background-image:
+      radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--background) 0%, 
+        color-mix(in oklab, var(--background) 86%, var(--deep)) 14%, 
+        color-mix(in oklab, var(--background) 72%, var(--deep)) 34%, 
+        color-mix(in oklab, var(--background) 56%, var(--deep)) 58%, 
+        color-mix(in oklab, var(--background) 40%, var(--deep)) 80%, 
+        color-mix(in oklab, var(--background) 88%, var(--deep)) 100%) !important;
+    background-size: 16px 16px, 100% 100% !important;
+    background-repeat: repeat, no-repeat !important;
     background-position: 0 0 !important;
   }
 }
