@@ -1,5 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, ArrowRight01Icon, Camera01Icon, CheckmarkCircle01Icon, Loading02Icon, LockIcon, Mail01Icon, Upload01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import {
+  AlertCircleIcon,
+  ArrowRight01Icon,
+  Camera01Icon,
+  CheckmarkCircle01Icon,
+  Loading02Icon,
+  LockIcon,
+  Mail01Icon,
+  Upload01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -37,10 +47,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
   const [isPending, startTransition] = useTransition();
   const [uploadedAvatar, setUploadedAvatar] = useState<string>("");
   const [selectedAvatar, setSelectedAvatar] = useState<string>(
-    randomAvatars[0]
+    randomAvatars[0],
   );
   const [avatarType, setAvatarType] = useState<"predefined" | "upload">(
-    "predefined"
+    "predefined",
   );
 
   const {
@@ -135,7 +145,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         onToggleMode("login");
       } catch (error) {
         setError(
-          error instanceof Error ? error.message : "Registration failed"
+          error instanceof Error ? error.message : "Registration failed",
         );
       }
     });
@@ -219,7 +229,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
                     }`}
                   >
-                    <HugeiconsIcon icon={Camera01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
+                    <HugeiconsIcon
+                      icon={Camera01Icon}
+                      className="h-3.5 w-3.5 inline mr-1.5"
+                    />
                     Choose Avatar
                   </button>
                   <button
@@ -235,7 +248,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
                     }`}
                   >
-                    <HugeiconsIcon icon={Upload01Icon} className="h-3.5 w-3.5 inline mr-1.5" />
+                    <HugeiconsIcon
+                      icon={Upload01Icon}
+                      className="h-3.5 w-3.5 inline mr-1.5"
+                    />
                     Upload Image
                   </button>
                 </div>
@@ -264,7 +280,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         />
                         {selectedAvatar === avatar && (
                           <div className="absolute inset-0 bg-[#ff5a1f]/10 flex items-center justify-center">
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-5 w-5 text-[#ff5a1f]" />
+                            <HugeiconsIcon
+                              icon={CheckmarkCircle01Icon}
+                              className="h-5 w-5 text-[#ff5a1f]"
+                            />
                           </div>
                         )}
                       </button>
@@ -286,7 +305,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                       htmlFor="avatar-upload"
                       className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted transition"
                     >
-                    {uploadedAvatar ? (
+                      {uploadedAvatar ? (
                         <Image
                           src={uploadedAvatar}
                           alt="Uploaded avatar"
@@ -296,7 +315,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         />
                       ) : (
                         <>
-                          <HugeiconsIcon icon={Upload01Icon} className="h-6 w-6 text-[#73736e] mb-1.5" />
+                          <HugeiconsIcon
+                            icon={Upload01Icon}
+                            className="h-6 w-6 text-[#73736e] mb-1.5"
+                          />
                           <span className="text-xs text-[#73736e]">
                             Click to upload image
                           </span>
@@ -311,8 +333,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                   <Image
                     src={
                       avatarType === "upload"
-                        ? uploadedAvatar ||
-                          availableAvatars[2]
+                        ? uploadedAvatar || availableAvatars[2]
                         : selectedAvatar
                     }
                     alt="Current avatar"
@@ -323,11 +344,13 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                     unoptimized={isDiceBearAvatar(
                       avatarType === "upload"
                         ? uploadedAvatar || availableAvatars[2]
-                        : selectedAvatar
+                        : selectedAvatar,
                     )}
                   />
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Current Selection</p>
+                    <p className="text-xs font-semibold text-foreground">
+                      Current Selection
+                    </p>
                     <p className="text-[10px] text-muted-foreground">
                       {avatarType === "upload"
                         ? "Uploaded Image"
@@ -361,7 +384,9 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                 </SelectTrigger>
                 <SelectContent className="bg-popover border border-border text-foreground">
                   <SelectGroup>
-                    <SelectLabel className="text-muted-foreground text-xs">Role</SelectLabel>
+                    <SelectLabel className="text-muted-foreground text-xs">
+                      Role
+                    </SelectLabel>
                     <SelectItem
                       value="developer"
                       className="hover:bg-muted focus:bg-muted text-sm"
@@ -401,139 +426,155 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
     }
   };
 
+  return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
-      className="w-full"
-    >
-      <div className="text-center mb-6">
-        <h1 className="text-lg font-bold text-[#1d1d1b]">Create an account</h1>
-        <p className="text-xs text-[#73736e] mt-1">Sign up for PulseGuard</p>
-      </div>
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -15 }}
+    transition={{ duration: 0.3 }}
+    className="w-full"
+  >
+    <div className="text-center mb-6">
+      <h1 className="text-lg font-bold text-[#1d1d1b]">Create an account</h1>
+      <p className="text-xs text-[#73736e] mt-1">Sign up for PulseGuard</p>
+    </div>
 
-      <div className="flex mb-6 items-center justify-center">
-        <div className="flex items-center w-full max-w-md">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex-1 relative">
-              <motion.div
-                className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${
-                  step > i
-                    ? "bg-emerald-600 dark:bg-emerald-500 text-white"
-                    : step === i
+    <div className="flex mb-6 items-center justify-center">
+      <div className="flex items-center w-full max-w-md">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex-1 relative">
+            <motion.div
+              className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${
+                step > i
+                  ? "bg-emerald-600 dark:bg-emerald-500 text-white"
+                  : step === i
                     ? "bg-[#171716] text-white"
                     : "bg-white text-[#73736e] border border-[#dfdfda]"
-                }`}
-                animate={{
-                  scale: step === i ? [1, 1.05, 1] : 1,
-                }}
-                transition={{
-                  duration: 0.5,
-                  repeat: step === i ? Infinity : 0,
-                  repeatType: "reverse",
-                }}
-              >
-                {step > i ? (
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-4.5 w-4.5 text-white z-10" />
-                ) : (
-                  <span className="text-xs font-semibold">{i}</span>
-                )}
-              </motion.div>
-              <div className="text-[10px] font-medium text-[#73736e] text-center mt-1">
-                {i === 1
-                  ? "Account"
-                  : i === 2
+              }`}
+              animate={{
+                scale: step === i ? [1, 1.05, 1] : 1,
+              }}
+              transition={{
+                duration: 0.5,
+                repeat: step === i ? Infinity : 0,
+                repeatType: "reverse",
+              }}
+            >
+              {step > i ? (
+                <HugeiconsIcon
+                  icon={CheckmarkCircle01Icon}
+                  className="h-4.5 w-4.5 text-white z-10"
+                />
+              ) : (
+                <span className="text-xs font-semibold">{i}</span>
+              )}
+            </motion.div>
+            <div className="text-[10px] font-medium text-[#73736e] text-center mt-1">
+              {i === 1
+                ? "Account"
+                : i === 2
                   ? "Security"
                   : i === 3
-                  ? "Avatar"
-                  : "Details"}
-              </div>
-
-              {i < 4 && (
-                <div
-                  className={`absolute top-3.5 left-full w-full h-[1px] -translate-x-5/12 -z-10 ${
-                    step > i ? "bg-emerald-600 dark:bg-emerald-500" : "bg-[#dfdfda]"
-                  }`}
-                />
-              )}
+                    ? "Avatar"
+                    : "Details"}
             </div>
-          ))}
-        </div>
-      </div>
 
-      {error && (
-        <Alert
-          variant="destructive"
-          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
-        >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
-          <div>
-            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
+            {i < 4 && (
+              <div
+                className={`absolute top-3.5 left-full w-full h-[1px] -translate-x-5/12 -z-10 ${
+                  step > i
+                    ? "bg-emerald-600 dark:bg-emerald-500"
+                    : "bg-[#dfdfda]"
+                }`}
+              />
+            )}
           </div>
-        </Alert>
-      )}
+        ))}
+      </div>
+    </div>
 
-      <form className="space-y-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`step-${step}`}
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -15 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderStepContent()}
-          </motion.div>
-        </AnimatePresence>
+    {error && (
+      <Alert
+        variant="destructive"
+        className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
+      >
+        <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
+        <div>
+          <AlertDescription className="text-xs font-medium leading-none">
+            {error}
+          </AlertDescription>
+        </div>
+      </Alert>
+    )}
 
-        <div className="flex gap-3 mt-6">
-          {step > 1 && (
-            <motion.button
-              type="button"
-              onClick={prevStep}
-              className="flex-1 bg-[#f7f7f5] border border-[#dfdfda] text-[#1d1d1b] py-2 rounded-lg hover:bg-white text-xs font-semibold transition cursor-pointer"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              Back
-            </motion.button>
-          )}
+    <form className="space-y-4">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`step-${step}`}
+          initial={{ opacity: 0, x: 15 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -15 }}
+          transition={{ duration: 0.2 }}
+        >
+          {renderStepContent()}
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="flex gap-3 mt-6">
+        {step > 1 && (
           <motion.button
             type="button"
-            onClick={nextStep}
-            disabled={isPending}
-            className={`${
-              step > 1 ? "flex-1" : "w-full"
-            } bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-10`}
+            onClick={prevStep}
+            className="flex-1 bg-[#f7f7f5] border border-[#dfdfda] text-[#1d1d1b] py-2 rounded-lg hover:bg-white text-xs font-semibold transition cursor-pointer"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            {isPending ? (
-              <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                {step === 4 ? "Register" : "Continue"}
-                {!isPending && <HugeiconsIcon icon={ArrowRight01Icon} className="h-3.5 w-3.5" />}
-              </>
-            )}
+            Back
           </motion.button>
-        </div>
-      </form>
-
-      <div className="text-center mt-6">
-        <p className="text-xs text-[#73736e]">
-          Already have an account?{" "}
-          <button
-            type="button"
-            aria-label="Sign in"
-            onClick={() => onToggleMode("login")}
-            className="text-[#1d1d1b] font-semibold hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
-          >
-            Sign in
-          </button>
-        </p>
+        )}
+        <motion.button
+          type="button"
+          onClick={nextStep}
+          disabled={isPending}
+          className={`${
+            step > 1 ? "flex-1" : "w-full"
+          } bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-10`}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          {isPending ? (
+            <HugeiconsIcon
+              icon={Loading02Icon}
+              className="h-4 w-4 animate-spin"
+            />
+          ) : (
+            <>
+              {step === 4 ? "Register" : "Continue"}
+              {!isPending && (
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  className="h-3.5 w-3.5"
+                />
+              )}
+            </>
+          )}
+        </motion.button>
       </div>
-    </motion.div>
+    </form>
+
+    <div className="text-center mt-6">
+      <p className="text-xs text-[#73736e]">
+        Already have an account?{" "}
+        <button
+          type="button"
+          aria-label="Sign in"
+          onClick={() => onToggleMode("login")}
+          className="text-[#1d1d1b] font-semibold hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
+        >
+          Sign in
+        </button>
+      </p>
+    </div>
+  </motion.div>
   );
 };

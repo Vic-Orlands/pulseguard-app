@@ -26,7 +26,9 @@ export const Logo = () => (
   </div>
 );
 
-export default function AuthPage() {
+import { Suspense } from "react";
+
+function AuthContent() {
   const { mode, hydrated, toggleMode } = useHydrated();
 
   if (!hydrated) return null;
@@ -63,6 +65,14 @@ export default function AuthPage() {
         &copy; {new Date().getFullYear()} PulseGuard. All rights reserved.
       </motion.div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthContent />
+    </Suspense>
   );
 }
 
