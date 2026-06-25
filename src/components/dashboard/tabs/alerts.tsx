@@ -748,7 +748,7 @@ const AlertPage = ({ project }: { project: Project }) => {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 flex items-center justify-between"
+          className="w-full px-4 py-2 input-field flex items-center justify-between"
         >
           <span className="text-left flex-1">
             {selectedValues.length === 0 ? (
@@ -902,7 +902,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 <HugeiconsIcon icon={Settings01Icon} className="w-8 h-8 text-purple-400" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-3xl font-bold text-pg-text">
                   Alert Configuration
                 </h1>
                 <p className="text-slate-400 mt-1">
@@ -912,7 +912,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             </div>
             <button
               onClick={() => setShowConfigPage(false)}
-              className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 btn-ghost px-4 py-2 rounded-lg transition-colors"
             >
               <HugeiconsIcon icon={Cancel01Icon} className="w-5 h-5" />
               <span>Back</span>
@@ -957,7 +957,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             {activeTab === "emails" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-xl font-semibold text-pg-text">
                     Email Addresses
                   </h2>
                   <div className="flex items-center space-x-4">
@@ -971,7 +971,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                         </span>
                         <button
                           onClick={handleRemoveEmails}
-                          className="flex items-center space-x-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+                          className="flex items-center space-x-1 px-3 py-1 bg-pg-err-bg text-pg-err-txt hover:opacity-90 text-sm rounded-lg transition-colors"
                         >
                           <HugeiconsIcon icon={Delete02Icon} className="w-3 h-3" />
                           <span>Remove Selected</span>
@@ -987,12 +987,12 @@ const AlertPage = ({ project }: { project: Project }) => {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email address(es) - separate multiple with comma or |"
-                    className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 input-field"
                   />
                   <button
                     onClick={handleAddEmail}
                     disabled={!newEmail.trim()}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 btn-primary rounded-lg"
                   >
                     <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" />
                     <span>Add</span>
@@ -1045,12 +1045,12 @@ const AlertPage = ({ project }: { project: Project }) => {
             {activeTab === "groups" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-xl font-semibold text-pg-text">
                     Email Groups
                   </h2>
                   <button
                     onClick={() => setShowGroupDialog(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 btn-primary rounded-lg"
                   >
                     <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" />
                     <span>Create Group</span>
@@ -1065,7 +1065,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h3 className="text-lg font-medium text-white">
+                          <h3 className="text-lg font-medium text-pg-text">
                             {group.name}
                           </h3>
                           <p className="text-sm text-slate-400">
@@ -1091,7 +1091,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                         {group.emails.map((email) => (
                           <span
                             key={email}
-                            className="px-2 py-1 bg-slate-600 text-white text-xs rounded"
+                            className="px-2 py-1 bg-pg-surface text-pg-text text-xs rounded"
                           >
                             {email}
                           </span>
@@ -1112,7 +1112,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             {activeTab === "slack" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-xl font-semibold text-pg-text">
                     Slack Channels
                   </h2>
                   <span className="text-sm text-slate-400">
@@ -1126,7 +1126,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                     value={newSlackChannel}
                     onChange={(e) => setNewSlackChannel(e.target.value)}
                     placeholder="Enter Slack channel (e.g., #alerts)"
-                    className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 input-field"
                   />
                   <button
                     onClick={handleAddSlackChannel}
@@ -1134,7 +1134,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       !newSlackChannel ||
                       config.slackChannels.includes(newSlackChannel)
                     }
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 btn-primary rounded-lg"
                   >
                     <HugeiconsIcon icon={Add01Icon} className="w-4 h-4" />
                     <span>Add</span>
@@ -1163,7 +1163,7 @@ const AlertPage = ({ project }: { project: Project }) => {
             {/* Alert Conditions */}
             {activeTab === "conditions" && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-pg-text">
                   Alert Conditions
                 </h2>
 
@@ -1183,7 +1183,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                           },
                         }))
                       }
-                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2 input-field"
                     >
                       <option value="error">Errors</option>
                       <option value="log">Logs</option>
@@ -1232,7 +1232,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                           }))
                         }
                         placeholder="Enter log pattern (e.g., 'ERROR *')"
-                        className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-4 py-2 input-field"
                       />
                     </div>
                   )}
@@ -1286,7 +1286,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                       config.alertConditions.logPattern && (
                         <div className="flex items-center space-x-2">
                           <span className="text-slate-400">Log Pattern:</span>
-                          <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded">
+                          <span className="text-white font-mono bg-pg-surface px-2 py-1 rounded">
                             {config.alertConditions.logPattern}
                           </span>
                         </div>

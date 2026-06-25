@@ -10,12 +10,12 @@ export default function HelpButton() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
-      <Button
-        size="lg"
-        className="rounded-full h-14 w-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
+      <button
+        className="btn-primary rounded-full h-14 w-14 shadow-lg"
+        title="Help"
       >
         <HugeiconsIcon icon={LifebuoyIcon} className="h-6 w-6" />
-      </Button>
+      </button>
     </motion.div>
   );
 }

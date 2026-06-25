@@ -95,7 +95,7 @@ export const DeleteProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="bg-card border border-border rounded-lg shadow-sm overflow-hidden text-foreground"
+              className="pg-modal rounded-lg shadow-sm overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">
@@ -118,14 +118,14 @@ export const DeleteProjectDialog = ({
                           <h3 className="text-sm font-bold text-foreground">
                             Delete Project
                           </h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-pg-muted mt-0.5">
                             This action cannot be undone
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={onClose}
-                        className="cursor-pointer w-7 h-7 rounded bg-muted flex items-center justify-center hover:bg-accent hover:text-foreground text-muted-foreground transition-colors"
+                        className="cursor-pointer w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors"
                       >
                         <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
                       </button>
@@ -133,7 +133,7 @@ export const DeleteProjectDialog = ({
 
                     {/* Content */}
                     <div className="flex-1 mb-5 space-y-3.5">
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-pg-muted leading-relaxed">
                         Are you sure you want to delete{" "}
                         <span className="font-semibold text-foreground">
                           &quot;{project.name}&quot;
@@ -147,7 +147,7 @@ export const DeleteProjectDialog = ({
                         <Input
                           value={confirmText}
                           onChange={(e) => setConfirmText(e.target.value)}
-                          className="bg-card text-foreground border-destructive/30 focus-visible:ring-1 focus-visible:ring-destructive/50 text-xs h-8 shadow-none"
+                          className="bg-pg-surface text-pg-text border-pg-err-bd focus-visible:ring-1 focus-visible:ring-pg-err-txt text-xs h-8 shadow-none"
                           placeholder="Type DELETE to confirm"
                           autoFocus
                         />
@@ -158,7 +158,7 @@ export const DeleteProjectDialog = ({
                     <div className="flex space-x-2.5">
                       <Button
                         variant="outline"
-                        className="flex-1 border-border text-foreground hover:bg-muted text-xs h-8 shadow-none font-semibold cursor-pointer"
+                        className="flex-1 border border-pg-border text-pg-subtle hover:bg-pg-surface text-xs h-8 shadow-none font-semibold cursor-pointer"
                         onClick={onClose}
                       >
                         Cancel
@@ -308,7 +308,7 @@ export const DeleteProjectDialog = ({
                       </div>
                       <button
                         onClick={onClose}
-                        className="w-7 h-7 rounded bg-muted flex items-center justify-center hover:bg-accent hover:text-foreground text-muted-foreground transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors cursor-pointer"
                       >
                         <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
                       </button>
@@ -316,7 +316,7 @@ export const DeleteProjectDialog = ({
 
                     {/* Content */}
                     <div className="flex-1 mb-5 space-y-3.5">
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-pg-muted leading-relaxed">
                         {errorMessage}
                       </p>
                       <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3.5">
@@ -326,7 +326,7 @@ export const DeleteProjectDialog = ({
                         <Input
                           value={confirmText}
                           onChange={(e) => setConfirmText(e.target.value)}
-                          className="bg-card text-foreground border-destructive/30 focus-visible:ring-1 focus-visible:ring-destructive/50 text-xs h-8 shadow-none"
+                          className="bg-pg-surface text-pg-text border-pg-err-bd focus-visible:ring-1 focus-visible:ring-pg-err-txt text-xs h-8 shadow-none"
                           placeholder="Type DELETE to confirm"
                           autoFocus
                         />
@@ -337,7 +337,7 @@ export const DeleteProjectDialog = ({
                     <div className="flex space-x-2.5">
                       <Button
                         variant="outline"
-                        className="flex-1 border-border text-foreground hover:bg-muted text-xs h-8 shadow-none font-semibold cursor-pointer"
+                        className="flex-1 border border-pg-border text-pg-subtle hover:bg-pg-surface text-xs h-8 shadow-none font-semibold cursor-pointer"
                         onClick={onClose}
                       >
                         Cancel

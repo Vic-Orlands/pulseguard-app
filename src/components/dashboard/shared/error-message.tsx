@@ -8,7 +8,7 @@ function CustomErrorMessage({ error }: { error: string | null }) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="mb-6 p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400"
+          className="banner-error mb-6"
         >
           {error}
         </motion.div>
