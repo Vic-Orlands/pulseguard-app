@@ -140,7 +140,7 @@ function AuthScreen({
           whileTap={{ scale: 0.99 }}
           onClick={() => handleOAuthClick("google")}
           disabled={loadingProvider !== null}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
         >
           <motion.span
             className="flex items-center justify-center gap-2"
@@ -165,7 +165,7 @@ function AuthScreen({
           whileTap={{ scale: 0.99 }}
           onClick={() => handleOAuthClick("github")}
           disabled={loadingProvider !== null}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
         >
           <motion.span
             className="flex items-center justify-center gap-2"
@@ -210,7 +210,7 @@ function AuthScreen({
         id="btn-transition-email"
         whileHover={{ y: -1 }}
         onClick={() => onToggleMode("login")}
-        className="group inline-flex items-center gap-1.5 text-zinc-400 hover:text-white font-medium text-[13px] transition-colors duration-200 cursor-pointer focus:outline-none"
+        className="group inline-flex items-center gap-1.5 text-zinc-400 hover:text-white font-medium text-[13px] transition-colors duration-200 cursor-pointer focus:outline-none bg-transparent"
       >
         <span>Get started with Email</span>
         <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors duration-200" />

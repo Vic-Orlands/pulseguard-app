@@ -87,10 +87,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
   }, [router, error, searchParams]);
 
   return (
-    <div
-      className="w-full max-w-[364px] mx-auto"
-      id="email-form-container"
-    >
+    <div className="w-full max-w-[364px] mx-auto" id="email-form-container">
       {/* Back to Options link */}
       <div className="mb-6 flex justify-start">
         <motion.button
@@ -161,7 +158,10 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-white focus:ring-0 focus:ring-offset-0 accent-white cursor-pointer"
             />
-            <label htmlFor="checkbox-remember" className="text-zinc-400 text-xs cursor-pointer select-none">
+            <label
+              htmlFor="checkbox-remember"
+              className="text-zinc-400 text-xs cursor-pointer select-none"
+            >
               Remember me
             </label>
           </div>
@@ -180,16 +180,16 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           type="submit"
           whileTap={{ scale: 0.99 }}
           disabled={isPending}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
         >
-          <motion.span 
+          <motion.span
             className="flex items-center justify-center gap-2"
             whileHover={{ scale: 1.04 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             {isPending ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-zinc-800" />
+                <Loader2 className="w-4 h-4 animate-spin text-current" />
                 <span>Signing in...</span>
               </>
             ) : (
@@ -199,7 +199,6 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         </motion.button>
       </form>
 
-      {/* Mode Toggle Footer */}
       <div className="mt-8 text-center text-xs text-zinc-500 select-none">
         <p>
           Don't have an account?{" "}
@@ -207,7 +206,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
             type="button"
             id="link-switch-to-signup"
             onClick={() => onToggleMode("signup")}
-            className="text-zinc-300 hover:text-white underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
+            className="text-zinc-350 hover:text-white underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
           >
             Sign up
           </button>

@@ -254,7 +254,6 @@ html:not(.dark) .text-white {
 html:not(.dark) .bg-zinc-100 .text-zinc-900,
 .light .bg-zinc-100.text-zinc-900,
 html:not(.dark) .bg-zinc-100.text-zinc-900 {
-  background-color: #18181b !important;
   color: #f4f4f5 !important;
 }
 
@@ -386,10 +385,14 @@ html:not(.dark) .text-zinc-400,
 html:not(.dark) .text-zinc-500 {
   color: #4b5563 !important; /* Fully readable medium-dark grey */
 }
-.light .text-zinc-400:hover,
-html:not(.dark) .text-zinc-400:hover,
-.light .text-zinc-500:hover,
-html:not(.dark) .text-zinc-500:hover {
+.light button.text-zinc-400:hover,
+html:not(.dark) button.text-zinc-400:hover,
+.light a.text-zinc-400:hover,
+html:not(.dark) a.text-zinc-400:hover,
+.light button.text-zinc-500:hover,
+html:not(.dark) button.text-zinc-500:hover,
+.light a.text-zinc-500:hover,
+html:not(.dark) a.text-zinc-500:hover {
   color: #09090b !important;
   background-color: rgba(9, 9, 11, 0.05) !important;
 }
@@ -435,19 +438,4 @@ html:not(.dark) .sticky.top-20 {
   animation: dash 1.2s linear infinite;
 }
 
-/* Theme-aware primary action button */
-.bg-btn-primary {
-  background-color: #e2e2e2 !important;
-  color: #000000 !important;
-}
 
-.light .bg-btn-primary,
-:root[data-theme="light"] .bg-btn-primary,
-html:not(.dark) .bg-btn-primary {
-  background-color: #18181b !important;
-  color: #ffffff !important;
-}
-
-.bg-btn-primary:hover {
-  opacity: 0.9 !important;
-}

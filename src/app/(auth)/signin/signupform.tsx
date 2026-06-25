@@ -42,7 +42,7 @@ const PRESET_AVATARS = [
   },
   {
     id: "av-3",
-    url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
     label: "Lady Avatar",
   },
   {
@@ -531,12 +531,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             disabled={isPending}
             className={`${
               step > 1 ? "flex-1" : "w-full"
-            } bg-btn-primary py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
+            } bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
             {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin text-zinc-800" />
+              <Loader2 className="h-4 w-4 animate-spin text-current" />
             ) : (
               <>
                 <span>{step === 2 ? "Register" : "Continue"}</span>

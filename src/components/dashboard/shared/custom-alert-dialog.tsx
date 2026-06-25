@@ -36,7 +36,7 @@ export function CustomAlertDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-semibold relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary border border-zinc-800 hover:opacity-90 h-9 px-4 text-xs cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-semibold relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-xs cursor-pointer"
           >
             Continue
           </AlertDialogAction>
