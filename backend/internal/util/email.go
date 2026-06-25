@@ -73,7 +73,7 @@ func SendWelcomeEmail(to string, name string) error {
 
 	htmlContent, err := os.ReadFile(templatePath)
 	if err != nil {
-		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		log.Printf("Could not load template %s: %v. Using fallback HTML.", templatePath, err)
 		htmlContent = []byte(fmt.Sprintf(`<p>Welcome to PulseGuard, %s!</p>`, name))
 	}
 
