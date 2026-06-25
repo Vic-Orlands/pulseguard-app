@@ -35,8 +35,14 @@
            disabled:pointer-events-none disabled:opacity-50
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500
            bg-[#18181b] text-white border border-zinc-800 hover:opacity-90
-           dark:bg-[#e2e2e2] dark:text-black dark:border-transparent
+           dark:bg-[#e2e2e2] dark:border-transparent
            h-9 px-4 text-sm gap-2 cursor-pointer;
+    /* Force button text color independent of --color-white swap */
+    color: #ffffff;
+  }
+
+  .dark .btn-primary {
+    color: #09090b;
   }
 
   /* Ghost / secondary button (transparent bg, muted text) */
