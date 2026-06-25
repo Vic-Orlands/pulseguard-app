@@ -36,6 +36,7 @@ import { useAuth } from "@/context/auth-context";
 import { getGreeting, normalizePostgresString } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { Logo } from "@/app/(auth)/signin/page";
+import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
 interface HeaderProps {
   alerts: DashboardAlert[];
@@ -77,6 +78,7 @@ export default function Header({
   const [isApiKeyCopied, setIsApiKeyCopied] = useState(false);
   const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
   const [modalCodeTab, setModalCodeTab] = useState<'curl' | 'node' | 'python'>('curl');
+  const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -158,7 +160,7 @@ export default function Header({
               </div>
               <DropdownMenuSeparator className="bg-zinc-850/60" />
               <button
-                onClick={() => router.push("/onboarding")}
+                onClick={() => setIsCreateWorkspaceModalOpen(true)}
                 className="w-full text-left rounded px-2.5 py-1.5 text-xs text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -302,7 +304,7 @@ export default function Header({
           {/* Status badge */}
           <div className="hidden lg:flex items-center gap-2 text-[10px] font-mono text-zinc-500 shrink-0 select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Telemetry Pipeline Active</span>
+            <span>Telemetry Project Active</span>
           </div>
         </div>
       </div>
@@ -340,7 +342,7 @@ export default function Header({
                   <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block font-bold">Access Authorization</span>
                   <h3 className="text-base font-bold text-white font-sans">Workspace Integration Key</h3>
                   <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-                    Use this private API key to connect external pipelines, export traces, or configure custom code SDKs to stream live telemetry logs.
+                    Use this private API key to connect external projects, export traces, or configure custom code SDKs to stream live telemetry logs.
                   </p>
                 </div>
 
@@ -451,6 +453,11 @@ export default function Header({
           />
         )}
       </AnimatePresence>
+
+      <CreateWorkspaceModal
+        isOpen={isCreateWorkspaceModalOpen}
+        onClose={() => setIsCreateWorkspaceModalOpen(false)}
+      />
     </header>
   );
 }

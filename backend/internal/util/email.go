@@ -25,7 +25,7 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 
 	htmlContent, err := os.ReadFile(templatePath)
 	if err != nil {
-		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		log.Printf("Could not load template %s: %v. Using fallback HTML.", templatePath, err)
 		htmlContent = []byte(fmt.Sprintf(`<p>Click below to reset your password:</p><p><a href="%s">%s</a></p>`, resetLink, resetLink))
 	}
 
@@ -48,13 +48,13 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 		htmlBody = string(htmlContent)
 	}
 
-	subject := "🔐 Reset Your PulseGuard Password"
+	subject := "Reset Your Password"
 	emailID, err := m.Send([]string{to}, subject, htmlBody)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("✅ Password reset email sent: %s", emailID)
+	log.Printf("Password reset email sent: %s", emailID)
 	return nil
 }
 
@@ -102,13 +102,13 @@ func SendWelcomeEmail(to string, name string) error {
 		htmlBody = string(htmlContent)
 	}
 
-	subject := "👋 Welcome to PulseGuard"
+	subject := "Welcome to PulseGuard"
 	emailID, err := m.Send([]string{to}, subject, htmlBody)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("✅ Welcome email sent to %s: %s", to, emailID)
+	log.Printf("Welcome email sent to %s: %s", to, emailID)
 	return nil
 }
 
@@ -127,7 +127,7 @@ func SendEmailVerificationEmail(to string, verificationLink string) error {
 
 	htmlContent, err := os.ReadFile(templatePath)
 	if err != nil {
-		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		log.Printf("Could not load template %s: %v. Using fallback HTML.", templatePath, err)
 		htmlContent = []byte(fmt.Sprintf(`<p>Confirm your email by clicking the link below:</p><p><a href="%s">%s</a></p>`, verificationLink, verificationLink))
 	}
 
@@ -150,12 +150,12 @@ func SendEmailVerificationEmail(to string, verificationLink string) error {
 		htmlBody = string(htmlContent)
 	}
 
-	subject := "✉️ Confirm Your PulseGuard Email Address"
+	subject := "Confirm Your Email Address"
 	emailID, err := m.Send([]string{to}, subject, htmlBody)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("✅ Email verification email sent to %s: %s", to, emailID)
+	log.Printf("Email verification email sent to %s: %s", to, emailID)
 	return nil
 }

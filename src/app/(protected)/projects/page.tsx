@@ -18,9 +18,6 @@ import {
   ArrowRight,
   RefreshCw,
   LogOut,
-  Layers,
-  Database,
-  Cpu,
 } from "lucide-react";
 import { Logo } from "@/app/(auth)/signin/page";
 import {
@@ -32,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
+import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
 import type { Project } from "@/types/dashboard";
 import { normalizePostgresString } from "@/lib/utils";
@@ -214,27 +212,7 @@ const CreateProjectDialog = ({
   );
 };
 
-// Curated templates for workspace/project pipeline creation
-const PIPELINE_TEMPLATES = [
-  {
-    id: "tpl-1",
-    title: "OpenTelemetry Pipeline",
-    desc: "Unified instrumentation logs, spans, and microservices metrics",
-    icon: Layers,
-  },
-  {
-    id: "tpl-2",
-    title: "Grafana Loki Streams",
-    desc: "High-performance structured search for serverless system logs",
-    icon: Database,
-  },
-  {
-    id: "tpl-3",
-    title: "Tempo Trace Map",
-    desc: "Context-propagating distributed graph mapping user paths",
-    icon: Cpu,
-  },
-];
+// Project creation template removal placeholder
 
 export default function ProjectSelectionPage() {
   const router = useRouter();
@@ -250,12 +228,12 @@ export default function ProjectSelectionPage() {
   // Create project form states
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("tpl-1");
 
   // Loading indicator overlay states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [creatingStatus, setCreatingStatus] = useState<"creating" | "complete">("creating");
   const [creatingProjectName, setCreatingProjectName] = useState("");
+  const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] = useState(false);
 
   const getAllProjects = async () => {
     try {
@@ -326,11 +304,10 @@ export default function ProjectSelectionPage() {
       setCreatingStatus("creating");
       setShowCreateDialog(true);
 
-      const matchedTpl = PIPELINE_TEMPLATES.find((t) => t.id === selectedTemplate);
       const newProjectData = {
         name: projectName.trim(),
         description: projectDescription.trim(),
-        platform: matchedTpl ? matchedTpl.title : "OpenTelemetry Pipeline",
+        platform: "OpenTelemetry Project",
         workspaceId: activeWorkspace?.id,
       };
 
@@ -424,7 +401,7 @@ export default function ProjectSelectionPage() {
             <DropdownMenuSeparator className="bg-zinc-800/60" />
             <div className="p-1">
               <button
-                onClick={() => router.push("/onboarding")}
+                onClick={() => setIsCreateWorkspaceModalOpen(true)}
                 className="w-full text-left rounded px-2.5 py-1.5 text-xs text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -468,7 +445,7 @@ export default function ProjectSelectionPage() {
             Projects
           </h2>
           <p className="mt-2 text-sm text-zinc-400 font-sans">
-            Select an existing PulseGuard telemetry workspace or instantiate a new pipeline.
+            Select an existing PulseGuard telemetry workspace or instantiate a new project.
           </p>
         </div>
 
@@ -502,7 +479,7 @@ export default function ProjectSelectionPage() {
               projectActionTab === "create" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
-            Create New Pipeline
+            Create New Project
           </button>
         </div>
 
@@ -568,7 +545,7 @@ export default function ProjectSelectionPage() {
                         <div className="flex items-center gap-1.5 mt-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                            Active pipeline
+                            Active project
                           </span>
                         </div>
                       </div>
@@ -576,7 +553,7 @@ export default function ProjectSelectionPage() {
                   })
                 ) : (
                   <p className="text-xs text-zinc-500 text-center py-6">
-                    No projects found. Create a new pipeline to get started.
+                    No projects found. Create a new project to get started.
                   </p>
                 )}
               </div>
@@ -647,59 +624,12 @@ export default function ProjectSelectionPage() {
                 </label>
                 <textarea
                   id="input-project-desc"
-                  placeholder="Describe your observability pipeline and microservices targets..."
+                  placeholder="Describe your observability project and microservices targets..."
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   rows={2}
                   className="w-full py-1.5 px-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200 resize-none"
                 />
-              </div>
-
-              {/* Workspace Template selection */}
-              <div className="space-y-2">
-                <label className="block text-zinc-400 text-xs font-medium select-none">
-                  Select Pipeline Template
-                </label>
-                <div className="space-y-2">
-                  {PIPELINE_TEMPLATES.map((tpl) => {
-                    const isSelected = selectedTemplate === tpl.id;
-                    const IconComponent = tpl.icon;
-                    return (
-                      <div
-                        key={tpl.id}
-                        onClick={() => setSelectedTemplate(tpl.id)}
-                        className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all select-none flex items-start gap-3 ${
-                          isSelected
-                            ? "border-white bg-zinc-900/80 shadow-md"
-                            : "border-zinc-800 bg-zinc-950/10 hover:border-zinc-700"
-                        }`}
-                      >
-                        <div
-                          className={`p-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 mt-0.5 ${
-                            isSelected ? "text-emerald-400 border-zinc-700" : ""
-                          }`}
-                        >
-                          <IconComponent className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-white leading-none">
-                              {tpl.title}
-                            </span>
-                            {isSelected && (
-                              <span className="w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
-                                <Check className="w-2.5 h-2.5 text-white stroke-[3.5px]" />
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-zinc-400 mt-1 leading-normal truncate">
-                            {tpl.desc}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
 
               {/* Initialize Button */}
@@ -714,7 +644,7 @@ export default function ProjectSelectionPage() {
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
-                  <span>Initialize pipeline</span>
+                  <span>Initialize project</span>
                   <ArrowRight className="w-4 h-4" />
                 </motion.span>
               </motion.button>
@@ -729,6 +659,11 @@ export default function ProjectSelectionPage() {
         projectName={creatingProjectName}
         status={creatingStatus}
         onClose={() => setShowCreateDialog(false)}
+      />
+
+      <CreateWorkspaceModal
+        isOpen={isCreateWorkspaceModalOpen}
+        onClose={() => setIsCreateWorkspaceModalOpen(false)}
       />
     </div>
   );
