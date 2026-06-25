@@ -143,6 +143,13 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Send welcome email in background
+	go func(email, name string) {
+		if err := util.SendWelcomeEmail(email, name); err != nil {
+			h.logger.Error(ctx, "Failed to send welcome email", err)
+		}
+	}(user.Email, user.Name)
+
 	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("activity_type", "register"), attribute.String("user_id", user.ID.String())))
 	span.SetStatus(codes.Ok, "User registered successfully")
 	h.logger.Info(r.Context(), "User registered", "user_id", user.ID.String(), "email", user.Email, "name", user.Name)

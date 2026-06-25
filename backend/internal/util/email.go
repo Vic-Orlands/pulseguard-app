@@ -57,3 +57,105 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 	log.Printf("✅ Password reset email sent: %s", emailID)
 	return nil
 }
+
+func SendWelcomeEmail(to string, name string) error {
+	m, err := mailer.NewMailer()
+	if err != nil {
+		return err
+	}
+
+	// 1. Read the compiled HTML template
+	templatePath := "templates/welcome.html"
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		wd, _ := os.Getwd()
+		templatePath = filepath.Join(wd, "backend", "templates", "welcome.html")
+	}
+
+	htmlContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		htmlContent = []byte(fmt.Sprintf(`<p>Welcome to PulseGuard, %s!</p>`, name))
+	}
+
+	// 2. Parse template parameters (e.g. {{.URL}})
+	var htmlBody string
+	if bytes.Contains(htmlContent, []byte("{{")) {
+		tmpl, err := template.New("welcome").Parse(string(htmlContent))
+		if err != nil {
+			return fmt.Errorf("failed to parse template: %w", err)
+		}
+		var buf bytes.Buffer
+		// Get front-end URL from env or use fallback
+		appURL := os.Getenv("FRONTEND_URL")
+		if appURL == "" {
+			appURL = "http://localhost:3000"
+		}
+		data := map[string]interface{}{
+			"URL":  appURL,
+			"Name": name,
+		}
+		if err := tmpl.Execute(&buf, data); err != nil {
+			return fmt.Errorf("failed to execute template: %w", err)
+		}
+		htmlBody = buf.String()
+	} else {
+		htmlBody = string(htmlContent)
+	}
+
+	subject := "👋 Welcome to PulseGuard"
+	emailID, err := m.Send([]string{to}, subject, htmlBody)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("✅ Welcome email sent to %s: %s", to, emailID)
+	return nil
+}
+
+func SendEmailVerificationEmail(to string, verificationLink string) error {
+	m, err := mailer.NewMailer()
+	if err != nil {
+		return err
+	}
+
+	// 1. Read the compiled HTML template
+	templatePath := "templates/confirm-email.html"
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		wd, _ := os.Getwd()
+		templatePath = filepath.Join(wd, "backend", "templates", "confirm-email.html")
+	}
+
+	htmlContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		htmlContent = []byte(fmt.Sprintf(`<p>Confirm your email by clicking the link below:</p><p><a href="%s">%s</a></p>`, verificationLink, verificationLink))
+	}
+
+	// 2. Parse template parameters (e.g. {{.URL}})
+	var htmlBody string
+	if bytes.Contains(htmlContent, []byte("{{")) {
+		tmpl, err := template.New("confirm-email").Parse(string(htmlContent))
+		if err != nil {
+			return fmt.Errorf("failed to parse template: %w", err)
+		}
+		var buf bytes.Buffer
+		data := map[string]interface{}{
+			"URL": verificationLink,
+		}
+		if err := tmpl.Execute(&buf, data); err != nil {
+			return fmt.Errorf("failed to execute template: %w", err)
+		}
+		htmlBody = buf.String()
+	} else {
+		htmlBody = string(htmlContent)
+	}
+
+	subject := "✉️ Confirm Your PulseGuard Email Address"
+	emailID, err := m.Send([]string{to}, subject, htmlBody)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("✅ Email verification email sent to %s: %s", to, emailID)
+	return nil
+}
