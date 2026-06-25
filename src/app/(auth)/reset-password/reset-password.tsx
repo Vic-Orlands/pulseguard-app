@@ -1,7 +1,8 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, CheckmarkCircle01Icon, Loading02Icon, LockIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { AlertCircleIcon, CheckmarkCircle01Icon, Loading02Icon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { Lock } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -229,7 +230,7 @@ export default function ResetPasswordPage() {
         <FormField label="New Password" error={errors.password?.message}>
           <div className="relative">
             <InputWithIcon
-              icon={LockIcon}
+              icon={Lock}
               type={showPassword ? "text" : "password"}
               placeholder="Enter new password"
               error={errors.password?.message}
@@ -285,7 +286,7 @@ export default function ResetPasswordPage() {
         >
           <div className="relative">
             <InputWithIcon
-              icon={LockIcon}
+              icon={Lock}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm new password"
               error={errors.confirmPassword?.message}
