@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
         </motion.div>
 
         <motion.div
-          className="mt-6 text-xs text-[#73736e] text-center z-10"
+          className="mt-6 text-xs text-zinc-500 text-center z-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.3 }}
