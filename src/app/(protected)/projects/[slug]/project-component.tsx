@@ -140,10 +140,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
         {/* header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-white font-sans">
+            <h1 className="text-xl font-bold text-pg-text font-sans">
               {project.name}
             </h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            <p className="text-xs text-pg-muted mt-1">
               Monitor your application and resolve errors across all environments
             </p>
           </div>
@@ -151,14 +151,14 @@ export default function DashboardComponent({ project }: { project: Project }) {
             <a href="/documentation" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                className="bg-[#0a0a0a] border border-zinc-800 text-zinc-400 hover:text-white text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
+                className="bg-pg-surface border border-pg-border text-pg-muted hover:text-pg-text text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
               >
                 <HugeiconsIcon icon={HelpCircleIcon} className="h-3.5 w-3.5 mr-1.5" />
                 Documentation
               </Button>
             </a>
             <Button
-              className="bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
+              className="btn-primary h-8 px-3 text-xs font-semibold rounded-lg shadow-none"
               onClick={() => setActiveTab("connect-platform")}
             >
               <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />

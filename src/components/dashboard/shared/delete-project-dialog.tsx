@@ -72,7 +72,7 @@ export const DeleteProjectDialog = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50"
+            className="pg-backdrop z-50"
             onClick={step !== "deleting" ? onClose : undefined}
           />
 
@@ -95,7 +95,7 @@ export const DeleteProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="pg-modal rounded-lg shadow-sm overflow-hidden"
+              className="pg-modal shadow-sm overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">
@@ -115,7 +115,7 @@ export const DeleteProjectDialog = ({
                           <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-destructive" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-foreground">
+                          <h3 className="text-sm font-bold text-pg-text">
                             Delete Project
                           </h3>
                           <p className="text-xs text-pg-muted mt-0.5">
@@ -125,7 +125,7 @@ export const DeleteProjectDialog = ({
                       </div>
                       <button
                         onClick={onClose}
-                        className="cursor-pointer w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors"
+                        className="cursor-pointer w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors focus:outline-none border-0"
                       >
                         <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
                       </button>
@@ -135,7 +135,7 @@ export const DeleteProjectDialog = ({
                     <div className="flex-1 mb-5 space-y-3.5">
                       <p className="text-xs text-pg-muted leading-relaxed">
                         Are you sure you want to delete{" "}
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-pg-text">
                           &quot;{project.name}&quot;
                         </span>
                         ? All associated data will be permanently removed.
@@ -224,11 +224,11 @@ export const DeleteProjectDialog = ({
                             </svg>
                           </div>
 
-                          <h3 className="text-sm font-bold text-foreground mb-1 animate-pulse">
+                          <h3 className="text-sm font-bold text-pg-text mb-1 animate-pulse">
                             Deleting Project...
                           </h3>
 
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-pg-muted text-xs">
                             Removing &quot;{project.name}&quot;
                           </p>
 
@@ -272,11 +272,11 @@ export const DeleteProjectDialog = ({
                       <HugeiconsIcon icon={CheckmarkCircle01Icon} className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                     </div>
 
-                    <h3 className="text-sm font-bold text-foreground mb-1">
+                    <h3 className="text-sm font-bold text-pg-text mb-1">
                       Project Deleted
                     </h3>
 
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-pg-muted text-xs">
                       &quot;{project.name}&quot; has been removed
                     </p>
                   </motion.div>
@@ -298,17 +298,17 @@ export const DeleteProjectDialog = ({
                           <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-destructive" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-foreground">
+                          <h3 className="text-sm font-bold text-pg-text">
                             Deletion Failed
                           </h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-pg-muted mt-0.5">
                             Something went wrong
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={onClose}
-                        className="w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded bg-pg-surface flex items-center justify-center hover:bg-pg-overlay hover:text-pg-text text-pg-subtle transition-colors cursor-pointer focus:outline-none border-0"
                       >
                         <HugeiconsIcon icon={Cancel01Icon} className="w-3.5 h-3.5" />
                       </button>

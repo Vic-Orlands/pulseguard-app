@@ -17,7 +17,6 @@ import {
   RefreshCw,
   LogOut,
 } from "lucide-react";
-import { Logo } from "@/app/(auth)/signin/page";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Logo } from "@/app/(auth)/signin/page";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
@@ -63,7 +62,6 @@ const ThemeToggle = () => {
   );
 };
 
-// Concentric loader dialog matching premium Traces animations
 const CreateProjectDialog = ({
   isOpen,
   projectName,
@@ -79,11 +77,12 @@ const CreateProjectDialog = ({
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 pg-backdrop z-50"
           />
 
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -94,17 +93,17 @@ const CreateProjectDialog = ({
                 scale: 1,
                 opacity: 1,
                 y: 0,
-                width: 380,
-                height: status === "complete" ? 240 : 260,
+                width: 360,
+                height: status === "complete" ? 220 : 240,
               }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
               transition={{
                 type: "spring",
                 damping: 25,
                 stiffness: 300,
-                layout: { duration: 0.4, ease: "easeInOut" },
+                layout: { duration: 0.35, ease: "easeInOut" },
               }}
-              className="pg-panel border border-zinc-800 bg-[#0a0a0a] rounded-xl shadow-lg overflow-hidden text-white flex flex-col justify-center items-center p-6"
+              className="pg-modal rounded-xl overflow-hidden flex flex-col justify-center items-center p-6"
             >
               <AnimatePresence mode="wait">
                 {status === "creating" && (
@@ -116,13 +115,23 @@ const CreateProjectDialog = ({
                     transition={{ duration: 0.2 }}
                     className="flex flex-col items-center justify-center text-center"
                   >
-                    <div className="mb-4 relative">
+                    {/* Animated ring */}
+                    <div className="mb-5 relative">
                       <svg
-                        width="60"
-                        height="60"
+                        width="52"
+                        height="52"
                         viewBox="0 0 80 80"
                         className="mx-auto"
                       >
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r="35"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          className="text-pg-border"
+                        />
                         <motion.circle
                           cx="40"
                           cy="40"
@@ -130,6 +139,7 @@ const CreateProjectDialog = ({
                           fill="none"
                           stroke="var(--color-orange-500)"
                           strokeWidth="2.5"
+                          strokeLinecap="round"
                           strokeDasharray="220"
                           strokeDashoffset="220"
                           animate={{
@@ -145,23 +155,26 @@ const CreateProjectDialog = ({
                       </svg>
                     </div>
 
+                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle uppercase mb-1.5">
+                      Initializing
+                    </p>
                     <motion.h3
-                      className="text-sm font-semibold text-white mb-1 animate-pulse"
-                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      className="text-sm font-medium text-pg-text mb-1"
+                      animate={{ opacity: [0.6, 1, 0.6] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
                       Creating Project...
                     </motion.h3>
-
-                    <p className="text-zinc-500 text-xs">
+                    <p className="text-pg-muted text-xs">
                       Setting up &quot;{projectName}&quot;
                     </p>
 
-                    <div className="flex justify-center space-x-1 mt-4">
+                    {/* Dot loader */}
+                    <div className="flex justify-center space-x-1 mt-5">
                       {[...Array(3)].map((_, i) => (
                         <motion.div
                           key={i}
-                          className="w-2 h-2 bg-orange-500 rounded-full"
+                          className="w-1.5 h-1.5 bg-orange-500 rounded-full"
                           animate={{
                             opacity: [0.3, 1, 0.3],
                             scale: [0.8, 1.2, 0.8],
@@ -181,30 +194,31 @@ const CreateProjectDialog = ({
                 {status === "complete" && (
                   <motion.div
                     key="complete"
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: "spring", damping: 15, stiffness: 300 }}
                     className="flex flex-col items-center justify-center text-center w-full"
                   >
-                    <div className="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-3.5 border border-emerald-500/20">
-                      <Check className="w-7 h-7 text-emerald-400" />
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                      <Check className="w-5 h-5 text-emerald-500" />
                     </div>
 
-                    <h3 className="text-sm font-bold text-white mb-1">
+                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle uppercase mb-1">
+                      Success
+                    </p>
+                    <h3 className="text-sm font-medium text-pg-text mb-1">
                       Project Created
                     </h3>
-
-                    <p className="text-zinc-500 text-xs">
-                      &quot;{projectName}&quot; is ready!
+                    <p className="text-pg-muted text-xs mb-4">
+                      &quot;{projectName}&quot; is ready — redirecting...
                     </p>
 
-                    <Button
-                      variant="ghost"
-                      className="mt-4 border-zinc-800 text-zinc-300 hover:bg-zinc-900 text-xs h-8 shadow-none font-semibold cursor-pointer"
+                    <button
+                      className="btn-ghost text-xs border border-pg-border px-3 py-1.5 rounded-[5px] hover:bg-pg-surface transition-colors"
                       onClick={onClose}
                     >
                       Close
-                    </Button>
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -220,8 +234,14 @@ const CreateProjectDialog = ({
 
 export default function ProjectSelectionPage() {
   const router = useRouter();
-  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace, fetchWorkspaces } =
-    useAuth();
+  const {
+    user,
+    logout,
+    workspaces,
+    activeWorkspace,
+    setActiveWorkspace,
+    fetchWorkspaces,
+  } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -466,20 +486,14 @@ export default function ProjectSelectionPage() {
 
         {/* Card Heading */}
         <div className="text-left mb-6">
-          <h2 className="form-heading">
-            Projects
-          </h2>
+          <h2 className="form-heading">Projects</h2>
           <p className="mt-2 form-subtitle">
             Select an existing PulseGuard telemetry workspace or instantiate a
             new project.
           </p>
         </div>
 
-        {error && (
-          <div className="banner-error mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="banner-error mb-4">{error}</div>}
 
         {/* Tab switcher */}
         <div className="flex rounded-md bg-zinc-950 p-1 border border-zinc-900 mb-6">

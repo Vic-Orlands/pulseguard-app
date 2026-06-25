@@ -26,7 +26,7 @@ import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Sun, Moon, Briefcase, Users, Shield, Plus, Trash2, UserPlus, UserMinus, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { Zap, Sun, Moon, Briefcase, Users, Shield, Plus, Trash2, UserPlus, UserMinus, ChevronDown, ChevronUp, Copy, Check, Loader2 } from "lucide-react";
 import {
   listWorkspaceMembers,
   inviteMember,
@@ -62,6 +62,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
+  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -349,7 +350,7 @@ export default function UserSettingsNew() {
     try {
       const validation = UserFormSchema.safeParse(userForm);
       if (!validation.success) {
-        setError(validation.error.errors.map((e) => e.message).join(", "));
+        setError(validation.error.issues.map((e: any) => e.message).join(", "));
         setIsSaving(false);
         return;
       }
@@ -958,6 +959,39 @@ export default function UserSettingsNew() {
     </Dialog>
   );
 
+  const renderDeleteAllProjectsDialog = () => (
+    <Dialog open={deleteAllProjectsDialog} onOpenChange={setDeleteAllProjectsDialog}>
+      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-border/50">
+          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+            <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
+            Delete All Projects
+          </DialogTitle>
+          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+            Are you sure you want to delete all projects in this workspace? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="p-3 bg-muted/10 border-t border-border/50 flex gap-2 justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteAllProjectsDialog(false)}
+            className="border-border text-xs h-8 px-3 shadow-none font-semibold"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAllProjects}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
+          >
+            <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
+            Delete All Projects
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   const renderWorkspaceTab = () => {
     const currentUserRole = workspaceMembers.find((m) => m.userId === user?.id)?.role || "member";
     const isAuthorized = currentUserRole === "owner" || currentUserRole === "admin";
@@ -1060,7 +1094,7 @@ export default function UserSettingsNew() {
                   <div key={member.id} className="p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8 border border-border">
-                        <AvatarImage src={normalizePostgresString(member.userAvatar)} />
+                        <AvatarImage src={member.userAvatar || undefined} />
                         <AvatarFallback className="bg-[#f7f7f5] text-[#73736e] font-semibold text-xs">
                           {member.userName?.substring(0, 2).toUpperCase() || "U"}
                         </AvatarFallback>
@@ -1289,7 +1323,7 @@ export default function UserSettingsNew() {
                                 <div key={userId} className="flex items-center justify-between bg-[#f7f7f5]/40 p-2 rounded-lg border border-[#e4e4df] max-w-md">
                                   <div className="flex items-center gap-2">
                                     <Avatar className="h-5 w-5 border border-border">
-                                      <AvatarImage src={normalizePostgresString(memberDetails.userAvatar)} />
+                                      <AvatarImage src={memberDetails.userAvatar || undefined} />
                                       <AvatarFallback className="text-[8px] font-bold">
                                         {memberDetails.userName?.substring(0, 2).toUpperCase()}
                                       </AvatarFallback>
@@ -1430,24 +1464,27 @@ export default function UserSettingsNew() {
               { id: "workspace", label: "Workspace Settings", icon: Briefcase, isHuge: false },
               { id: "appearance", label: "Appearance", icon: Settings01Icon, isHuge: true },
               { id: "danger", label: "Danger Zone", icon: Alert01Icon, isHuge: true },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 border-b-2 cursor-pointer py-2 px-1 text-xs font-semibold transition-all duration-200 h-9 ${
-                  activeTab === tab.id
-                    ? "border-[#ff5a1f] text-[#1d1d1b]"
-                    : "border-transparent text-[#73736e] hover:text-[#1d1d1b]"
-                }`}
-              >
-                {tab.isHuge ? (
-                  <HugeiconsIcon icon={tab.icon as any} className="h-3.5 w-3.5" />
-                ) : (
-                  <tab.icon className="h-3.5 w-3.5" />
-                )}
-                {tab.label}
-              </button>
-            ))}
+            ].map((tab) => {
+              const IconComponent = tab.icon as any;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 border-b-2 cursor-pointer py-2 px-1 text-xs font-semibold transition-all duration-200 h-9 ${
+                    activeTab === tab.id
+                      ? "border-[#ff5a1f] text-[#1d1d1b]"
+                      : "border-transparent text-[#73736e] hover:text-[#1d1d1b]"
+                  }`}
+                >
+                  {tab.isHuge ? (
+                    <HugeiconsIcon icon={tab.icon as any} className="h-3.5 w-3.5" />
+                  ) : (
+                    <IconComponent className="h-3.5 w-3.5" />
+                  )}
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
           <Button
