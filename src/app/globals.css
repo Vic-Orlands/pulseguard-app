@@ -8,6 +8,113 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* Register pg-* custom properties as Tailwind color utilities */
+@theme inline {
+  --color-pg-text:    var(--pg-text);
+  --color-pg-muted:   var(--pg-muted);
+  --color-pg-subtle:  var(--pg-subtle);
+  --color-pg-faint:   var(--pg-faint);
+  --color-pg-surface: var(--pg-surface);
+  --color-pg-overlay: var(--pg-overlay);
+  --color-pg-modal:   var(--pg-modal);
+  --color-pg-border:  var(--pg-border);
+  --color-pg-err-bg:  var(--pg-err-bg);
+  --color-pg-err-bd:  var(--pg-err-bd);
+  --color-pg-err-txt: var(--pg-err-txt);
+  --color-pg-ok-bg:   var(--pg-ok-bg);
+  --color-pg-ok-bd:   var(--pg-ok-bd);
+  --color-pg-ok-txt:  var(--pg-ok-txt);
+}
+
+/* ── PulseGuard Component Utilities ──────────────────────────────────── */
+@layer components {
+  /* Primary action button — the single source of truth */
+  .btn-primary {
+    @apply inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium
+           relative transition-all duration-150 ease-in-out active:scale-[0.99]
+           disabled:pointer-events-none disabled:opacity-50
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500
+           bg-[#18181b] text-white border border-zinc-800 hover:opacity-90
+           dark:bg-[#e2e2e2] dark:text-black dark:border-transparent
+           h-9 px-4 text-sm gap-2 cursor-pointer;
+  }
+
+  /* Ghost / secondary button (transparent bg, muted text) */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5
+           text-pg-muted hover:text-pg-text text-xs font-medium
+           transition-colors duration-200 cursor-pointer
+           bg-transparent border-0 p-0 focus:outline-none;
+  }
+
+  /* Back-arrow navigation link */
+  .btn-back {
+    @apply inline-flex items-center gap-1.5 text-pg-muted hover:text-pg-text
+           text-[13px] font-medium transition-colors cursor-pointer
+           focus:outline-none bg-transparent border-0 p-0;
+  }
+
+  /* Form text input */
+  .input-field {
+    @apply w-full h-9 pl-10 pr-4 rounded-lg bg-pg-surface border border-pg-border
+           focus:border-zinc-500 focus:outline-none text-pg-text
+           placeholder:text-pg-subtle text-[13.5px] transition-colors duration-200;
+  }
+
+  /* Form field label */
+  .form-label {
+    @apply block text-pg-muted text-xs font-medium mb-1.5 select-none;
+  }
+
+  /* Page/form heading (h1/h2) */
+  .form-heading {
+    @apply text-2xl font-normal tracking-[-0.058em] text-pg-text font-sans;
+  }
+
+  /* Page/form subtitle */
+  .form-subtitle {
+    @apply text-sm text-pg-muted font-sans;
+  }
+
+  /* Error feedback banner */
+  .banner-error {
+    @apply p-3 rounded-lg bg-pg-err-bg border border-pg-err-bd
+           text-pg-err-txt text-xs text-left;
+  }
+
+  /* Success feedback banner */
+  .banner-success {
+    @apply p-3 rounded-lg bg-pg-ok-bg border border-pg-ok-bd
+           text-pg-ok-txt text-xs text-left;
+  }
+
+  /* Modal/dialog panel */
+  .pg-modal {
+    @apply bg-pg-modal border border-pg-border rounded-xl shadow-2xl
+           text-pg-text overflow-hidden;
+  }
+
+  /* Modal backdrop */
+  .pg-backdrop {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm;
+  }
+
+  /* Trademark footer — used on all full-page auth/onboarding screens */
+  .pg-footer {
+    @apply absolute bottom-6 left-1/2 -translate-x-1/2
+           text-[11px] font-mono text-pg-faint select-none tracking-wider font-light
+           whitespace-nowrap;
+  }
+
+  /* Theme toggle button — floating top-right on full-page screens */
+  .pg-theme-toggle {
+    @apply absolute top-4 right-4 z-50 p-2.5 rounded-full
+           border border-pg-border bg-pg-overlay text-pg-muted
+           hover:text-pg-text hover:bg-zinc-900
+           transition-all cursor-pointer flex items-center justify-center;
+  }
+}
+
 :root {
   --background: #141414;
   --deep: #070707;
@@ -22,6 +129,27 @@
   --panel-bg-12: rgba(18, 18, 18, 0.4);
   --panel-bg-12-solid: #121212;
   --panel-bg-950: #09090b;
+
+  /* ── PulseGuard Design System Tokens (dark defaults) ─────────────── */
+  /* Text */
+  --pg-text:    #f4f4f5;   /* primary body text */
+  --pg-muted:   #a1a1aa;   /* labels, secondary text */
+  --pg-subtle:  #71717a;   /* placeholders, tertiary */
+  --pg-faint:   #52525b;   /* footer, captions */
+  /* Surfaces */
+  --pg-surface: rgba(9, 9, 11, 0.6);   /* inputs, pills */
+  --pg-overlay: rgba(9, 9, 11, 0.4);   /* theme toggle bg */
+  --pg-modal:   #0a0a0a;               /* modal/panel bg */
+  /* Borders */
+  --pg-border:  #27272a;   /* default border */
+  /* Error */
+  --pg-err-bg:  rgba(69, 10, 10, 0.4);
+  --pg-err-bd:  rgba(127, 29, 29, 0.5);
+  --pg-err-txt: #f87171;
+  /* Success */
+  --pg-ok-bg:   rgba(6, 78, 59, 0.4);
+  --pg-ok-bd:   rgba(6, 78, 59, 0.5);
+  --pg-ok-txt:  #34d399;
 }
 
 /* Light mode variables and overrides */
@@ -55,6 +183,22 @@ html:not(.dark) {
   /* Swap white and black text colors on text utility classes */
   --color-white: #09090b;
   --color-black: #ffffff;
+
+  /* ── PulseGuard Design System Tokens (light overrides) ───────────── */
+  --pg-text:    #09090b;
+  --pg-muted:   #3f3f46;
+  --pg-subtle:  #52525b;
+  --pg-faint:   #71717a;
+  --pg-surface: rgba(244, 244, 245, 0.7);
+  --pg-overlay: rgba(255, 255, 255, 0.7);
+  --pg-modal:   #ffffff;
+  --pg-border:  #e4e4e7;
+  --pg-err-bg:  rgba(254, 226, 226, 0.8);
+  --pg-err-bd:  rgba(239, 68, 68, 0.35);
+  --pg-err-txt: #991b1b;
+  --pg-ok-bg:   rgba(209, 250, 229, 0.8);
+  --pg-ok-bd:   rgba(16, 185, 129, 0.35);
+  --pg-ok-txt:  #065f46;
 }
 
 body {

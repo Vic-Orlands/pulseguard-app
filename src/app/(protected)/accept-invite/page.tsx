@@ -11,38 +11,15 @@ import {
 } from "@/lib/api/workspace-api";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowRight, LogOut, Loader2, Sun, Moon } from "lucide-react";
+import { ArrowRight, LogOut, Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { PageFooter } from "@/components/page-footer";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CheckmarkCircle01Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { Logo } from "@/app/(auth)/signin/page";
-
-const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="absolute top-4 right-4 z-50 p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
-      title="Switch theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4 text-orange-400" />
-      ) : (
-        <Moon className="w-4 h-4 text-indigo-500" />
-      )}
-    </button>
-  );
-};
 
 export default function AcceptInvitePage() {
   const router = useRouter();
@@ -135,10 +112,10 @@ export default function AcceptInvitePage() {
                     className="h-5 w-5 text-red-400"
                   />
                 </div>
-                <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+                <h2 className="form-heading">
                   Invitation Error
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400 font-sans leading-relaxed">
+                <p className="mt-1 form-subtitle leading-relaxed">
                   {error}
                 </p>
               </div>
@@ -148,7 +125,7 @@ export default function AcceptInvitePage() {
                   <motion.button
                     whileTap={{ scale: 0.99 }}
                     onClick={logout}
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"
+                    className="btn-primary w-full"
                   >
                     <motion.span
                       className="flex items-center justify-center gap-2"
@@ -182,7 +159,7 @@ export default function AcceptInvitePage() {
                       )}`,
                     )
                   }
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"
+                  className="btn-primary w-full"
                 >
                   <motion.span
                     className="flex items-center justify-center gap-2"
@@ -206,10 +183,10 @@ export default function AcceptInvitePage() {
                     className="h-5 w-5 text-white"
                   />
                 </div>
-                <h1 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+                <h1 className="form-heading">
                   Join Workspace
                 </h1>
-                <p className="mt-2 text-sm text-zinc-400 font-sans leading-relaxed">
+                <p className="mt-2 form-subtitle leading-relaxed">
                   You&apos;ve been invited to join{" "}
                   <span className="font-semibold text-white">
                     {invite.workspaceName}
@@ -237,7 +214,7 @@ export default function AcceptInvitePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={handleAccept}
                   disabled={isAccepting}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"
+                  className="btn-primary w-full"
                 >
                   <motion.span
                     className="flex items-center justify-center gap-2"
@@ -271,10 +248,7 @@ export default function AcceptInvitePage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-mono text-zinc-600 select-none tracking-wider font-light">
-        PULSEGUARD &copy; {new Date().getFullYear()}
-      </div>
+      <PageFooter />
     </div>
   );
 }

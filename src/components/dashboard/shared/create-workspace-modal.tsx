@@ -65,22 +65,22 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="bg-[var(--panel-bg-0a)] border border-zinc-800 rounded-xl max-w-sm w-full relative overflow-hidden z-10 text-left shadow-2xl p-6 text-white"
+            className="pg-modal max-w-sm w-full relative z-10 text-left p-6"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 p-1 text-zinc-500 hover:text-white transition-colors cursor-pointer z-20 bg-transparent border-0 focus:outline-none"
+              className="absolute right-4 top-4 p-1 text-pg-subtle hover:text-pg-text transition-colors cursor-pointer z-20 bg-transparent border-0 focus:outline-none"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
             <div className="mb-6 text-left">
-              <h2 className="text-xl font-normal tracking-[-0.058em] text-white font-sans">
+              <h2 className="text-xl font-normal tracking-[-0.058em] text-pg-text font-sans">
                 Create new workspace
               </h2>
-              <p className="mt-1.5 text-xs text-zinc-400 font-sans leading-relaxed">
+              <p className="mt-1.5 text-xs text-pg-muted font-sans leading-relaxed">
                 Name your workspace to group your telemetry databases and projects
               </p>
             </div>
@@ -88,20 +88,20 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+                <div className="banner-error">
                   {error}
                 </div>
               )}
 
               <div className="text-left w-full">
                 <label
-                  className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
+                  className="form-label"
                   htmlFor="modal-workspace-name"
                 >
                   Workspace Name
                 </label>
                 <div className="relative w-full">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 flex items-center justify-center pointer-events-none">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pg-subtle flex items-center justify-center pointer-events-none">
                     <Briefcase className="h-4 w-4" />
                   </span>
                   <input
@@ -113,7 +113,7 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
                       if (error) setError("");
                     }}
                     placeholder="e.g. Acme Corp, Personal"
-                    className="w-full h-9.5 pl-10 pr-4 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200"
+                    className="input-field"
                     disabled={loading}
                     autoFocus
                   />
@@ -125,7 +125,7 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
                 type="submit"
                 whileTap={{ scale: 0.99 }}
                 disabled={loading}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
+                className="btn-primary w-full"
               >
                 <motion.span
                   className="flex items-center justify-center gap-2"

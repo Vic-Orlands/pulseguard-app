@@ -2,15 +2,16 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowRight, Sun, Moon } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { GithubIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useHydrated } from "./user-hydrated";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
 import ForgotPassword from "./forgot-password";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { PageFooter } from "@/components/page-footer";
 
 // Beautiful premium concentric brand logo matching Traces brand aesthetics
 export const Logo = () => (
@@ -73,32 +74,6 @@ const GoogleIcon = () => (
   </svg>
 );
 
-// Floating Theme Toggle Button
-const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="absolute top-4 right-4 z-50 p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
-      title={`Switch theme`}
-      id="global-theme-toggle"
-    >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4 text-orange-400" />
-      ) : (
-        <Moon className="w-4 h-4 text-indigo-500" />
-      )}
-    </button>
-  );
-};
 
 function AuthScreen({
   onToggleMode,
@@ -123,11 +98,11 @@ function AuthScreen({
     >
       <Logo />
 
-      <h1 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+      <h1 className="form-heading">
         Welcome to PulseGuard
       </h1>
 
-      <p className="mt-2 text-sm text-zinc-400 font-sans mb-10 max-w-[280px] md:max-w-none">
+      <p className="mt-2 form-subtitle mb-10 max-w-[280px] md:max-w-none">
         An intelligent error tracking and monitoring tool.
       </p>
 
@@ -140,7 +115,7 @@ function AuthScreen({
           whileTap={{ scale: 0.99 }}
           onClick={() => handleOAuthClick("google")}
           disabled={loadingProvider !== null}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="btn-primary w-full"
         >
           <motion.span
             className="flex items-center justify-center gap-2"
@@ -165,7 +140,7 @@ function AuthScreen({
           whileTap={{ scale: 0.99 }}
           onClick={() => handleOAuthClick("github")}
           disabled={loadingProvider !== null}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="btn-primary w-full"
         >
           <motion.span
             className="flex items-center justify-center gap-2"
@@ -189,18 +164,18 @@ function AuthScreen({
         </motion.button>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-zinc-500 max-w-[290px] mb-8 select-none">
+      <p className="text-[11px] leading-relaxed text-pg-subtle max-w-[290px] mb-8 select-none">
         By signing in, you agree to our{" "}
         <a
           href="#terms"
-          className="hover:text-zinc-300 underline underline-offset-2 transition-colors"
+          className="hover:text-pg-muted underline underline-offset-2 transition-colors"
         >
           Terms of Service
         </a>{" "}
         &{" "}
         <a
           href="#privacy"
-          className="hover:text-zinc-300 underline underline-offset-2 transition-colors"
+          className="hover:text-pg-muted underline underline-offset-2 transition-colors"
         >
           Privacy Policy
         </a>
@@ -210,10 +185,10 @@ function AuthScreen({
         id="btn-transition-email"
         whileHover={{ y: -1 }}
         onClick={() => onToggleMode("login")}
-        className="group inline-flex items-center gap-1.5 text-zinc-400 hover:text-white font-medium text-[13px] transition-colors duration-200 cursor-pointer focus:outline-none bg-transparent"
+        className="group btn-back"
       >
         <span>Get started with Email</span>
-        <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors duration-200" />
+        <ArrowRight className="w-3.5 h-3.5 text-pg-subtle group-hover:text-pg-text transition-colors duration-200" />
       </motion.button>
     </div>
   );
@@ -300,10 +275,8 @@ function AuthContent() {
         </AnimatePresence>
       </div>
 
-      {/* Trademark bottom line */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-mono text-zinc-600 select-none tracking-wider font-light">
-        PULSEGUARD &copy; {new Date().getFullYear()}
-      </div>
+      {/* Trademark footer */}
+      <PageFooter />
     </div>
   );
 }

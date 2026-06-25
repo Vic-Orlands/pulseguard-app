@@ -5,17 +5,18 @@ import {
   CheckmarkCircle01Icon,
   Loading02Icon,
 } from "@hugeicons/core-free-icons";
-import { ArrowLeft, Lock, Loader2, Sun, Moon } from "lucide-react";
-import { useState, useTransition, useEffect } from "react";
+import { ArrowLeft, Lock, Loader2 } from "lucide-react";
+import { useState, useTransition, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { resetPassword } from "@/lib/api/user-api";
 import { z } from "zod";
 import { FormField, InputWithIcon } from "../signin/shared";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { PageFooter } from "@/components/page-footer";
 
 // Zod schema for password reset validation
 const resetPasswordSchema = z
@@ -38,31 +39,6 @@ const resetPasswordSchema = z
   });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-
-const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="absolute top-4 right-4 z-50 p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
-      title="Switch theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4 text-orange-400" />
-      ) : (
-        <Moon className="w-4 h-4 text-indigo-500" />
-      )}
-    </button>
-  );
-};
 
 export default function ResetPasswordPage() {
   const [isPending, startTransition] = useTransition();
@@ -163,7 +139,7 @@ export default function ResetPasswordPage() {
         {tokenValid === null && (
           <div className="w-full max-w-[364px] mx-auto text-center py-8">
             <Loader2 className="h-5 w-5 animate-spin mx-auto text-zinc-400" />
-            <p className="text-xs text-zinc-500 mt-3">
+            <p className="text-xs text-pg-subtle mt-3">
               Validating reset link...
             </p>
           </div>
@@ -192,7 +168,7 @@ export default function ResetPasswordPage() {
                 router.push("/signin");
                 localStorage.setItem("auth_mode", "forgot-password");
               }}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"
+              className="btn-primary w-full"
             >
               <motion.span
                 className="flex items-center justify-center gap-2"
@@ -217,7 +193,7 @@ export default function ResetPasswordPage() {
                   localStorage.setItem("auth_mode", "login");
                 }}
                 whileHover={{ x: -2 }}
-                className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white text-[13px] font-medium transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+                className="btn-back"
               >
                 <ArrowLeft className="w-4 h-4 text-zinc-500" />
                 <span>Back to login</span>
@@ -226,10 +202,10 @@ export default function ResetPasswordPage() {
 
             {/* Heading */}
             <div className="mb-6 text-left">
-              <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+              <h2 className="form-heading">
                 Reset Your Password
               </h2>
-              <p className="mt-2 text-sm text-zinc-400 font-sans">
+              <p className="mt-2 form-subtitle">
                 Enter your new password below.
               </p>
             </div>
@@ -241,7 +217,7 @@ export default function ResetPasswordPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left"
+                  className="banner-error"
                 >
                   {error}
                 </motion.div>
@@ -254,7 +230,7 @@ export default function ResetPasswordPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-3 mb-4 rounded-lg bg-emerald-950/40 border border-emerald-900/50 text-emerald-400 text-xs text-left flex items-center gap-2"
+                  className="banner-success flex items-center gap-2"
                 >
                   <HugeiconsIcon
                     icon={CheckmarkCircle01Icon}
@@ -329,7 +305,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 whileTap={{ scale: 0.99 }}
                 disabled={isPending || success !== ""}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"
+                className="btn-primary w-full"
               >
                 <motion.span
                   className="flex items-center justify-center gap-2"
@@ -360,9 +336,7 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-mono text-zinc-600 select-none tracking-wider font-light">
-        PULSEGUARD &copy; {new Date().getFullYear()}
-      </div>
+      <PageFooter />
     </div>
   );
 }

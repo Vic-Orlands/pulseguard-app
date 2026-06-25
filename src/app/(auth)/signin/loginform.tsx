@@ -95,19 +95,19 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           type="button"
           onClick={() => onToggleMode("oauth")}
           whileHover={{ x: -2 }}
-          className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white text-[13px] font-medium transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+          className="btn-back"
         >
-          <ArrowLeft className="w-4 h-4 text-zinc-500" />
+          <ArrowLeft className="w-4 h-4 text-pg-subtle" />
           <span>Back to options</span>
         </motion.button>
       </div>
 
       {/* Form header */}
       <div className="mb-8 text-left">
-        <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+        <h2 className="form-heading">
           Welcome back
         </h2>
-        <p className="mt-2 text-sm text-zinc-400 font-sans">
+        <p className="mt-2 form-subtitle">
           Sign in to access your saved agent sessions
         </p>
       </div>
@@ -120,7 +120,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left"
+              className="banner-error"
               id="form-error-feedback"
             >
               {error}
@@ -168,7 +168,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           <button
             type="button"
             onClick={() => onToggleMode("forgot-password")}
-            className="text-zinc-500 hover:text-white text-xs transition-colors underline-offset-2 hover:underline bg-transparent border-0 p-0 cursor-pointer"
+            className="text-pg-subtle hover:text-pg-text text-xs transition-colors underline-offset-2 hover:underline bg-transparent border-0 p-0 cursor-pointer"
           >
             Forgot password?
           </button>
@@ -180,7 +180,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
           type="submit"
           whileTap={{ scale: 0.99 }}
           disabled={isPending}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="btn-primary w-full"
         >
           <motion.span
             className="flex items-center justify-center gap-2"
@@ -206,7 +206,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
             type="button"
             id="link-switch-to-signup"
             onClick={() => onToggleMode("signup")}
-            className="text-zinc-350 hover:text-white underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
+            className="text-pg-subtle hover:text-pg-text underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
           >
             Sign up
           </button>

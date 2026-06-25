@@ -260,10 +260,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         return (
           <div className="space-y-6">
             <div className="text-left">
-              <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+              <h2 className="form-heading">
                 Choose your avatar
               </h2>
-              <p className="mt-2 text-sm text-zinc-400 font-sans">
+              <p className="mt-2 form-subtitle">
                 Set up your workspace identity with a high-contrast visual
                 profile or upload yours.
               </p>
@@ -288,7 +288,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
             {/* Preset Avatar Selection Grid */}
             <div className="space-y-3">
-              <label className="block text-zinc-400 text-xs font-medium text-left select-none">
+              <label className="form-label text-left">
                 Pre-defined Avatars
               </label>
               <div className="grid grid-cols-4 gap-3">
@@ -333,7 +333,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
             {/* Upload or Link Area */}
             <div className="space-y-3 text-left">
-              <label className="block text-zinc-400 text-xs font-medium select-none">
+              <label className="form-label">
                 Upload or custom image
               </label>
 
@@ -434,19 +434,19 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
           type="button"
           onClick={() => onToggleMode("oauth")}
           whileHover={{ x: -2 }}
-          className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white text-[13px] font-medium transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+          className="btn-back"
         >
-          <ArrowLeft className="w-4 h-4 text-zinc-500" />
+          <ArrowLeft className="w-4 h-4 text-pg-subtle" />
           <span>Back to options</span>
         </motion.button>
       </div>
 
       {step !== 2 && (
         <div className="mb-6 text-left">
-          <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+          <h2 className="form-heading">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-zinc-400 font-sans">
+          <p className="mt-2 form-subtitle">
             Get started with PulseGuard by setting up your profile
           </p>
         </div>
@@ -494,7 +494,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
       </div>
 
       {error && (
-        <div className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+        <div className="banner-error mb-4">
           {error}
         </div>
       )}
@@ -531,7 +531,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             disabled={isPending}
             className={`${
               step > 1 ? "flex-1" : "w-full"
-            } bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
+            } btn-primary`}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
@@ -554,7 +554,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             type="button"
             id="link-switch-to-signin"
             onClick={() => onToggleMode("login")}
-            className="text-zinc-300 hover:text-white underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
+            className="text-pg-muted hover:text-pg-text underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
           >
             Sign In
           </button>
