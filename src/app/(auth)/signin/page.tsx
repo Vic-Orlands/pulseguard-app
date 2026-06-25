@@ -188,31 +188,69 @@ function AuthContent() {
       {/* Floating Theme Toggle */}
       <ThemeToggle />
 
-      <div className="w-full z-10 flex flex-col justify-center max-w-lg">
-        {mode === "oauth" && (
-          <AuthScreen 
-            onToggleMode={toggleMode}
-            handleOAuthLogin={handleOAuthLogin}
-          />
-        )}
+      <div className="w-full z-10 flex flex-col justify-center max-w-lg relative min-h-[480px]">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {mode === "oauth" && (
+            <motion.div
+              key="oauth"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex justify-center"
+            >
+              <AuthScreen 
+                onToggleMode={toggleMode}
+                handleOAuthLogin={handleOAuthLogin}
+              />
+            </motion.div>
+          )}
 
-        {mode === "login" && (
-          <LoginForm 
-            onToggleMode={toggleMode} 
-          />
-        )}
+          {mode === "login" && (
+            <motion.div
+              key="login"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex justify-center"
+            >
+              <LoginForm 
+                onToggleMode={toggleMode} 
+              />
+            </motion.div>
+          )}
 
-        {mode === "signup" && (
-          <SignupForm 
-            onToggleMode={toggleMode} 
-          />
-        )}
+          {mode === "signup" && (
+            <motion.div
+              key="signup"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex justify-center"
+            >
+              <SignupForm 
+                onToggleMode={toggleMode} 
+              />
+            </motion.div>
+          )}
 
-        {mode === "forgot-password" && (
-          <ForgotPassword 
-            onToggleMode={toggleMode} 
-          />
-        )}
+          {mode === "forgot-password" && (
+            <motion.div
+              key="forgot-password"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex justify-center"
+            >
+              <ForgotPassword 
+                onToggleMode={toggleMode} 
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Trademark bottom line */}

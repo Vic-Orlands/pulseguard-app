@@ -26,6 +26,7 @@ import {
   type FormProps,
   type SignupFormData,
 } from "@/types/form";
+import Image from "next/image";
 
 // Preset Unsplash avatars matching Traces design system
 const PRESET_AVATARS = [
@@ -41,8 +42,8 @@ const PRESET_AVATARS = [
   },
   {
     id: "av-3",
-    url: "https://images.unsplash.com/photo-1618005198143-d366803e1200?auto=format&fit=crop&w=150&q=80",
-    label: "Deep Purple",
+    url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+    label: "Lady Avatar",
   },
   {
     id: "av-4",
@@ -271,12 +272,13 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             {/* Selected Avatar Preview */}
             <div className="flex justify-center py-2">
               <div className="relative w-20 h-20 rounded-full bg-zinc-900 border-2 border-zinc-700/80 p-0.5 flex items-center justify-center">
-                <img
+                <Image
                   src={selectedAvatar}
                   alt="Avatar Preview"
                   className="w-full h-full object-cover rounded-full bg-zinc-950"
                   referrerPolicy="no-referrer"
                   onError={() => setSelectedAvatar(PRESET_AVATARS[0].url)}
+                  fill
                 />
                 <div className="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950 border-2 border-zinc-950">
                   <Check className="w-3.5 h-3.5 text-white stroke-[3.5px]" />
@@ -311,11 +313,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                           : "border-zinc-800 hover:border-zinc-600"
                       }`}
                     >
-                      <img
+                      <Image
                         src={avatar.url}
                         alt={avatar.label}
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
+                        fill
                       />
                       {isSelected && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
