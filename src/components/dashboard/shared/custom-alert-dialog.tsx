@@ -21,7 +21,7 @@ export function CustomAlertDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent className="!bg-[#0a0a0a] border !border-zinc-800 shadow-2xl p-6 max-w-sm rounded-xl text-white">
+      <AlertDialogContent className="bg-[#0a0a0a] border border-zinc-800 shadow-2xl p-6 max-w-sm! rounded-xl text-white">
         <AlertDialogHeader className="mb-5 text-left flex flex-col gap-1.5">
           <AlertDialogTitle className="text-xl font-normal tracking-[-0.058em] text-white font-sans">
             {title}
