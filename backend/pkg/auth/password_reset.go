@@ -25,7 +25,7 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 
 	htmlContent, err := os.ReadFile(templatePath)
 	if err != nil {
-		log.Printf("⚠️ Could not load template %s: %v. Using fallback HTML.", templatePath, err)
+		log.Printf("Could not load template %s: %v. Using fallback HTML.", templatePath, err)
 		htmlContent = []byte(fmt.Sprintf(`<p>Click below to reset your password:</p><p><a href="%s">%s</a></p>`, resetLink, resetLink))
 	}
 
@@ -48,12 +48,12 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 		htmlBody = string(htmlContent)
 	}
 
-	subject := "🔐 Reset Your Password"
+	subject := "Reset Your Password"
 	emailID, err := m.Send([]string{to}, subject, htmlBody)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("✅ Password reset email sent: %s", emailID)
+	log.Printf("Password reset email sent: %s", emailID)
 	return nil
 }

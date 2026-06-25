@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Body,
   Button,
@@ -39,7 +38,8 @@ export const PasswordResetEmail = ({
             </Section>
             <Section className="mb-6">
               <Text className="text-xs leading-relaxed text-text-secondary m-0">
-                We received a request to reset the password associated with your account. Click the button below to choose a new password.
+                We received a request to reset the password associated with your
+                account. Click the button below to choose a new password.
               </Text>
             </Section>
             <Section className="mb-6">
@@ -52,10 +52,13 @@ export const PasswordResetEmail = ({
             </Section>
             <Section className="border-t border-border pt-4">
               <Text className="text-[10px] leading-relaxed text-text-muted m-0">
-                This link will expire in 24 hours. If you did not request this password reset, you can safely ignore this email; your password will remain unchanged.
+                This link will expire in 24 hours. If you did not request this
+                password reset, you can safely ignore this email; your password
+                will remain unchanged.
               </Text>
               <Text className="text-[10px] leading-relaxed text-text-muted mt-2 m-0">
-                If the button above doesn't work, copy and paste this URL into your web browser:
+                If the button above doesn't work, copy and paste this URL into
+                your web browser:
                 <br />
                 <span className="text-text-secondary select-all">{url}</span>
               </Text>

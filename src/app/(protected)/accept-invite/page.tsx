@@ -72,14 +72,14 @@ export default function AcceptInvitePage() {
 
         if (user && data.email.toLowerCase() !== user.email.toLowerCase()) {
           setError(
-            `This invitation was sent to ${data.email}, but you are logged in as ${user.email}.`
+            `This invitation was sent to ${data.email}, but you are logged in as ${user.email}.`,
           );
         }
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load invitation details"
+            : "Failed to load invitation details",
         );
       } finally {
         setLoading(false);
@@ -101,7 +101,7 @@ export default function AcceptInvitePage() {
         router.push("/projects");
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to accept invitation"
+          err instanceof Error ? err.message : "Failed to accept invitation",
         );
       }
     });
@@ -129,7 +129,7 @@ export default function AcceptInvitePage() {
           {!loading && error && (
             <div className="w-full">
               <div className="mb-8 text-center">
-                <div className="mx-auto h-12 w-12 rounded-full bg-red-950/30 flex items-center justify-center border border-red-900/40 mb-4">
+                <div className="mx-auto h-12 w-12 rounded-full dark:bg-red-950/30 flex items-center justify-center border-2 dark:border border-red-400 dark:border-red-900/40 mb-4">
                   <HugeiconsIcon
                     icon={Cancel01Icon}
                     className="h-5 w-5 text-red-400"
@@ -138,7 +138,7 @@ export default function AcceptInvitePage() {
                 <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
                   Invitation Error
                 </h2>
-                <p className="mt-2 text-sm text-zinc-400 font-sans leading-relaxed">
+                <p className="mt-1 text-sm text-zinc-400 font-sans leading-relaxed">
                   {error}
                 </p>
               </div>
@@ -153,7 +153,11 @@ export default function AcceptInvitePage() {
                     <motion.span
                       className="flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.04 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                      }}
                     >
                       <LogOut className="h-3.5 w-3.5" />
                       Sign Out of {user.email}
@@ -174,8 +178,8 @@ export default function AcceptInvitePage() {
                   onClick={() =>
                     router.push(
                       `/signin?redirect=${encodeURIComponent(
-                        window.location.pathname + window.location.search
-                      )}`
+                        window.location.pathname + window.location.search,
+                      )}`,
                     )
                   }
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9.5 px-4 text-sm gap-2 w-full cursor-pointer"

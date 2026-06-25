@@ -28,7 +28,7 @@ const resetPasswordSchema = z
         {
           message:
             "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-        }
+        },
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
@@ -124,16 +124,17 @@ export default function ResetPasswordPage() {
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to reset password"
+          err instanceof Error ? err.message : "Failed to reset password",
         );
       }
     });
   };
 
   const getPasswordStrength = (
-    pw: string
+    pw: string,
   ): { score: number; label: string; color: string } => {
-    if (!pw) return { score: 0, label: "Enter password", color: "text-zinc-500" };
+    if (!pw)
+      return { score: 0, label: "Enter password", color: "text-zinc-500" };
     let score = 0;
     if (pw.length >= 8) score++;
     if (/[a-z]/.test(pw)) score++;
@@ -162,7 +163,9 @@ export default function ResetPasswordPage() {
         {tokenValid === null && (
           <div className="w-full max-w-[364px] mx-auto text-center py-8">
             <Loader2 className="h-5 w-5 animate-spin mx-auto text-zinc-400" />
-            <p className="text-xs text-zinc-500 mt-3">Validating reset link...</p>
+            <p className="text-xs text-zinc-500 mt-3">
+              Validating reset link...
+            </p>
           </div>
         )}
 
@@ -289,12 +292,12 @@ export default function ResetPasswordPage() {
                           passwordStrength.score <= 1
                             ? "bg-red-500"
                             : passwordStrength.score <= 2
-                            ? "bg-orange-500"
-                            : passwordStrength.score <= 3
-                            ? "bg-yellow-500"
-                            : passwordStrength.score <= 4
-                            ? "bg-blue-500"
-                            : "bg-emerald-500"
+                              ? "bg-orange-500"
+                              : passwordStrength.score <= 3
+                                ? "bg-yellow-500"
+                                : passwordStrength.score <= 4
+                                  ? "bg-blue-500"
+                                  : "bg-emerald-500"
                         }`}
                         style={{
                           width: `${(passwordStrength.score / 5) * 100}%`,
