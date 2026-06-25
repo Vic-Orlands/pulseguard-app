@@ -16,6 +16,7 @@ import {
   Upload,
   Link2,
   Image as ImageIcon,
+  Building,
 } from "lucide-react";
 
 import { FormField, InputWithIcon } from "./shared";
@@ -114,6 +115,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
     reader.onload = (event) => {
       const result = event.target?.result as string;
       setUploadedAvatar(result);
+      setSelectedAvatar(result);
       setValue("avatar", result);
       setAvatarType("upload");
       setValue("avatarType", "upload");
@@ -140,15 +142,13 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
         isValid = await trigger([
           "name",
           "email",
+          "company",
           "password",
           "confirmPassword",
         ]);
         break;
       case 2:
         isValid = await trigger(["avatar", "avatarType"]);
-        break;
-      case 3:
-        isValid = await trigger(["company", "role"]);
         break;
     }
 
@@ -160,7 +160,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
     if (!isValid) return;
 
-    if (step === 3) {
+    if (step === 2) {
       handleSubmit(onSubmit)();
       return;
     }
@@ -217,6 +217,18 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               />
             </FormField>
 
+            <FormField
+              label="Company (Optional)"
+              error={errors.company?.message}
+            >
+              <InputWithIcon
+                icon={Building}
+                placeholder="PulseGuard Inc."
+                error={errors.company?.message}
+                {...register("company")}
+              />
+            </FormField>
+
             <FormField label="Password" error={errors.password?.message}>
               <InputWithIcon
                 icon={Lock}
@@ -260,11 +272,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             <div className="flex justify-center py-2">
               <div className="relative w-20 h-20 rounded-full bg-zinc-900 border-2 border-zinc-700/80 p-0.5 flex items-center justify-center">
                 <img
-                  src={
-                    avatarType === "upload"
-                      ? uploadedAvatar || PRESET_AVATARS[0].url
-                      : selectedAvatar
-                  }
+                  src={selectedAvatar}
                   alt="Avatar Preview"
                   className="w-full h-full object-cover rounded-full bg-zinc-950"
                   referrerPolicy="no-referrer"
@@ -370,6 +378,12 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
                         placeholder="https://example.com/avatar.png"
                         value={customAvatarUrl}
                         onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleCustomUrlSubmit(e);
+                          }
+                        }}
                         className="w-full h-8 pl-8 pr-2 rounded bg-zinc-900/80 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-xs transition-colors"
                         autoFocus
                       />
@@ -403,62 +417,11 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             </div>
           </div>
         );
-      case 3:
-        return (
-          <>
-            <FormField
-              label="Company (Optional)"
-              error={errors.company?.message}
-            >
-              <input
-                type="text"
-                placeholder="PulseGuard Inc."
-                className="w-full h-9.5 px-4 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13.5px] transition-colors"
-                {...register("company")}
-              />
-            </FormField>
-
-            <FormField label="Role (Optional)" error={errors.role?.message}>
-              <select
-                onChange={(e) => setValue("role", e.target.value)}
-                className="w-full h-9.5 px-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13.5px] transition-colors"
-              >
-                <option
-                  value=""
-                  disabled
-                  selected
-                  className="bg-zinc-950 text-white"
-                >
-                  Select your role
-                </option>
-                <option value="developer" className="bg-zinc-950 text-white">
-                  Developer
-                </option>
-                <option value="devops" className="bg-zinc-950 text-white">
-                  DevOps Engineer
-                </option>
-                <option value="sre" className="bg-zinc-950 text-white">
-                  SRE
-                </option>
-                <option value="manager" className="bg-zinc-950 text-white">
-                  Engineering Manager
-                </option>
-                <option value="other" className="bg-zinc-950 text-white">
-                  Other
-                </option>
-              </select>
-            </FormField>
-          </>
-        );
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    <div
       className="w-full max-w-[374px] mx-auto px-1"
       id="email-form-container"
     >
@@ -481,7 +444,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             Create your account
           </h2>
           <p className="mt-2 text-sm text-zinc-400 font-sans">
-            Get started with PulseGuard by setting up your credentials
+            Get started with PulseGuard by setting up your profile
           </p>
         </div>
       )}
@@ -503,7 +466,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               step === 1 ? "text-white" : "text-zinc-500"
             }`}
           >
-            Credentials
+            Profile
           </span>
         </div>
         <div className="flex-1 h-px bg-zinc-800 mx-4" />
@@ -512,12 +475,10 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
               step === 2
                 ? "bg-white text-zinc-950"
-                : step > 2
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                  : "bg-zinc-900 border border-zinc-800 text-zinc-500"
+                : "bg-zinc-900 border border-zinc-800 text-zinc-500"
             }`}
           >
-            {step > 2 ? <Check className="w-3.5 h-3.5" /> : "2"}
+            2
           </div>
           <span
             className={`text-xs font-medium ${
@@ -525,25 +486,6 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             }`}
           >
             Avatar
-          </span>
-        </div>
-        <div className="flex-1 h-px bg-zinc-800 mx-4" />
-        <div className="flex items-center space-x-2">
-          <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-              step === 3
-                ? "bg-white text-zinc-950"
-                : "bg-zinc-900 border border-zinc-800 text-zinc-500"
-            }`}
-          >
-            3
-          </div>
-          <span
-            className={`text-xs font-medium ${
-              step === 3 ? "text-white" : "text-zinc-500"
-            }`}
-          >
-            Details
           </span>
         </div>
       </div>
@@ -594,8 +536,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               <Loader2 className="h-4 w-4 animate-spin text-zinc-800" />
             ) : (
               <>
-                <span>{step === 3 ? "Register" : "Continue"}</span>
-                {step < 3 && <ArrowRight className="h-3.5 w-3.5" />}
+                <span>{step === 2 ? "Register" : "Continue"}</span>
+                {step < 2 && <ArrowRight className="h-3.5 w-3.5" />}
               </>
             )}
           </motion.button>
@@ -615,6 +557,6 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
           </button>
         </p>
       </div>
-    </motion.div>
+    </div>
   );
 };

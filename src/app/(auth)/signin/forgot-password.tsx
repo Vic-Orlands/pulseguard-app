@@ -57,11 +57,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    <div
       className="w-full max-w-[364px] mx-auto"
       id="email-form-container"
     >
@@ -134,6 +130,6 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
           </motion.span>
         </motion.button>
       </form>
-    </motion.div>
+    </div>
   );
 }
