@@ -82,10 +82,9 @@ export default function OnboardingPage() {
           className="w-full max-w-[364px] mx-auto px-4"
           id="onboarding-container"
         >
-          <div>
-            
+          <div className="w-fit pl-4">
+            <Logo />
           </div>
-          <Logo />
 
           <div className="mb-8 text-left">
             <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">

@@ -54,7 +54,11 @@ const ThemeToggle = () => {
       title={`Switch theme`}
       id="projects-theme-toggle"
     >
-      {theme === "dark" ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+      {theme === "dark" ? (
+        <Sun className="w-4 h-4 text-orange-400" />
+      ) : (
+        <Moon className="w-4 h-4 text-indigo-500" />
+      )}
     </button>
   );
 };
@@ -216,13 +220,16 @@ const CreateProjectDialog = ({
 
 export default function ProjectSelectionPage() {
   const router = useRouter();
-  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace } = useAuth();
+  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace } =
+    useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [projectActionTab, setProjectActionTab] = useState<"select" | "create">("select");
+  const [projectActionTab, setProjectActionTab] = useState<"select" | "create">(
+    "select",
+  );
   const [error, setError] = useState<string>("");
 
   // Create project form states
@@ -231,9 +238,12 @@ export default function ProjectSelectionPage() {
 
   // Loading indicator overlay states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [creatingStatus, setCreatingStatus] = useState<"creating" | "complete">("creating");
+  const [creatingStatus, setCreatingStatus] = useState<"creating" | "complete">(
+    "creating",
+  );
   const [creatingProjectName, setCreatingProjectName] = useState("");
-  const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] = useState(false);
+  const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] =
+    useState(false);
 
   const getAllProjects = async () => {
     try {
@@ -333,13 +343,12 @@ export default function ProjectSelectionPage() {
 
       setCreatingStatus("complete");
       toast.success("Project created successfully!");
-      
+
       // Auto redirect to new project dashboard after a small delay
       setTimeout(() => {
         setShowCreateDialog(false);
         router.push(`/projects/${newProject.slug}`);
       }, 1500);
-
     } catch (err) {
       setError("Failed to create project. Please try again.");
       setShowCreateDialog(false);
@@ -361,14 +370,15 @@ export default function ProjectSelectionPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center text-white relative py-12 px-4 select-none">
-      
       {/* Floating Toolbar top right */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-1.5 px-3 py-2 bg-zinc-950/40 border border-zinc-800 text-zinc-400 hover:text-white transition-all rounded-full text-xs font-semibold cursor-pointer focus:outline-none">
               <Briefcase className="h-3.5 w-3.5 text-zinc-500" />
-              <span className="max-w-[120px] truncate">{activeWorkspace?.name || "Select Workspace"}</span>
+              <span className="max-w-[120px] truncate">
+                {activeWorkspace?.name || "Select Workspace"}
+              </span>
               <ChevronDown className="h-3 w-3 text-zinc-600" />
             </button>
           </DropdownMenuTrigger>
@@ -437,7 +447,9 @@ export default function ProjectSelectionPage() {
         className="w-full max-w-[374px] mx-auto px-1"
         id="project-selection-container"
       >
-        <Logo />
+        <div className="w-fit pl-4">
+          <Logo />
+        </div>
 
         {/* Card Heading */}
         <div className="text-left mb-6">
@@ -445,7 +457,8 @@ export default function ProjectSelectionPage() {
             Projects
           </h2>
           <p className="mt-2 text-sm text-zinc-400 font-sans">
-            Select an existing PulseGuard telemetry workspace or instantiate a new project.
+            Select an existing PulseGuard telemetry workspace or instantiate a
+            new project.
           </p>
         </div>
 
@@ -464,7 +477,9 @@ export default function ProjectSelectionPage() {
               setError("");
             }}
             className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
-              projectActionTab === "select" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+              projectActionTab === "select"
+                ? "bg-zinc-800 text-white"
+                : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
             Select Active Project
@@ -476,7 +491,9 @@ export default function ProjectSelectionPage() {
               setError("");
             }}
             className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
-              projectActionTab === "create" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+              projectActionTab === "create"
+                ? "bg-zinc-800 text-white"
+                : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
             Create New Project
@@ -510,7 +527,9 @@ export default function ProjectSelectionPage() {
                   className="flex items-center justify-center bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white h-8.5 w-8.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   title="Refresh Projects"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
                 </button>
               </div>
 
@@ -549,7 +568,7 @@ export default function ProjectSelectionPage() {
                           </span>
                         </div>
                       </div>
-                    )
+                    );
                   })
                 ) : (
                   <p className="text-xs text-zinc-500 text-center py-6">
