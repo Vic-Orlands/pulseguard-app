@@ -66,7 +66,7 @@ function AnimatedGrid() {
 }
 
 export default function NotFound({
-  message = "The page you're looking for doesn't exist or has been moved.",
+  message = "Sorry! The page you're looking for doesn't exist or has been moved.",
   backHref = "/",
   backLabel = "Go Home",
 }: {
@@ -78,16 +78,12 @@ export default function NotFound({
     <div className="bg-dot-pattern min-h-screen w-full relative overflow-hidden text-pg-text flex flex-col">
       <ThemeToggle id="not-found-theme-toggle" />
 
-      {/* Top-left logo */}
       <div className="absolute top-6 left-6 z-10">
         <Logo />
       </div>
 
-      {/* Main content — offset toward lower-center like the reference */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-24">
         <div className="flex flex-col items-start gap-10 max-w-lg w-full mx-auto">
-
-          {/* Large 404 — bordered box, serif, spaced digits */}
           <div className="border border-pg-border px-8 py-4 self-center">
             <span
               className="font-serif tracking-[0.45em] text-[clamp(2.5rem,8vw,5rem)] text-pg-text select-none leading-none"
@@ -97,16 +93,13 @@ export default function NotFound({
             </span>
           </div>
 
-          {/* Error grid */}
           <AnimatedGrid />
 
-          {/* Message */}
           <div className="space-y-5">
-            <p className="text-xs font-mono text-pg-subtle tracking-wide max-w-[300px] leading-relaxed">
+            <p className="text-xs font-sans text-pg-subtle tracking-wide max-w-[300px] leading-relaxed">
               {message}
             </p>
 
-            {/* Actions */}
             <div className="flex items-center gap-4">
               <Link href={backHref} className="btn-primary gap-2">
                 <Home className="h-3.5 w-3.5" />
@@ -121,7 +114,6 @@ export default function NotFound({
               </button>
             </div>
           </div>
-
         </div>
       </div>
 

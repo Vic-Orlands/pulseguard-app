@@ -155,22 +155,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {loading ? (
-        <div className="min-h-screen w-full bg-black flex items-center justify-center relative">
-          <div
-            className="absolute inset-0 z-0"
-            style={{
-              background: "#000000",
-              backgroundImage: `radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)`,
-              backgroundSize: "8px 8px",
-            }}
-          />
+        <div className="bg-dot-pattern min-h-screen w-full flex items-center justify-center relative">
           <div className="flex flex-col items-center gap-3 relative z-10">
             <LoaderCircle
-              size={17}
+              size={20}
               strokeWidth={1.5}
               className="animate-spin text-[#ff5a1f]"
             />
-            <p className="text-xs text-[#73736e]">Loading PulseGuard...</p>
+            <p className="text-sm text-[#73736e]">Loading PulseGuard...</p>
           </div>
         </div>
       ) : (
