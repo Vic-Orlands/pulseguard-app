@@ -249,6 +249,24 @@ html:not(.dark) .text-white {
   color: #09090b !important;
 }
 
+/* PRIMARY BUTTON EXCEPTION: buttons with our dark bg (#18181b) must keep white text in light mode */
+.light .bg-\[\#18181b\].text-white,
+html:not(.dark) .bg-\[\#18181b\].text-white,
+.light button.bg-\[\#18181b\] .text-white,
+html:not(.dark) button.bg-\[\#18181b\] .text-white {
+  color: #ffffff !important;
+}
+.light button.bg-\[\#18181b\],
+html:not(.dark) button.bg-\[\#18181b\] {
+  color: #ffffff !important;
+}
+.light button.bg-\[\#18181b\] svg,
+html:not(.dark) button.bg-\[\#18181b\] svg,
+.light button.bg-\[\#18181b\] span,
+html:not(.dark) button.bg-\[\#18181b\] span {
+  color: #ffffff !important;
+}
+
 /* Overrides for specific text-white elements that are actually on light backgrounds */
 .light .bg-zinc-100 .text-zinc-900,
 html:not(.dark) .bg-zinc-100 .text-zinc-900,
