@@ -220,7 +220,7 @@ const CreateProjectDialog = ({
 
 export default function ProjectSelectionPage() {
   const router = useRouter();
-  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace } =
+  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace, fetchWorkspaces } =
     useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -283,6 +283,11 @@ export default function ProjectSelectionPage() {
     }
   };
 
+  // Fetch workspaces on mount in case auth context hasn't resolved yet
+  useEffect(() => {
+    fetchWorkspaces();
+  }, []);
+
   useEffect(() => {
     if (activeWorkspace) {
       getAllProjects();
@@ -308,6 +313,11 @@ export default function ProjectSelectionPage() {
       return;
     }
 
+    if (!activeWorkspace?.id) {
+      setError("Please select a workspace before creating a project.");
+      return;
+    }
+
     try {
       setError("");
       setCreatingProjectName(projectName);
@@ -316,9 +326,10 @@ export default function ProjectSelectionPage() {
 
       const newProjectData = {
         name: projectName.trim(),
-        description: projectDescription.trim(),
+        // Backend requires a non-empty description; fall back to the name.
+        description: projectDescription.trim() || projectName.trim(),
         platform: "OpenTelemetry Project",
-        workspaceId: activeWorkspace?.id,
+        workspaceId: activeWorkspace.id,
       };
 
       const response = await fetch(`${url}/api/projects`, {
@@ -329,7 +340,9 @@ export default function ProjectSelectionPage() {
       });
 
       if (!response.ok) {
-        setError("Failed to create project.");
+        const errBody = await response.json().catch(() => ({}));
+        const msg = errBody?.error || `Server error (${response.status})`;
+        setError(msg);
         setShowCreateDialog(false);
         return;
       }
@@ -453,17 +466,17 @@ export default function ProjectSelectionPage() {
 
         {/* Card Heading */}
         <div className="text-left mb-6">
-          <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+          <h2 className="form-heading">
             Projects
           </h2>
-          <p className="mt-2 text-sm text-zinc-400 font-sans">
+          <p className="mt-2 form-subtitle">
             Select an existing PulseGuard telemetry workspace or instantiate a
             new project.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+          <div className="banner-error mb-4">
             {error}
           </div>
         )}
@@ -625,7 +638,7 @@ export default function ProjectSelectionPage() {
                       setProjectName(e.target.value);
                       setError("");
                     }}
-                    className="w-full h-8.5 pl-9 pr-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200"
+                    className="input-field pl-9"
                   />
                 </div>
               </div>
@@ -636,9 +649,9 @@ export default function ProjectSelectionPage() {
                   className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
                   htmlFor="input-project-desc"
                 >
-                  Project Description{" "}
-                  <span className="text-zinc-600 text-[10px] font-normal">
-                    (Optional)
+                  Project Description
+                  <span className="text-pg-subtle text-[10px] font-normal">
+                    (defaults to project name if left empty)
                   </span>
                 </label>
                 <textarea
@@ -647,7 +660,7 @@ export default function ProjectSelectionPage() {
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   rows={2}
-                  className="w-full py-1.5 px-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200 resize-none"
+                  className="w-full py-1.5 px-3 rounded-lg bg-pg-surface border border-pg-border focus:border-zinc-500 focus:outline-none text-pg-text text-[13px] transition-colors duration-200 resize-none"
                 />
               </div>
 
