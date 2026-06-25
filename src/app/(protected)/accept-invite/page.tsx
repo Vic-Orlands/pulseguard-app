@@ -90,9 +90,6 @@ export default function AcceptInvitePage() {
 
       <div className="w-full z-10 flex flex-col justify-center max-w-lg relative">
         <div className="w-full max-w-[364px] mx-auto flex flex-col items-center">
-          <Logo />
-
-          {/* Loading */}
           {loading && (
             <div className="w-full flex flex-col items-center py-8 space-y-4">
               <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
@@ -102,7 +99,6 @@ export default function AcceptInvitePage() {
             </div>
           )}
 
-          {/* Error state */}
           {!loading && error && (
             <div className="w-full">
               <div className="mb-8 text-center">
@@ -112,12 +108,8 @@ export default function AcceptInvitePage() {
                     className="h-5 w-5 text-red-400"
                   />
                 </div>
-                <h2 className="form-heading">
-                  Invitation Error
-                </h2>
-                <p className="mt-1 form-subtitle leading-relaxed">
-                  {error}
-                </p>
+                <h2 className="form-heading">Invitation Error</h2>
+                <p className="mt-1 form-subtitle leading-relaxed">{error}</p>
               </div>
 
               {user && error.includes("logged in as") && (
@@ -183,9 +175,7 @@ export default function AcceptInvitePage() {
                     className="h-5 w-5 text-white"
                   />
                 </div>
-                <h1 className="form-heading">
-                  Join Workspace
-                </h1>
+                <h1 className="form-heading">Join Workspace</h1>
                 <p className="mt-2 form-subtitle leading-relaxed">
                   You&apos;ve been invited to join{" "}
                   <span className="font-semibold text-white">
@@ -199,7 +189,6 @@ export default function AcceptInvitePage() {
                 </p>
               </div>
 
-              {/* User pill */}
               <div className="p-3.5 mb-6 bg-zinc-900/60 border border-zinc-800 rounded-lg">
                 <span className="text-[10px] font-semibold text-zinc-500 block uppercase tracking-wide mb-1">
                   Logged In As
