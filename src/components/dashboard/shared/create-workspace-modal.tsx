@@ -13,7 +13,10 @@ interface CreateWorkspaceModalProps {
   onClose: () => void;
 }
 
-export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalProps) {
+export function CreateWorkspaceModal({
+  isOpen,
+  onClose,
+}: CreateWorkspaceModalProps) {
   const { fetchWorkspaces, setActiveWorkspace } = useAuth();
   const router = useRouter();
   const [name, setName] = useState("");
@@ -39,7 +42,9 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
       onClose();
       router.push("/projects");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create workspace");
+      setError(
+        err instanceof Error ? err.message : "Failed to create workspace",
+      );
       toast.error("Failed to create workspace");
     } finally {
       setLoading(false);
@@ -50,7 +55,6 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -59,7 +63,6 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
             onClick={onClose}
           />
 
-          {/* Modal Panel */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -67,7 +70,6 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
             className="pg-modal max-w-sm w-full relative z-10 text-left p-6"
           >
-            {/* Close Button */}
             <button
               onClick={onClose}
               className="absolute right-4 top-4 p-1 text-pg-subtle hover:text-pg-text transition-colors cursor-pointer z-20 bg-transparent border-0 focus:outline-none"
@@ -75,29 +77,21 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
               <X className="w-4 h-4" />
             </button>
 
-            {/* Header */}
             <div className="mb-6 text-left">
               <h2 className="text-xl font-normal tracking-[-0.058em] text-pg-text font-sans">
                 Create new workspace
               </h2>
               <p className="mt-1.5 text-xs text-pg-muted font-sans leading-relaxed">
-                Name your workspace to group your telemetry databases and projects
+                Name your workspace to group your telemetry databases and
+                projects
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="banner-error">
-                  {error}
-                </div>
-              )}
+              {error && <div className="banner-error">{error}</div>}
 
               <div className="text-left w-full">
-                <label
-                  className="form-label"
-                  htmlFor="modal-workspace-name"
-                >
+                <label className="form-label" htmlFor="modal-workspace-name">
                   Workspace Name
                 </label>
                 <div className="relative w-full">
@@ -120,7 +114,6 @@ export function CreateWorkspaceModal({ isOpen, onClose }: CreateWorkspaceModalPr
                 </div>
               </div>
 
-              {/* Action Button */}
               <motion.button
                 type="submit"
                 whileTap={{ scale: 0.99 }}

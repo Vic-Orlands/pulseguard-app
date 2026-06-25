@@ -31,7 +31,8 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pulseguard.dev";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "PulseGuard",
+  title:
+    "PulseGuard -An intelligent, error tracking and monitoring tool for your web apps",
   description:
     "An intelligent, error tracking and monitoring tool for your web apps.",
   icons: {
@@ -73,10 +74,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <body className={`${inter.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+        >
           <TelemetryProvider
             projectId={currentProjectId}
             issueTrackerUrl={trackerUrl}

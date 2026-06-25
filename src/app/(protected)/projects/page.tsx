@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,11 +10,9 @@ import {
   Briefcase,
   ChevronDown,
   Check,
-  Plus,
   Sun,
   Moon,
   FolderPlus,
-  ArrowLeft,
   ArrowRight,
   RefreshCw,
   LogOut,
@@ -33,6 +31,8 @@ import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-works
 
 import type { Project } from "@/types/dashboard";
 import { normalizePostgresString } from "@/lib/utils";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -397,13 +397,13 @@ export default function ProjectSelectionPage() {
                   onClick={() => setActiveWorkspace(ws)}
                   className={`w-full text-left rounded px-2.5 py-1.5 text-xs transition-all flex items-center justify-between cursor-pointer ${
                     activeWorkspace?.id === ws.id
-                      ? "bg-orange-500/10 text-orange-400 font-semibold"
+                      ? "bg-slate-800/10 text-white font-semibold"
                       : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
                   }`}
                 >
                   <span className="truncate pr-2">{ws.name}</span>
                   {activeWorkspace?.id === ws.id && (
-                    <Check className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
+                    <Check className="h-3.5 w-3.5 text-white flex-shrink-0" />
                   )}
                 </button>
               ))}
@@ -412,9 +412,9 @@ export default function ProjectSelectionPage() {
             <div className="p-1">
               <button
                 onClick={() => setIsCreateWorkspaceModalOpen(true)}
-                className="w-full text-left rounded px-2.5 py-1.5 text-xs text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
+                className="w-full text-left bg-slate-800/10 text-white rounded px-2.5 py-1.5 text-xs hover:bg-zinc-800 hover:text-zinc-100 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
                 Create Workspace
               </button>
             </div>
