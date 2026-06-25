@@ -35,6 +35,7 @@ func NewProjectHandler(projectService *service.ProjectService, metrics *otel.Met
 type createProjectRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	WorkspaceID string `json:"workspaceId"`
 }
 
 type updateProjectRequest struct {
@@ -65,6 +66,11 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusBadRequest, "Missing project description")
 		return
 	}
+	if req.WorkspaceID == "" {
+		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_workspace_id")))
+		util.WriteError(w, http.StatusBadRequest, "Missing workspace ID")
+		return
+	}
 
 	// Get user_id from context (set by authMiddleware)
 	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
@@ -73,7 +79,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
-	project, err := h.projectService.Create(ctx, req.Name, req.Description, userID)
+	project, err := h.projectService.Create(ctx, req.Name, req.Description, userID, req.WorkspaceID)
 	if err != nil {
 		if errors.Is(err, service.ErrDuplicateSlug) {
 			util.WriteErrorFields(w, "Project name already exists", []string{"name"})
@@ -99,7 +105,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusCreated, project)
 }
 
-// ListByOwner handles fetches all projects owned by a specific user
+// ListByOwner handles fetches all projects owned by a specific user or filtered by workspace
 func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
@@ -109,7 +115,19 @@ func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projects, err := h.projectService.ListByOwner(ctx, userID)
+	workspaceID := r.URL.Query().Get("workspaceId")
+	if workspaceID != "" {
+		projects, err := h.projectService.ListByWorkspace(ctx, workspaceID)
+		if err != nil {
+			h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "list_projects_failed")))
+			util.WriteError(w, http.StatusInternalServerError, "Failed to fetch workspace projects")
+			return
+		}
+		util.WriteJSON(w, http.StatusOK, projects)
+		return
+	}
+
+	projects, err := h.projectService.ListByMemberUser(ctx, userID)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "list_projects_failed")))
 		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch projects")

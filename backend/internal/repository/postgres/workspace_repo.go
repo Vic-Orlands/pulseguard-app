@@ -1,0 +1,423 @@
+package postgres
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"pulseguard/internal/models"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type WorkspaceRepository struct {
+	db *sql.DB
+}
+
+func NewWorkspaceRepository(db *sql.DB) *WorkspaceRepository {
+	return &WorkspaceRepository{db: db}
+}
+
+// Transaction helper
+func (repo *WorkspaceRepository) withTx(ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// Create Workspace, default general team, owner workspace member, and add owner to team in a single transaction
+func (repo *WorkspaceRepository) Create(ctx context.Context, ws *models.Workspace, ownerID uuid.UUID) error {
+	return repo.withTx(ctx, func(tx *sql.Tx) error {
+		now := time.Now()
+		ws.CreatedAt = now
+		ws.UpdatedAt = now
+
+		// 1. Insert Workspace
+		queryWs := `
+			INSERT INTO workspaces (id, name, slug, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5)
+		`
+		_, err := tx.ExecContext(ctx, queryWs, ws.ID, ws.Name, ws.Slug, ws.CreatedAt, ws.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("insert workspace: %w", err)
+		}
+
+		// 2. Add creator as Org Owner
+		queryMember := `
+			INSERT INTO workspace_members (id, workspace_id, user_id, role, status, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+		`
+		_, err = tx.ExecContext(ctx, queryMember, uuid.New(), ws.ID, ownerID, "owner", "active", now, now)
+		if err != nil {
+			return fmt.Errorf("add workspace owner: %w", err)
+		}
+
+		// 3. Create default general team
+		teamID := uuid.New()
+		queryTeam := `
+			INSERT INTO teams (id, workspace_id, name, slug, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+		`
+		_, err = tx.ExecContext(ctx, queryTeam, teamID, ws.ID, "general", "general", now, now)
+		if err != nil {
+			return fmt.Errorf("create general team: %w", err)
+		}
+
+		// 4. Add owner to default team
+		queryTeamMember := `
+			INSERT INTO team_members (id, team_id, user_id, created_at)
+			VALUES ($1, $2, $3, $4)
+		`
+		_, err = tx.ExecContext(ctx, queryTeamMember, uuid.New(), teamID, ownerID, now)
+		if err != nil {
+			return fmt.Errorf("add owner to general team: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func (repo *WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Workspace, error) {
+	query := `SELECT id, name, slug, created_at, updated_at FROM workspaces WHERE id = $1`
+	row := repo.db.QueryRowContext(ctx, query, id)
+
+	var ws models.Workspace
+	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("workspace not found")
+		}
+		return nil, err
+	}
+	return &ws, nil
+}
+
+func (repo *WorkspaceRepository) GetBySlug(ctx context.Context, slug string) (*models.Workspace, error) {
+	query := `SELECT id, name, slug, created_at, updated_at FROM workspaces WHERE slug = $1`
+	row := repo.db.QueryRowContext(ctx, query, slug)
+
+	var ws models.Workspace
+	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("workspace not found")
+		}
+		return nil, err
+	}
+	return &ws, nil
+}
+
+func (repo *WorkspaceRepository) ListByUser(ctx context.Context, userID uuid.UUID) ([]*models.Workspace, error) {
+	query := `
+		SELECT w.id, w.name, w.slug, w.created_at, w.updated_at
+		FROM workspaces w
+		JOIN workspace_members wm ON w.id = wm.workspace_id
+		WHERE wm.user_id = $1 AND wm.status = 'active'
+		ORDER BY w.created_at DESC
+	`
+	rows, err := repo.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var workspaces []*models.Workspace
+	for rows.Next() {
+		var ws models.Workspace
+		err := rows.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		workspaces = append(workspaces, &ws)
+	}
+	return workspaces, nil
+}
+
+func (repo *WorkspaceRepository) Update(ctx context.Context, ws *models.Workspace) error {
+	query := `
+		UPDATE workspaces
+		SET name = $1, slug = $2, updated_at = $3
+		WHERE id = $4
+	`
+	_, err := repo.db.ExecContext(ctx, query, ws.Name, ws.Slug, time.Now(), ws.ID)
+	return err
+}
+
+func (repo *WorkspaceRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM workspaces WHERE id = $1`
+	_, err := repo.db.ExecContext(ctx, query, id)
+	return err
+}
+
+// --- TEAMS REPOSITORY ---
+
+func (repo *WorkspaceRepository) CreateTeam(ctx context.Context, team *models.Team) error {
+	now := time.Now()
+	team.CreatedAt = now
+	team.UpdatedAt = now
+	query := `
+		INSERT INTO teams (id, workspace_id, name, slug, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err := repo.db.ExecContext(ctx, query, team.ID, team.WorkspaceID, team.Name, team.Slug, team.CreatedAt, team.UpdatedAt)
+	return err
+}
+
+func (repo *WorkspaceRepository) GetTeamByID(ctx context.Context, id uuid.UUID) (*models.Team, error) {
+	query := `SELECT id, workspace_id, name, slug, created_at, updated_at FROM teams WHERE id = $1`
+	row := repo.db.QueryRowContext(ctx, query, id)
+
+	var t models.Team
+	err := row.Scan(&t.ID, &t.WorkspaceID, &t.Name, &t.Slug, &t.CreatedAt, &t.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("team not found")
+		}
+		return nil, err
+	}
+	return &t, nil
+}
+
+func (repo *WorkspaceRepository) ListTeamsByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*models.Team, error) {
+	query := `SELECT id, workspace_id, name, slug, created_at, updated_at FROM teams WHERE workspace_id = $1 ORDER BY name ASC`
+	rows, err := repo.db.QueryContext(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teams []*models.Team
+	for rows.Next() {
+		var t models.Team
+		err := rows.Scan(&t.ID, &t.WorkspaceID, &t.Name, &t.Slug, &t.CreatedAt, &t.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		teams = append(teams, &t)
+	}
+	return teams, nil
+}
+
+func (repo *WorkspaceRepository) AddTeamMember(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) error {
+	query := `
+		INSERT INTO team_members (id, team_id, user_id, created_at)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (team_id, user_id) DO NOTHING
+	`
+	_, err := repo.db.ExecContext(ctx, query, uuid.New(), teamID, userID, time.Now())
+	return err
+}
+
+func (repo *WorkspaceRepository) RemoveTeamMember(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) error {
+	query := `DELETE FROM team_members WHERE team_id = $1 AND user_id = $2`
+	_, err := repo.db.ExecContext(ctx, query, teamID, userID)
+	return err
+}
+
+func (repo *WorkspaceRepository) ListTeamMembers(ctx context.Context, teamID uuid.UUID) ([]uuid.UUID, error) {
+	query := `SELECT user_id FROM team_members WHERE team_id = $1`
+	rows, err := repo.db.QueryContext(ctx, query, teamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userIDs []uuid.UUID
+	for rows.Next() {
+		var uID uuid.UUID
+		err := rows.Scan(&uID)
+		if err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, uID)
+	}
+	return userIDs, nil
+}
+
+// --- MEMBERS REPOSITORY ---
+
+func (repo *WorkspaceRepository) AddWorkspaceMember(ctx context.Context, member *models.WorkspaceMember) error {
+	now := time.Now()
+	member.CreatedAt = now
+	member.UpdatedAt = now
+	query := `
+		INSERT INTO workspace_members (id, workspace_id, user_id, role, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+	_, err := repo.db.ExecContext(ctx, query, member.ID, member.WorkspaceID, member.UserID, member.Role, member.Status, member.CreatedAt, member.UpdatedAt)
+	return err
+}
+
+func (repo *WorkspaceRepository) GetWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID) (*models.WorkspaceMember, error) {
+	query := `
+		SELECT id, workspace_id, user_id, role, status, created_at, updated_at
+		FROM workspace_members
+		WHERE workspace_id = $1 AND user_id = $2
+	`
+	row := repo.db.QueryRowContext(ctx, query, workspaceID, userID)
+
+	var wm models.WorkspaceMember
+	err := row.Scan(&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.CreatedAt, &wm.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("membership not found")
+		}
+		return nil, err
+	}
+	return &wm, nil
+}
+
+func (repo *WorkspaceRepository) UpdateWorkspaceMemberRole(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID, role string) error {
+	query := `
+		UPDATE workspace_members
+		SET role = $1, updated_at = $2
+		WHERE workspace_id = $3 AND user_id = $4
+	`
+	_, err := repo.db.ExecContext(ctx, query, role, time.Now(), workspaceID, userID)
+	return err
+}
+
+func (repo *WorkspaceRepository) UpdateWorkspaceMemberStatus(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID, status string) error {
+	query := `
+		UPDATE workspace_members
+		SET status = $1, updated_at = $2
+		WHERE workspace_id = $3 AND user_id = $4
+	`
+	_, err := repo.db.ExecContext(ctx, query, status, time.Now(), workspaceID, userID)
+	return err
+}
+
+func (repo *WorkspaceRepository) RemoveWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID) error {
+	return repo.withTx(ctx, func(tx *sql.Tx) error {
+		// 1. Remove from all teams in this workspace
+		queryTeams := `
+			DELETE FROM team_members 
+			WHERE user_id = $1 AND team_id IN (
+				SELECT id FROM teams WHERE workspace_id = $2
+			)
+		`
+		_, err := tx.ExecContext(ctx, queryTeams, userID, workspaceID)
+		if err != nil {
+			return fmt.Errorf("remove from teams: %w", err)
+		}
+
+		// 2. Remove from workspace_members
+		queryMember := `DELETE FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`
+		_, err = tx.ExecContext(ctx, queryMember, workspaceID, userID)
+		if err != nil {
+			return fmt.Errorf("remove from workspace_members: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func (repo *WorkspaceRepository) ListWorkspaceMembers(ctx context.Context, workspaceID uuid.UUID) ([]*models.WorkspaceMember, error) {
+	query := `
+		SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.status, wm.created_at, wm.updated_at,
+		       u.name as user_name, u.email as user_email, COALESCE(u.image, '') as user_avatar
+		FROM workspace_members wm
+		JOIN users u ON wm.user_id = u.id
+		WHERE wm.workspace_id = $1
+		ORDER BY wm.created_at ASC
+	`
+	rows, err := repo.db.QueryContext(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var members []*models.WorkspaceMember
+	for rows.Next() {
+		var wm models.WorkspaceMember
+		err := rows.Scan(
+			&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.CreatedAt, &wm.UpdatedAt,
+			&wm.UserName, &wm.UserEmail, &wm.UserAvatar,
+		)
+		if err != nil {
+			return nil, err
+		}
+		members = append(members, &wm)
+	}
+	return members, nil
+}
+
+// --- INVITATIONS REPOSITORY ---
+
+func (repo *WorkspaceRepository) CreateInvitation(ctx context.Context, invite *models.WorkspaceInvitation) error {
+	now := time.Now()
+	invite.CreatedAt = now
+	query := `
+		INSERT INTO workspace_invitations (id, workspace_id, email, role, token, invited_by, expires_at, created_at, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`
+	_, err := repo.db.ExecContext(ctx, query,
+		invite.ID, invite.WorkspaceID, invite.Email, invite.Role, invite.Token,
+		invite.InvitedBy, invite.ExpiresAt, invite.CreatedAt, invite.Status,
+	)
+	return err
+}
+
+func (repo *WorkspaceRepository) GetInvitationByToken(ctx context.Context, token string) (*models.WorkspaceInvitation, error) {
+	query := `
+		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status
+		FROM workspace_invitations
+		WHERE token = $1
+	`
+	row := repo.db.QueryRowContext(ctx, query, token)
+
+	var invite models.WorkspaceInvitation
+	err := row.Scan(
+		&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Token,
+		&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("invitation not found")
+		}
+		return nil, err
+	}
+	return &invite, nil
+}
+
+func (repo *WorkspaceRepository) UpdateInvitationStatus(ctx context.Context, id uuid.UUID, status string) error {
+	query := `UPDATE workspace_invitations SET status = $1 WHERE id = $2`
+	_, err := repo.db.ExecContext(ctx, query, status, id)
+	return err
+}
+
+func (repo *WorkspaceRepository) ListInvitationsByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*models.WorkspaceInvitation, error) {
+	query := `
+		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status
+		FROM workspace_invitations
+		WHERE workspace_id = $1 AND status = 'pending'
+		ORDER BY created_at DESC
+	`
+	rows, err := repo.db.QueryContext(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var invitations []*models.WorkspaceInvitation
+	for rows.Next() {
+		var invite models.WorkspaceInvitation
+		err := rows.Scan(
+			&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Token,
+			&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status,
+		)
+		if err != nil {
+			return nil, err
+		}
+		invitations = append(invitations, &invite)
+	}
+	return invitations, nil
+}

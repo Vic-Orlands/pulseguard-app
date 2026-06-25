@@ -26,7 +26,23 @@ import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Sun, Moon } from "lucide-react";
+import { Zap, Sun, Moon, Briefcase, Users, Shield, Plus, Trash2, UserPlus, UserMinus, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import {
+  listWorkspaceMembers,
+  inviteMember,
+  listInvitations,
+  updateMemberRole,
+  updateMemberStatus,
+  removeWorkspaceMember,
+  listTeams,
+  createTeam,
+  addTeamMember,
+  removeTeamMember,
+  listTeamMembers,
+  type WorkspaceMember,
+  type WorkspaceInvitation,
+  type Team
+} from "@/lib/api/workspace-api";
 import {
   Card,
   CardHeader,
@@ -69,7 +85,7 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UserSettingsNew() {
   const router = useRouter();
-  const { user, setUser } = useAuth();
+  const { user, setUser, activeWorkspace, fetchWorkspaces } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const curentUser = user && normalizePostgresString(user.avatar);
@@ -117,6 +133,149 @@ export default function UserSettingsNew() {
   }>({ open: false, step: 1 });
   const [deleteAllProjectsDialog, setDeleteAllProjectsDialog] =
     useState<boolean>(false);
+
+  // Workspace settings state
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  const [workspaceInvitations, setWorkspaceInvitations] = useState<WorkspaceInvitation[]>([]);
+  const [workspaceTeams, setWorkspaceTeams] = useState<Team[]>([]);
+  const [workspaceLoading, setWorkspaceLoading] = useState<boolean>(false);
+  const [inviteEmail, setInviteEmail] = useState<string>("");
+  const [inviteRole, setInviteRole] = useState<string>("member");
+  const [newTeamName, setNewTeamName] = useState<string>("");
+  const [showInviteDialog, setShowInviteDialog] = useState<boolean>(false);
+  const [showCreateTeamDialog, setShowCreateTeamDialog] = useState<boolean>(false);
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
+  const [teamMembersMap, setTeamMembersMap] = useState<Record<string, string[]>>({}); // teamId -> list of userIds
+
+  const fetchWorkspaceData = async () => {
+    if (!activeWorkspace) return;
+    setWorkspaceLoading(true);
+    try {
+      const [membersList, invitesList, teamsList] = await Promise.all([
+        listWorkspaceMembers(activeWorkspace.id),
+        listInvitations(activeWorkspace.id).catch(() => []),
+        listTeams(activeWorkspace.id),
+      ]);
+      setWorkspaceMembers(membersList);
+      setWorkspaceInvitations(invitesList);
+      setWorkspaceTeams(teamsList);
+    } catch (err) {
+      console.error("Error fetching workspace data:", err);
+      toast.error("Failed to load workspace data");
+    } finally {
+      setWorkspaceLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "workspace" && activeWorkspace) {
+      fetchWorkspaceData();
+    }
+  }, [activeTab, activeWorkspace?.id]);
+
+  const handleToggleTeamExpand = async (teamId: string) => {
+    if (expandedTeamId === teamId) {
+      setExpandedTeamId(null);
+    } else {
+      setExpandedTeamId(teamId);
+      if (!teamMembersMap[teamId]) {
+        try {
+          const members = await listTeamMembers(activeWorkspace!.id, teamId);
+          setTeamMembersMap((prev) => ({ ...prev, [teamId]: members }));
+        } catch (err) {
+          console.error("Error fetching team members:", err);
+          toast.error("Failed to load team members");
+        }
+      }
+    }
+  };
+
+  const handleInviteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail.trim() || !activeWorkspace) return;
+    try {
+      await inviteMember(activeWorkspace.id, inviteEmail.trim(), inviteRole);
+      toast.success("Invitation sent successfully!");
+      setInviteEmail("");
+      setShowInviteDialog(false);
+      fetchWorkspaceData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to invite member");
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    if (!activeWorkspace) return;
+    try {
+      await updateMemberRole(activeWorkspace.id, userId, newRole);
+      toast.success("Member role updated");
+      fetchWorkspaceData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update role");
+    }
+  };
+
+  const handleUpdateStatus = async (userId: string, currentStatus: string) => {
+    if (!activeWorkspace) return;
+    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    try {
+      await updateMemberStatus(activeWorkspace.id, userId, newStatus);
+      toast.success(`Member ${newStatus === "blocked" ? "blocked" : "unblocked"} successfully`);
+      fetchWorkspaceData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update status");
+    }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!activeWorkspace) return;
+    if (!confirm("Are you sure you want to remove this member from the workspace?")) return;
+    try {
+      await removeWorkspaceMember(activeWorkspace.id, userId);
+      toast.success("Member removed from workspace");
+      fetchWorkspaceData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove member");
+    }
+  };
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTeamName.trim() || !activeWorkspace) return;
+    try {
+      await createTeam(activeWorkspace.id, newTeamName.trim());
+      toast.success("Team created successfully!");
+      setNewTeamName("");
+      setShowCreateTeamDialog(false);
+      fetchWorkspaceData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create team");
+    }
+  };
+
+  const handleAddMemberToTeam = async (teamId: string, memberId: string) => {
+    if (!activeWorkspace) return;
+    try {
+      await addTeamMember(activeWorkspace.id, teamId, memberId);
+      toast.success("Member added to team");
+      const members = await listTeamMembers(activeWorkspace.id, teamId);
+      setTeamMembersMap((prev) => ({ ...prev, [teamId]: members }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add member to team");
+    }
+  };
+
+  const handleRemoveMemberFromTeam = async (teamId: string, memberId: string) => {
+    if (!activeWorkspace) return;
+    try {
+      await removeTeamMember(activeWorkspace.id, teamId, memberId);
+      toast.success("Member removed from team");
+      const members = await listTeamMembers(activeWorkspace.id, teamId);
+      setTeamMembersMap((prev) => ({ ...prev, [teamId]: members }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove member from team");
+    }
+  };
 
   // Effects
   useEffect(() => {
@@ -799,46 +958,396 @@ export default function UserSettingsNew() {
     </Dialog>
   );
 
-  const renderDeleteAllProjectsDialog = () => (
-    <Dialog
-      open={deleteAllProjectsDialog}
-      onOpenChange={setDeleteAllProjectsDialog}
-    >
-      <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
-        <DialogHeader className="p-4 border-b border-border/50">
-          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
-            <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
-            Delete All Projects
-          </DialogTitle>
-          <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
-            This will permanently delete all {projects.length} of your projects and their data. This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="p-4">
-          <p className="text-xs text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/25 leading-relaxed">
-            This is a destructive action that will remove all monitoring data, configurations, and history for all projects.
-          </p>
-        </div>
-        <DialogFooter className="p-3 bg-muted/10 border-t border-border/50 flex gap-2 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => setDeleteAllProjectsDialog(false)}
-            className="border-border text-xs h-8 px-3 shadow-none font-semibold"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteAllProjects}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 px-3 shadow-none font-semibold"
-          >
-            <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5 mr-1.5" />
-            Delete All Projects
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
+
+  const renderWorkspaceTab = () => {
+    const currentUserRole = workspaceMembers.find((m) => m.userId === user?.id)?.role || "member";
+    const isAuthorized = currentUserRole === "owner" || currentUserRole === "admin";
+
+    // Filter workspace members that are not in the expanded team to allow adding them
+    const getNonTeamMembers = (teamId: string) => {
+      const teamUserIds = teamMembersMap[teamId] || [];
+      return workspaceMembers.filter(
+        (m) => m.status === "active" && !teamUserIds.includes(m.userId)
+      );
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Members Management */}
+        <Card className="bg-white border border-[#dfdfda] shadow-none rounded-xl">
+          <CardHeader className="py-3 px-4 border-b border-[#dfdfda] flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-xs font-semibold text-foreground">Workspace Members</CardTitle>
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+                Manage members, roles, and status for your workspace.
+              </CardDescription>
+            </div>
+            {isAuthorized && (
+              <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-7 font-semibold px-3 rounded-lg shadow-none flex items-center gap-1.5 cursor-pointer">
+                    <UserPlus className="h-3.5 w-3.5" />
+                    Invite Member
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+                  <DialogHeader className="p-4 border-b border-border/50">
+                    <DialogTitle className="text-xs font-bold flex items-center gap-1.5">
+                      Invite new member
+                    </DialogTitle>
+                    <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+                      Send an invitation link to add a user to this workspace.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleInviteMember} className="p-4 space-y-4">
+                    <div>
+                      <label htmlFor="invite-email" className="block text-[10px] font-semibold text-muted-foreground mb-1.5">
+                        Email Address
+                      </label>
+                      <Input
+                        id="invite-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        className="bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-8 rounded-lg focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="invite-role" className="block text-[10px] font-semibold text-muted-foreground mb-1.5">
+                        Role
+                      </label>
+                      <select
+                        id="invite-role"
+                        value={inviteRole}
+                        onChange={(e) => setInviteRole(e.target.value)}
+                        className="block w-full py-1.5 px-3 bg-white border border-[#dfdfda] rounded-lg text-xs text-[#1d1d1b] focus:outline-none focus:border-[#ff5a1f]"
+                      >
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    <DialogFooter className="pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowInviteDialog(false)}
+                        className="border-border text-xs h-8 px-3 shadow-none font-semibold cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="bg-[#ff5a1f] text-white hover:bg-[#e04e18] text-xs h-8 px-3 shadow-none font-semibold cursor-pointer"
+                      >
+                        Send Invite
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </CardHeader>
+          <CardContent className="p-0">
+            {workspaceLoading ? (
+              <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+                <Loader2 className="h-4 w-4 animate-spin text-[#ff5a1f]" />
+                Loading members...
+              </div>
+            ) : (
+              <div className="divide-y divide-[#dfdfda]">
+                {workspaceMembers.map((member) => (
+                  <div key={member.id} className="p-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8 border border-border">
+                        <AvatarImage src={normalizePostgresString(member.userAvatar)} />
+                        <AvatarFallback className="bg-[#f7f7f5] text-[#73736e] font-semibold text-xs">
+                          {member.userName?.substring(0, 2).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-semibold text-foreground">{member.userName}</p>
+                          <Badge className={`text-[8px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-full ${
+                            member.role === "owner"
+                              ? "bg-red-500/10 text-red-600 border border-red-500/20"
+                              : member.role === "admin"
+                              ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                              : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                          }`}>
+                            {member.role}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{member.userEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isAuthorized && member.role !== "owner" && member.userId !== user?.id ? (
+                        <>
+                          <select
+                            value={member.role}
+                            onChange={(e) => handleUpdateRole(member.userId, e.target.value)}
+                            className="bg-white border border-[#dfdfda] rounded-lg text-[10px] font-semibold py-1 px-2 focus:outline-none cursor-pointer"
+                          >
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                          </select>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(member.userId, member.status)}
+                            className={`text-[10px] font-semibold h-7 px-2 cursor-pointer rounded-lg shadow-none ${
+                              member.status === "blocked"
+                                ? "text-green-600 hover:text-green-700 hover:bg-green-50"
+                                : "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            }`}
+                          >
+                            {member.status === "blocked" ? "Unblock" : "Block"}
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveMember(member.userId)}
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 rounded-lg shadow-none cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground capitalize">{member.status}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pending Invitations list */}
+        {workspaceInvitations.length > 0 && (
+          <Card className="bg-white border border-[#dfdfda] shadow-none rounded-xl">
+            <CardHeader className="py-3 px-4 border-b border-[#dfdfda]">
+              <CardTitle className="text-xs font-semibold text-foreground">Pending Invitations</CardTitle>
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+                These users have been invited but haven&apos;t joined the workspace yet.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 divide-y divide-[#dfdfda]">
+              {workspaceInvitations.map((invite) => {
+                const inviteUrl = typeof window !== "undefined"
+                  ? `${window.location.origin}/accept-invite?token=${invite.token}`
+                  : `/accept-invite?token=${invite.token}`;
+
+                return (
+                  <div key={invite.id} className="p-4 flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-semibold text-foreground">{invite.email}</p>
+                        <Badge className="text-[8px] uppercase tracking-wide font-bold bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
+                          {invite.role}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={inviteUrl}
+                          className="bg-[#f7f7f5] text-[#73736e] text-[9px] px-2 py-0.5 border border-[#dfdfda] rounded-md w-64 select-all outline-none"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText(inviteUrl);
+                            toast.success("Invite link copied!");
+                          }}
+                          className="h-6 w-6 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground shadow-none cursor-pointer"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground font-medium">
+                      Expires: {format(new Date(invite.expiresAt), "MMM d, yyyy")}
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Teams Management */}
+        <Card className="bg-white border border-[#dfdfda] shadow-none rounded-xl">
+          <CardHeader className="py-3 px-4 border-b border-[#dfdfda] flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-xs font-semibold text-foreground">Workspace Teams</CardTitle>
+              <CardDescription className="text-[10px] text-muted-foreground mt-0.5">
+                Group members into sub-tenant teams to manage alerts or logs access.
+              </CardDescription>
+            </div>
+            {isAuthorized && (
+              <Dialog open={showCreateTeamDialog} onOpenChange={setShowCreateTeamDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-7 font-semibold px-3 rounded-lg shadow-none flex items-center gap-1.5 cursor-pointer">
+                    <Plus className="h-3.5 w-3.5" />
+                    Create Team
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
+                  <DialogHeader className="p-4 border-b border-border/50">
+                    <DialogTitle className="text-xs font-bold">Create new team</DialogTitle>
+                    <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
+                      Define a sub-tenant team within your workspace.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateTeam} className="p-4 space-y-4">
+                    <div>
+                      <label htmlFor="team-name" className="block text-[10px] font-semibold text-muted-foreground mb-1.5">
+                        Team Name
+                      </label>
+                      <Input
+                        id="team-name"
+                        type="text"
+                        placeholder="e.g. Frontend, Backend"
+                        value={newTeamName}
+                        onChange={(e) => setNewTeamName(e.target.value)}
+                        className="bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-8 rounded-lg focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <DialogFooter className="pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowCreateTeamDialog(false)}
+                        className="border-border text-xs h-8 px-3 shadow-none font-semibold cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="bg-[#ff5a1f] text-white hover:bg-[#e04e18] text-xs h-8 px-3 shadow-none font-semibold cursor-pointer"
+                      >
+                        Create
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </CardHeader>
+          <CardContent className="p-0 divide-y divide-[#dfdfda]">
+            {workspaceTeams.map((team) => {
+              const isExpanded = expandedTeamId === team.id;
+              const teamUserIds = teamMembersMap[team.id] || [];
+              const nonTeamMembers = getNonTeamMembers(team.id);
+
+              return (
+                <div key={team.id} className="p-4 space-y-3">
+                  <div
+                    onClick={() => handleToggleTeamExpand(team.id)}
+                    className="flex items-center justify-between cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-[#ff5a1f]" />
+                      <p className="text-xs font-semibold text-foreground group-hover:text-[#ff5a1f] transition-all">
+                        #{team.name}
+                      </p>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="pl-6 space-y-3 border-l border-[#dfdfda] mt-2"
+                    >
+                      {/* List Team Members */}
+                      <div className="space-y-1.5">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wide">
+                          Team Members
+                        </p>
+                        {teamUserIds.length === 0 ? (
+                          <p className="text-[10px] text-muted-foreground italic">No members in this team yet.</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {teamUserIds.map((userId) => {
+                              const memberDetails = workspaceMembers.find((m) => m.userId === userId);
+                              if (!memberDetails) return null;
+
+                              return (
+                                <div key={userId} className="flex items-center justify-between bg-[#f7f7f5]/40 p-2 rounded-lg border border-[#e4e4df] max-w-md">
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-5 w-5 border border-border">
+                                      <AvatarImage src={normalizePostgresString(memberDetails.userAvatar)} />
+                                      <AvatarFallback className="text-[8px] font-bold">
+                                        {memberDetails.userName?.substring(0, 2).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-[10px] font-medium text-foreground">{memberDetails.userName}</span>
+                                  </div>
+                                  {isAuthorized && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleRemoveMemberFromTeam(team.id, userId)}
+                                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-5 w-5 rounded-md shadow-none cursor-pointer"
+                                    >
+                                      <UserMinus className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Add Member Dropdown */}
+                      {isAuthorized && nonTeamMembers.length > 0 && (
+                        <div className="flex items-center gap-2 pt-2">
+                          <span className="text-[10px] font-semibold text-muted-foreground">Add Member:</span>
+                          <select
+                            defaultValue=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                handleAddMemberToTeam(team.id, e.target.value);
+                                e.target.value = "";
+                              }
+                            }}
+                            className="bg-white border border-[#dfdfda] rounded-lg text-[10px] font-semibold py-1 px-2.5 focus:outline-none cursor-pointer"
+                          >
+                            <option value="" disabled>Select member...</option>
+                            {nonTeamMembers.map((m) => (
+                              <option key={m.userId} value={m.userId}>
+                                {m.userName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -918,10 +1427,11 @@ export default function UserSettingsNew() {
         <div className="flex items-center justify-between border-b border-[#dfdfda] mb-6">
           <div className="flex space-x-4">
             {[
-              { id: "profile", label: "Profile", icon: UserIcon },
-              { id: "projects", label: "Projects", icon: DatabaseIcon },
-              { id: "appearance", label: "Appearance", icon: Settings01Icon },
-              { id: "danger", label: "Danger Zone", icon: Alert01Icon },
+              { id: "profile", label: "Profile", icon: UserIcon, isHuge: true },
+              { id: "projects", label: "Projects", icon: DatabaseIcon, isHuge: true },
+              { id: "workspace", label: "Workspace Settings", icon: Briefcase, isHuge: false },
+              { id: "appearance", label: "Appearance", icon: Settings01Icon, isHuge: true },
+              { id: "danger", label: "Danger Zone", icon: Alert01Icon, isHuge: true },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -932,7 +1442,11 @@ export default function UserSettingsNew() {
                     : "border-transparent text-[#73736e] hover:text-[#1d1d1b]"
                 }`}
               >
-                <HugeiconsIcon icon={tab.icon} className="h-3.5 w-3.5" />
+                {tab.isHuge ? (
+                  <HugeiconsIcon icon={tab.icon as any} className="h-3.5 w-3.5" />
+                ) : (
+                  <tab.icon className="h-3.5 w-3.5" />
+                )}
                 {tab.label}
               </button>
             ))}
@@ -952,6 +1466,7 @@ export default function UserSettingsNew() {
           <div className="xl:col-span-3">
             {activeTab === "profile" && renderProfileTab()}
             {activeTab === "projects" && renderProjectsTab()}
+            {activeTab === "workspace" && renderWorkspaceTab()}
             {activeTab === "appearance" && renderAppearanceTab()}
             {activeTab === "danger" && renderDangerZoneTab()}
           </div>

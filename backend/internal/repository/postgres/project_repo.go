@@ -20,11 +20,12 @@ func NewProjectRepository(db *sql.DB) *ProjectRepository {
 // Create inserts a new project into the database.
 func (repo *ProjectRepository) Create(ctx context.Context, project *models.Project) error {
 	query := `
-        INSERT INTO projects (id, name, slug, description, owner_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO projects (id, workspace_id, name, slug, description, owner_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `
 	_, err := repo.db.ExecContext(ctx, query,
 		project.ID,
+		project.WorkspaceID,
 		project.Name,
 		project.Slug,
 		project.Description,
@@ -46,7 +47,7 @@ func (repo *ProjectRepository) Create(ctx context.Context, project *models.Proje
 // ListByOwner retrieves all projects owned by the specified owner ID.
 func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
 	query := `
-		SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
 		FROM projects p
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.owner_id = $1
@@ -63,7 +64,7 @@ func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) 
 	var projects []*models.Project
 	for rows.Next() {
 		var p models.Project
-		if err := rows.Scan(&p.ID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
+		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
 			return nil, err
 		}
 		projects = append(projects, &p)
@@ -75,7 +76,7 @@ func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) 
 // GetBySlug retrieves a project by its slug from the database.
 func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*models.Project, error) {
 	query := `
-		SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
 		FROM projects p
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.slug = $1
@@ -84,6 +85,7 @@ func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*mod
 	var p models.Project
 	err := repo.db.QueryRowContext(ctx, query, slug).Scan(
 		&p.ID,
+		&p.WorkspaceID,
 		&p.Name,
 		&p.Slug,
 		&p.Description,
@@ -111,6 +113,7 @@ func (repo *ProjectRepository) DeleteBySlug(ctx context.Context, slug string) (*
     var p models.Project
     err := repo.db.QueryRowContext(ctx, query, slug).Scan(
         &p.ID,
+        &p.WorkspaceID,
         &p.Name,
         &p.Slug,
         &p.Description,
@@ -154,12 +157,13 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, oldSlug string
 		UPDATE projects
 		SET name = $1, slug = $2, description = $3, updated_at = NOW()
 		WHERE slug = $4
-		RETURNING id, name, slug, description, owner_id, created_at, updated_at
+		RETURNING id, workspace_id, name, slug, description, owner_id, created_at, updated_at
 	`
 
 	var p models.Project
 	err := repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug).Scan(
 		&p.ID,
+		&p.WorkspaceID,
 		&p.Name,
 		&p.Slug,
 		&p.Description,
@@ -191,30 +195,90 @@ func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID str
 	}
 	defer rows.Close()
 
-	var deletedProjects []*models.Project
-	for rows.Next() {
-		var p models.Project
-		if err := rows.Scan(
-			&p.ID,
-			&p.Name,
-			&p.Slug,
-			&p.Description,
-			&p.OwnerID,
-			&p.CreatedAt,
-			&p.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("failed to scan deleted project: %w", err)
-		}
-		deletedProjects = append(deletedProjects, &p)
-	}
+    var deletedProjects []*models.Project
+    for rows.Next() {
+        var p models.Project
+        if err := rows.Scan(
+            &p.ID,
+            &p.WorkspaceID,
+            &p.Name,
+            &p.Slug,
+            &p.Description,
+            &p.OwnerID,
+            &p.CreatedAt,
+            &p.UpdatedAt,
+        ); err != nil {
+            return nil, fmt.Errorf("failed to scan deleted project: %w", err)
+        }
+        deletedProjects = append(deletedProjects, &p)
+    }
 
-	if err := rows.Err(); err != nil {
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+
+    if len(deletedProjects) == 0 {
+        return nil, fmt.Errorf("no projects found for owner %s", ownerID)
+    }
+
+    return deletedProjects, nil
+}
+
+// ListByWorkspace retrieves all projects in a workspace.
+func (repo *ProjectRepository) ListByWorkspace(ctx context.Context, workspaceID string) ([]*models.Project, error) {
+	query := `
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		FROM projects p
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.workspace_id = $1
+		GROUP BY p.id
+		ORDER BY p.created_at DESC;
+	`
+
+	rows, err := repo.db.QueryContext(ctx, query, workspaceID)
+	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	if len(deletedProjects) == 0 {
-		return nil, fmt.Errorf("no projects found for owner %s", ownerID)
+	var projects []*models.Project
+	for rows.Next() {
+		var p models.Project
+		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
+			return nil, err
+		}
+		projects = append(projects, &p)
 	}
 
-	return deletedProjects, nil
+	return projects, nil
+}
+
+// ListByMemberUser retrieves all projects in all workspaces the user belongs to.
+func (repo *ProjectRepository) ListByMemberUser(ctx context.Context, userID string) ([]*models.Project, error) {
+	query := `
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		FROM projects p
+		JOIN workspace_members wm ON p.workspace_id = wm.workspace_id
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE wm.user_id = $1 AND wm.status = 'active'
+		GROUP BY p.id
+		ORDER BY p.created_at DESC;
+	`
+
+	rows, err := repo.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var projects []*models.Project
+	for rows.Next() {
+		var p models.Project
+		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
+			return nil, err
+		}
+		projects = append(projects, &p)
+	}
+
+	return projects, nil
 }

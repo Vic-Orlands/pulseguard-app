@@ -18,6 +18,7 @@ import (
 
 func NewRouter(
 	userSvc *service.UserService,
+	wsSvc *service.WorkspaceService,
 	metricsSvc *service.MetricsService,
 	logsSvc *service.LogsService,
 	tracesSvc *service.TracesService,
@@ -49,6 +50,7 @@ func NewRouter(
 	userHandler := handlers.NewUserHandler(userSvc, sessionSvc, metrics, tokenSvc, logger, tracer)
 	projectHandler := handlers.NewProjectHandler(projectSvc, metrics, logger)
 	oauthHandler := handlers.NewOAuthHandler(userSvc, sessionSvc, metrics, tokenSvc, logger, tracer)
+	workspaceHandler := handlers.NewWorkspaceHandler(wsSvc, metrics, logger, tracer)
 
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, logger, tracer)
 	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, metrics, logger, tracer)
@@ -90,6 +92,34 @@ func NewRouter(
 		r.Delete("/api/projects", projectHandler.DeleteAllByOwner)
 		r.Put("/api/projects/{slug}", projectHandler.UpdateProject)
 		r.Delete("/api/projects/{slug}", projectHandler.DeleteBySlug)
+
+		// workspace routes
+		r.Post("/api/workspaces", workspaceHandler.Create)
+		r.Get("/api/workspaces", workspaceHandler.List)
+		r.Get("/api/invitations/get", workspaceHandler.GetInvitation)
+		r.Post("/api/invitations/accept", workspaceHandler.AcceptInvitation)
+
+		// workspace-scoped routes with membership checks
+		r.Route("/api/workspaces/{workspaceID}", func(r chi.Router) {
+			r.Use(middleware.RequireWorkspaceRole(wsSvc, "member", logger, tracer, metrics))
+
+			r.Get("/api/members", workspaceHandler.ListMembers)
+			r.Get("/api/teams", workspaceHandler.ListTeams)
+			r.Get("/api/teams/{teamID}/members", workspaceHandler.ListTeamMembers)
+			r.Get("/api/invitations", workspaceHandler.ListInvitations)
+
+			// Admin/Owner-only workspace operations
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireWorkspaceRole(wsSvc, "admin", logger, tracer, metrics))
+				r.Post("/api/invite", workspaceHandler.Invite)
+				r.Post("/api/teams", workspaceHandler.CreateTeam)
+				r.Post("/api/teams/{teamID}/members/{userID}", workspaceHandler.AddTeamMember)
+				r.Delete("/api/teams/{teamID}/members/{userID}", workspaceHandler.RemoveTeamMember)
+				r.Put("/api/members/{userID}/role", workspaceHandler.UpdateMemberRole)
+				r.Put("/api/members/{userID}/status", workspaceHandler.UpdateMemberStatus)
+				r.Delete("/api/members/{userID}", workspaceHandler.RemoveMember)
+			})
+		})
 
 		// Error tracking routes
 		r.Post("/api/errors/track", errorHandler.Track)

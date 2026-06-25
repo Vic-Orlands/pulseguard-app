@@ -24,6 +24,7 @@ type Server struct {
 
 func NewServer(
 	userService *service.UserService,
+	workspaceService *service.WorkspaceService,
 	projectService *service.ProjectService,
 	errorService *service.ErrorService,
 	alertService *service.AlertService,
@@ -42,6 +43,7 @@ func NewServer(
 	// Build router once here
 	r := NewRouter(
 		userService,
+		workspaceService,
 		metricsService,
 		logsService,
 		tracesService,

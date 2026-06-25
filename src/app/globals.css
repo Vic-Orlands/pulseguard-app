@@ -26,7 +26,7 @@
 }
 
 .dark {
-  --background: #090909;
+  --background: #141414;
   --foreground: #f5f5f5;
   --card: #121212;
   --card-foreground: #f5f5f5;
@@ -154,13 +154,21 @@ button {
 
 .pg-grid {
   background-color: var(--background) !important;
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.06) 0.75px, transparent 0.75px);
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.06) 0.75px,
+    transparent 0.75px
+  );
   background-size: 8px 8px;
 }
 
 .dark .pg-grid {
   background-color: var(--background) !important;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0.75px, transparent 0.75px) !important;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.06) 0.75px,
+    transparent 0.75px
+  ) !important;
   background-size: 8px 8px !important;
   background-position: 0 0 !important;
 }
@@ -266,7 +274,11 @@ button {
 @media (prefers-color-scheme: dark) {
   .pg-grid {
     background-color: var(--background) !important;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0.75px, transparent 0.75px) !important;
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.06) 0.75px,
+      transparent 0.75px
+    ) !important;
     background-size: 8px 8px !important;
     background-position: 0 0 !important;
   }

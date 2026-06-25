@@ -25,12 +25,13 @@ func NewProjectService(projectRepo *postgres.ProjectRepository) *ProjectService 
 	return &ProjectService{projectRepo: projectRepo}
 }
 
-// Create creates a new project with the given name, description, and owner ID.
-func (s *ProjectService) Create(ctx context.Context, name, description, ownerID string) (*models.Project, error) {
+// Create creates a new project with the given name, description, owner ID, and workspace ID.
+func (s *ProjectService) Create(ctx context.Context, name, description, ownerID, workspaceID string) (*models.Project, error) {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 
 	p := &models.Project{
 		ID:          uuid.NewString(),
+		WorkspaceID: workspaceID,
 		Name:        name,
 		Slug:        slug,
 		Description: description,
@@ -56,20 +57,22 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID 
 	return p, nil
 }
 
+// ListByWorkspace retrieves all projects in the specified workspace.
+func (s *ProjectService) ListByWorkspace(ctx context.Context, workspaceID string) ([]*models.Project, error) {
+	return s.projectRepo.ListByWorkspace(ctx, workspaceID)
+}
+
+// ListByMemberUser retrieves all projects in all workspaces the user belongs to.
+func (s *ProjectService) ListByMemberUser(ctx context.Context, userID string) ([]*models.Project, error) {
+	return s.projectRepo.ListByMemberUser(ctx, userID)
+}
+
 // ListByOwner retrieves all projects owned by the specified owner ID.
 func (s *ProjectService) ListByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
 	projects, err := s.projectRepo.ListByOwner(ctx, ownerID)
 	if err != nil {
-		// fmt.Printf("❌ Error retrieving projects for owner %s: %v\n", ownerID, err)
 		return nil, err
 	}
-
-	// if len(projects) == 0 {
-	// 	fmt.Printf("ℹ️ No projects found for owner %s\n", ownerID)
-	// } else {
-	// 	fmt.Printf("✅ Found %d projects for owner %s\n", len(projects), ownerID)
-	// }
-
 	return projects, nil
 }
 

@@ -39,11 +39,12 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
   // Handle OAuth callback
   useEffect(() => {
     const token = searchParams.get("token");
+    const redirectUrl = searchParams.get("redirect") || "/projects";
     if (token) {
       startTransition(async () => {
         try {
           await fetchUser();
-          router.push("/projects");
+          router.push(redirectUrl);
           toast("Login successful!");
         } catch (error) {
           console.log("Error fetching user:", error);
@@ -66,8 +67,9 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         if (message) {
           await fetchUser();
 
+          const redirectUrl = searchParams.get("redirect") || "/projects";
           setTimeout(() => {
-            router.push("/projects");
+            router.push(redirectUrl);
             toast("Login successful!");
           }, 1500);
         }
@@ -78,12 +80,21 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
   };
 
   const handleOAuthLogin = async (provider: string) => {
-    window.location.href = `/api/auth/${provider}`;
+    // If there is a redirect parameter, store it in localStorage and pass it to oauth callback
+    const redirectUrl = searchParams.get("redirect");
+    if (redirectUrl) {
+      localStorage.setItem("pulseguard_post_auth_redirect", redirectUrl);
+    }
+    const callbackUrl = redirectUrl
+      ? `/api/auth/${provider}?redirect=${encodeURIComponent(redirectUrl)}`
+      : `/api/auth/${provider}`;
+    window.location.href = callbackUrl;
   };
 
   // prefetch projects page
   useEffect(() => {
-    router.prefetch("/projects");
+    const redirectUrl = searchParams.get("redirect") || "/projects";
+    router.prefetch(redirectUrl);
 
     if (error !== "") {
       setTimeout(() => {

@@ -22,6 +22,7 @@ import ProjectCard from "./components/project-card";
 import ProjectForm from "./components/project-form";
 import CustomErrorMessage from "@/components/dashboard/shared/error-message";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
+import { Briefcase, ChevronDown, Check, Plus } from "lucide-react";
 
 import type { Project } from "@/types/dashboard";
 import type { CreateProjectDialogProps } from "@/types/project";
@@ -201,7 +202,7 @@ const CreateProjectDialog = ({
 
 export default function ProjectSelectionPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, workspaces, activeWorkspace, setActiveWorkspace } = useAuth();
   const curentUser = user && normalizePostgresString(user.avatar);
 
   const [error, setError] = useState<string>("");
@@ -235,7 +236,11 @@ export default function ProjectSelectionPage() {
       setIsRefreshing(true);
       setError("");
 
-      const response = await fetch(`${url}/api/projects`, {
+      const fetchUrl = activeWorkspace
+        ? `${url}/api/projects?workspaceId=${activeWorkspace.id}`
+        : `${url}/api/projects`;
+
+      const response = await fetch(fetchUrl, {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
@@ -258,8 +263,10 @@ export default function ProjectSelectionPage() {
 
   // Initial data fetch
   useEffect(() => {
-    getAllProjects();
-  }, []);
+    if (activeWorkspace) {
+      getAllProjects();
+    }
+  }, [activeWorkspace?.id]);
 
   // Filter projects based on search query
   const filteredProjects =
@@ -294,6 +301,7 @@ export default function ProjectSelectionPage() {
       const newProjectData = {
         name: projectData.name,
         description: projectData.description,
+        workspaceId: activeWorkspace?.id,
       };
 
       const response = await fetch(`${url}/api/projects`, {
@@ -368,13 +376,65 @@ export default function ProjectSelectionPage() {
           transition={{ delay: 0.05, duration: 0.3 }}
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
-          <div>
-            <h1 className="text-lg font-bold text-[#1d1d1b] mb-1">
-              Your Projects
-            </h1>
-            <p className="text-[#73736e] text-xs">
-              Select a project to go to the project dashboard
-            </p>
+          <div className="flex items-center gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] transition-all rounded-lg text-xs font-semibold shadow-xs cursor-pointer focus:outline-none">
+                  <Briefcase className="h-3.5 w-3.5 text-[#ff5a1f]" />
+                  <span className="max-w-[120px] truncate">{activeWorkspace?.name || "Select Workspace"}</span>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56 bg-white border border-[#dfdfda] text-[#1d1d1b] rounded-lg shadow-sm"
+                align="start"
+                forceMount
+              >
+                <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground px-3 py-1.5">
+                  Workspaces
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border" />
+                <div className="p-1 max-h-48 overflow-y-auto">
+                  {workspaces.map((ws) => (
+                    <button
+                      key={ws.id}
+                      onClick={() => setActiveWorkspace(ws)}
+                      className={`w-full text-left rounded-md px-2.5 py-1.5 text-xs transition-all flex items-center justify-between cursor-pointer ${
+                        activeWorkspace?.id === ws.id
+                          ? "bg-[#f7f7f5] text-[#1d1d1b] font-semibold"
+                          : "text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5]"
+                      }`}
+                    >
+                      <span className="truncate pr-2">{ws.name}</span>
+                      {activeWorkspace?.id === ws.id && (
+                        <Check className="h-3.5 w-3.5 text-[#ff5a1f] flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <DropdownMenuSeparator className="bg-[#dfdfda]" />
+                <div className="p-1">
+                  <button
+                    onClick={() => router.push("/onboarding")}
+                    className="w-full text-left rounded-md px-2.5 py-1.5 text-xs text-[#ff5a1f] hover:bg-[#ff5a1f]/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Create Workspace
+                  </button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="h-6 w-px bg-[#dfdfda] hidden sm:block" />
+
+            <div>
+              <h1 className="text-sm font-bold text-[#1d1d1b]">
+                Your Projects
+              </h1>
+              <p className="text-[#73736e] text-[10px] hidden sm:block">
+                Select a project to go to the project dashboard
+              </p>
+            </div>
           </div>
 
           <motion.div

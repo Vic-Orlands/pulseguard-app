@@ -97,6 +97,7 @@ func main() {
 
 	// Init repositories
 	userRepo := postgres.NewUserRepository(conn)
+	workspaceRepo := postgres.NewWorkspaceRepository(conn)
 	errorRepo := postgres.NewErrorRepository(conn)
 	alertRepo := postgres.NewAlertRepository(conn)
 	lokiRepo := telemetry.NewLokiRepository(lokiURL)
@@ -109,6 +110,7 @@ func main() {
 	tokenService := auth.NewTokenService(jwtSecret)
 	logsService := service.NewLogsService(lokiRepo)
 	userService := service.NewUserService(userRepo)
+	workspaceService := service.NewWorkspaceService(workspaceRepo, userRepo)
 	errorService := service.NewErrorService(errorRepo)
 	alertService := service.NewAlertService(alertRepo)
 	tracesService := service.NewTracesService(tempoRepo)
@@ -120,6 +122,7 @@ func main() {
 	// Start HTTP server
 	server := api.NewServer(
 		userService,
+		workspaceService,
 		projectService,
 		errorService,
 		alertService,
