@@ -4,9 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CheckmarkCircle01Icon,
   Loading02Icon,
-  Lock01Icon,
-  ViewIcon,
-  ViewOffIcon,
+  Locker01Icon,
 } from "@hugeicons/core-free-icons";
 import { ArrowLeft } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
@@ -245,7 +243,7 @@ export default function ResetPasswordPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <FormField label="New Password" error={errors.password?.message}>
           <InputWithIcon
-            icon={Lock01Icon}
+            icon={Locker01Icon}
             type="password"
             placeholder="Enter new password"
             showPasswordToggle
@@ -288,7 +286,7 @@ export default function ResetPasswordPage() {
           error={errors.confirmPassword?.message}
         >
           <InputWithIcon
-            icon={Lock01Icon}
+            icon={Locker01Icon}
             type="password"
             placeholder="Confirm new password"
             showPasswordToggle
