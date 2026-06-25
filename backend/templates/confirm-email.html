@@ -50,7 +50,7 @@
         font-style: normal;
         font-weight: 300;
         mso-font-alt: 'Arial';
-        src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuOKfMZg.ttf) format('truetype');
+        src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nvMrMxCp50SjIw2boKoduKmMEVuOKfMZg.ttf) format('truetype');
       }
 
       * {
@@ -76,17 +76,51 @@
         font-style: normal;
         font-weight: 500;
         mso-font-alt: 'Arial';
-        src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf) format('truetype');
+        src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nvMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf) format('truetype');
       }
 
       * {
         font-family: 'Inter', Arial, sans-serif;
       }
     </style>
+    <style>
+      :root {
+        color-scheme: light dark;
+        supported-color-schemes: light dark;
+      }
+      @media (prefers-color-scheme: light) {
+        .email-body {
+          background-color: #f4f4f5 !important;
+        }
+        .email-container {
+          background-color: #ffffff !important;
+        }
+        .text-primary {
+          color: #18181b !important;
+        }
+        .text-secondary {
+          color: #71717a !important;
+        }
+        .border-divider {
+          border-color: #e4e4e7 !important;
+        }
+        .link-primary {
+          color: #18181b !important;
+        }
+        .button-action {
+          background-color: #18181b !important;
+          color: #ffffff !important;
+        }
+        .logo-img {
+          filter: invert(1) !important;
+        }
+      }
+    </style>
   </head>
   <body
     dir="ltr"
     lang="en"
+    class="email-body"
     style="background-color:rgb(33,33,33);margin:0;padding:0">
     <table
       border="0"
@@ -100,6 +134,7 @@
           <td
             dir="ltr"
             lang="en"
+            class="email-body"
             style="background-color:rgb(33,33,33);font-size:14px;line-height:1.5;letter-spacing:0.3px;font-weight:350;margin:0rem;padding:0rem;font-family:Inter,Arial,sans-serif">
             <div
               style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0"
@@ -116,6 +151,7 @@
               cellpadding="0"
               cellspacing="0"
               role="presentation"
+              class="email-container"
               style="max-width:640px;background-color:rgb(19,19,19);margin-right:auto;margin-left:auto">
               <tbody>
                 <tr style="width:100%">
@@ -135,6 +171,7 @@
                             <img
                               alt=""
                               height="32"
+                              class="logo-img"
                               src="https://react-email-demo-4awhjgfse-resend.vercel.app/static/shared/logo-white.png"
                               style="display:block;outline:none;border:none;text-decoration:none"
                               width="32" />
@@ -188,16 +225,18 @@
                                 <tr>
                                   <td>
                                     <p
-                                      class="mobile_font-40"
+                                      class="mobile_font-40 text-primary"
                                       style='font-size:56px;line-height:1;letter-spacing:-1.68px;font-weight:500;font-family:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;color:rgb(255,255,255);margin:0rem;text-transform:uppercase;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem'>
                                       almost there
                                     </p>
                                     <p
+                                      class="text-secondary"
                                       style="font-size:14px;line-height:1.5;letter-spacing:0.3px;font-weight:350;color:rgb(196,196,196);margin:0rem;margin-top:18px;font-family:Inter,Arial,sans-serif;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
                                       Thank you for signing up for
                                       <!-- -->PulseGuard<!-- -->.
                                     </p>
                                     <p
+                                      class="text-secondary"
                                       style="font-size:14px;line-height:1.5;letter-spacing:0.3px;font-weight:350;color:rgb(196,196,196);margin:0rem;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
                                       To verify your account, we just need to
                                       confirm your email.
@@ -213,6 +252,7 @@
                             </table>
                             <a
                               href="{{.URL}}"
+                              class="button-action"
                               style="line-height:1.5;text-decoration:none;display:inline-block;max-width:100%;mso-padding-alt:0px;background-color:rgb(255,255,255);font-size:15px;letter-spacing:-0.075px;font-weight:450;color:rgb(19,19,19);padding-right:20px;padding-left:20px;padding-bottom:14px;padding-top:14px;text-align:center;font-family:Inter,Arial,sans-serif"
                               target="_blank"
                               ><span><!--[if mso]><i style="mso-font-width:500%;mso-text-raise:21" hidden>&#8202;&#8202;</i><![endif]--></span><span
@@ -230,12 +270,13 @@
                       cellpadding="0"
                       cellspacing="0"
                       role="presentation"
-                      class="mobile_px-4 mobile_py-12"
+                      class="mobile_px-4 mobile_py-12 border-divider"
                       style="border-color:rgb(43,43,43);border-top-style:solid;border-top-width:1px;padding-right:1.5rem;padding-left:1.5rem;padding-bottom:4rem;padding-top:4rem">
                       <tbody>
                         <tr>
                           <td>
                             <p
+                              class="text-secondary"
                               style="font-size:13px;line-height:1.5;letter-spacing:0.2px;font-weight:300;color:rgb(196,196,196);margin:0rem;max-width:320px;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
                               PulseGuard<!-- -->
                               helps teams cut through telemetry noise—clear error tracking, centralized alerts, and automated tracing mapping.
@@ -356,7 +397,8 @@
                                     data-id="__react-email-column"
                                     style="width:100%;padding-top:2rem;vertical-align:top">
                                     <p
-                                      style="font-size:11px;line-height:1.5;letter-spacing:0.3px;font-weight:300;color:rgb(196,196,196);margin:0rem;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
+                                      class="text-secondary"
+                                      style="font-size:11px;line-height:1.5;letter-spacing:0.3px;font-weight:350;color:rgb(196,196,196);margin:0rem;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
                                       PulseGuard Inc., 100 Pine Street, Floor 14<br />San Francisco, CA 94111
                                     </p>
                                   </td>
@@ -376,9 +418,11 @@
                                     data-id="__react-email-column"
                                     style="width:100%;padding-top:1.25rem;vertical-align:top">
                                     <p
-                                      style="font-size:11px;line-height:1.5;letter-spacing:0.3px;font-weight:300;color:rgb(196,196,196);margin:0rem;max-width:160px;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
+                                      class="text-secondary"
+                                      style="font-size:11px;line-height:1.5;letter-spacing:0.3px;font-weight:350;color:rgb(196,196,196);margin:0rem;max-width:160px;font-family:Inter,Arial,sans-serif;margin-top:0rem;margin-bottom:0rem;margin-left:0rem;margin-right:0rem">
                                       <a
                                         href="{{.URL}}"
+                                        class="text-secondary"
                                         style="color:rgb(196,196,196);text-decoration-line:none"
                                         target="_blank"
                                         >Unsubscribe</a
