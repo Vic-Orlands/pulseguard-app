@@ -145,7 +145,8 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		appLogger.Info(context.Background(), fmt.Sprintf("🖥️ PulseGuard HTTP server running on :%d", port))
+		icon:= "🖥️"
+		appLogger.Info(context.Background(), fmt.Sprintf("%s  PulseGuard HTTP server running on :%d", icon, port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			appLogger.Error(context.Background(), "Server failed", err)
 			os.Exit(1)

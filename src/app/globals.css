@@ -1,83 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
 :root {
-  --background: #f7f7f5;
-  --foreground: #1d1d1b;
-  --card: #ffffff;
-  --card-foreground: #14171e;
-  --popover: #ffffff;
-  --popover-foreground: #14171e;
-  --primary: #1d1d1b;
-  --primary-foreground: #ffffff;
-  --secondary: #eeeeea;
-  --secondary-foreground: #1d1d1b;
-  --muted: #f2f2ee;
-  --muted-foreground: #787875;
-  --accent: #eeeeea;
-  --accent-foreground: #1d1d1b;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #dfdfda;
-  --input: #dfdfda;
-  --ring: #1d1d1b;
-  --deep: #dfdfda;
-}
-
-.dark {
   --background: #141414;
-  --foreground: #f5f5f5;
-  --card: #121212;
-  --card-foreground: #f5f5f5;
-  --popover: #161616;
-  --popover-foreground: #f5f5f5;
-  --primary: #f5f5f5;
-  --primary-foreground: #090909;
-  --secondary: #1d1d1d;
-  --secondary-foreground: #f5f5f5;
-  --muted: #191919;
-  --muted-foreground: #a3a3a3;
-  --accent: #262626;
-  --accent-foreground: #f5f5f5;
-  --destructive: #a3a3a3;
-  --destructive-foreground: #ffffff;
-  --border: #2c2c2c;
-  --input: #2c2c2c;
-  --ring: #d4d4d4;
-  --deep: #161616;
+  --deep: #070707;
+  --dot-color: rgba(255, 255, 255, 0.075);
+  --bottom-bg: #020202;
+
+  /* Standard panel background variables for dark mode */
+  --panel-bg-0a: #0a0a0a;
+  --panel-bg-09: #09090b;
+  --panel-bg-0b: #0b0b0c;
+  --panel-bg-0c: #0c0c0e;
+  --panel-bg-12: rgba(18, 18, 18, 0.4);
+  --panel-bg-12-solid: #121212;
+  --panel-bg-950: #09090b;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+/* Light mode variables and overrides */
+.light,
+:root[data-theme="light"],
+html:not(.dark) {
+  --background: #fcfcfd;
+  --deep: #ffffff;
+  --dot-color: rgba(9, 9, 11, 0.08);
+  --bottom-bg: #e5e5eb;
+
+  /* Panel backgrounds for light mode */
+  --panel-bg-0a: #ffffff;
+  --panel-bg-09: #f4f4f5;
+  --panel-bg-0b: #fafafa;
+  --panel-bg-0c: #ffffff;
+  --panel-bg-12: rgba(255, 255, 255, 0.8);
+  --panel-bg-12-solid: #ffffff;
+  --panel-bg-950: #ffffff;
+
+  /* Override Tailwind CSS v4 color tokens dynamically so all zinc-based utility classes automatically invert! */
+  --color-zinc-950: #ffffff;
+  --color-zinc-900: #fafafa;
+  --color-zinc-850: #f4f4f5;
+  --color-zinc-800: #e4e4e7;
+  --color-zinc-750: #d4d4d8;
+  --color-zinc-700: #a1a1aa;
+  --color-zinc-600: #71717a;
+  --color-zinc-50: #020202;
+
+  /* Swap white and black text colors on text utility classes */
+  --color-white: #09090b;
+  --color-black: #ffffff;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(var(--dot-color) 0.8px, transparent 0.8px),
+    linear-gradient(
+      to bottom,
+      var(--background) 0%,
+      color-mix(in oklab, var(--background) 80%, var(--deep)) 20%,
+      color-mix(in oklab, var(--background) 50%, var(--deep)) 45%,
+      color-mix(in oklab, var(--background) 20%, var(--deep)) 70%,
+      var(--bottom-bg) 100%
+    );
+  background-size:
+    12px 12px,
+    100% 100%;
+  background-position: center, center;
+  background-attachment: fixed;
+  color: var(--color-white);
+  font-family: var(--font-sans);
   text-rendering: optimizelegibility;
   overflow-x: clip;
 }
@@ -86,202 +84,344 @@ button {
   cursor: pointer;
 }
 
+/* Custom background pattern exactly matching the reference style with a gradient overlay and fine dot grid */
+.bg-dot-pattern {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(var(--dot-color) 0.8px, transparent 0.8px),
+    linear-gradient(
+      to bottom,
+      var(--background) 0%,
+      color-mix(in oklab, var(--background) 80%, var(--deep)) 20%,
+      color-mix(in oklab, var(--background) 50%, var(--deep)) 45%,
+      color-mix(in oklab, var(--background) 20%, var(--deep)) 70%,
+      var(--bottom-bg) 100%
+    );
+  background-size:
+    12px 12px,
+    100% 100%;
+  background-position: center, center;
+  background-attachment: fixed;
+}
+
+/* Keep pulseguard compatible wrappers, adapting them to the new CSS variables */
 .pg-page {
-  --pg-ink: #1d1d1b;
-  --pg-muted: #747470;
-  --pg-line: #dfdfda;
-  --pg-paper: #f7f7f5;
-  --pg-surface: rgba(255, 255, 253, 0.86);
-  --pg-signal: #ff5a1f;
-  background: var(--pg-paper);
-  color: var(--pg-ink);
-}
-
-.dark .pg-page {
-  --pg-ink: #f5f5f5;
-  --pg-muted: #a3a3a3;
-  --pg-line: #303030;
-  --pg-paper: #090909;
-  --pg-surface: rgba(18, 18, 18, 0.9);
-}
-
-.dark .pg-page > header {
-  background: var(--pg-paper);
-  border-color: #3b3b3b;
-}
-.dark .pg-page main {
-  color: #a3a3a3;
-}
-.dark .pg-page h1,
-.dark .pg-page h2 {
-  color: #f5f5f5;
-}
-.dark .pg-page [class*="border-"] {
-  border-color: #3b3b3b;
-}
-.dark .pg-page .pg-action-primary {
-  background: #ff5a1f;
-  border-color: #ff5a1f;
-  color: #171716;
-}
-.dark .pg-page .bg-\[\#171716\] {
-  background-color: #ff5a1f;
-  color: #171716;
-}
-.dark .pg-page .text-\[\#454540\],
-.dark .pg-page .text-\[\#4b4b47\],
-.dark .pg-page .text-\[\#343430\] {
-  color: #a3a3a3;
-}
-.dark .pg-page .bg-white {
-  background-color: #121212;
-}
-.dark .pg-page .bg-\[\#f7f7f5\] {
-  background-color: #090909;
-}
-.dark .pg-page .bg-\[\#101010\] {
-  background-color: #050505;
-}
-.dark .pg-page .text-\[\#1d1d1b\] {
-  color: #f5f5f5;
-}
-.dark .pg-page .text-\[\#656560\],
-.dark .pg-page .text-\[\#73736e\],
-.dark .pg-page .text-\[\#777772\],
-.dark .pg-page .text-\[\#858580\] {
-  color: #a3a3a3;
+  background-color: var(--background);
+  color: var(--color-white);
 }
 
 .pg-grid {
-  background-color: var(--background) !important;
-  background-image: radial-gradient(
-    circle,
-    rgba(0, 0, 0, 0.06) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 8px 8px;
-}
-
-.dark .pg-grid {
-  background-color: var(--background) !important;
-  background-image: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.06) 0.75px,
-    transparent 0.75px
-  ) !important;
-  background-size: 8px 8px !important;
-  background-position: 0 0 !important;
+  composes: bg-dot-pattern;
 }
 
 .pg-shell {
   width: min(100%, 1440px);
   margin: 0 auto;
-  border-inline: 1px solid var(--pg-line);
+  border-inline: 1px solid var(--panel-bg-0b);
 }
 
 .pg-panel {
-  border: 1px solid var(--pg-line);
-  background: var(--pg-surface);
+  border: 1px solid var(--color-zinc-800);
+  background: var(--panel-bg-12);
 }
 
-.pg-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 40px;
-  padding: 0 0.9rem;
-  border: 1px solid var(--pg-ink);
-  border-radius: 0.5rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  transition:
-    background 160ms ease,
-    color 160ms ease;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-
-.pg-action-primary {
-  background: var(--pg-ink);
-  color: white;
-}
-.pg-action-primary:hover {
-  background: var(--pg-signal);
-  border-color: var(--pg-signal);
-}
-.pg-action-secondary {
+::-webkit-scrollbar-track {
   background: transparent;
-  color: var(--pg-ink);
 }
-.pg-action-secondary:hover {
-  background: white;
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
 }
-
-.pg-label {
-  color: var(--pg-muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.pg-signal {
-  color: var(--pg-signal);
+.light ::-webkit-scrollbar-thumb,
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: rgba(9, 9, 11, 0.15);
+}
+.light ::-webkit-scrollbar-thumb:hover,
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: rgba(9, 9, 11, 0.25);
 }
 
-.dark .dashboard-shell [class*="bg-blue-"],
-.dark .dashboard-shell [class*="bg-purple-"],
-.dark .dashboard-shell [class*="bg-green-"],
-.dark .dashboard-shell [class*="bg-yellow-"],
-.dark .dashboard-shell [class*="bg-orange-"],
-.dark .dashboard-shell [class*="bg-emerald-"] {
-  background-color: rgb(38 38 38 / 0.7) !important;
+/* Target custom inline hex style overrides in components */
+.light .bg-\[\#0a0a0a\],
+html:not(.dark) .bg-\[\#0a0a0a\] {
+  background-color: var(--panel-bg-0a) !important;
+}
+.light .bg-\[\#0a0a0a\]\/80,
+html:not(.dark) .bg-\[\#0a0a0a\]\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+.light .bg-\[\#09090b\],
+html:not(.dark) .bg-\[\#09090b\] {
+  background-color: var(--panel-bg-09) !important;
+}
+.light .bg-\[\#09090b\]\/70,
+html:not(.dark) .bg-\[\#09090b\]\/70 {
+  background-color: rgba(244, 244, 245, 0.7) !important;
+}
+.light .bg-\[\#0b0b0c\],
+html:not(.dark) .bg-\[\#0b0b0c\] {
+  background-color: var(--panel-bg-0b) !important;
+}
+.light .bg-\[\#0b0b0c\]\/60,
+html:not(.dark) .bg-\[\#0b0b0c\]\/60 {
+  background-color: rgba(250, 250, 250, 0.6) !important;
+}
+.light .bg-\[\#0c0c0e\],
+html:not(.dark) .bg-\[\#0c0c0e\] {
+  background-color: var(--panel-bg-0c) !important;
+}
+.light .bg-\[\#121212\]\/40,
+html:not(.dark) .bg-\[\#121212\]\/40 {
+  background-color: var(--panel-bg-12) !important;
+}
+.light .bg-\[\#121212\]\/30,
+html:not(.dark) .bg-\[\#121212\]\/30 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+.light .bg-\[\#121212\]\/20,
+html:not(.dark) .bg-\[\#121212\]\/20 {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+.light .bg-\[\#121212\],
+html:not(.dark) .bg-\[\#121212\] {
+  background-color: var(--panel-bg-12-solid) !important;
+}
+.light .bg-zinc-950\/85,
+html:not(.dark) .bg-zinc-950\/85 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+.light .bg-zinc-950\/80,
+html:not(.dark) .bg-zinc-950\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+.light .bg-zinc-950\/60,
+html:not(.dark) .bg-zinc-950\/60 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+.light .bg-zinc-950\/25,
+html:not(.dark) .bg-zinc-950\/25 {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+.light .bg-zinc-950\/20,
+html:not(.dark) .bg-zinc-950\/20 {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+.light .bg-zinc-900\/40,
+html:not(.dark) .bg-zinc-900\/40 {
+  background-color: rgba(244, 244, 245, 0.8) !important;
+}
+.light .bg-zinc-900\/60,
+html:not(.dark) .bg-zinc-900\/60 {
+  background-color: rgba(244, 244, 245, 0.9) !important;
+}
+.light .bg-\[\#1a1a1a\],
+html:not(.dark) .bg-\[\#1a1a1a\] {
+  background-color: #e4e4e7 !important;
+  color: #09090b !important;
 }
 
-.dark .dashboard-shell [class*="text-blue-"],
-.dark .dashboard-shell [class*="text-purple-"],
-.dark .dashboard-shell [class*="text-green-"],
-.dark .dashboard-shell [class*="text-yellow-"],
-.dark .dashboard-shell [class*="text-orange-"],
-.dark .dashboard-shell [class*="text-emerald-"] {
-  color: #d4d4d4 !important;
+/* Specific utility overrules for light theme text color hierarchy */
+.light .text-zinc-400,
+html:not(.dark) .text-zinc-400 {
+  color: #3f3f46 !important;
+}
+.light .text-zinc-500,
+html:not(.dark) .text-zinc-500 {
+  color: #52525b !important;
+}
+.light .text-zinc-600,
+html:not(.dark) .text-zinc-600 {
+  color: #71717a !important;
 }
 
-.dark .dashboard-shell [class*="border-blue-"],
-.dark .dashboard-shell [class*="border-purple-"],
-.dark .dashboard-shell [class*="border-green-"],
-.dark .dashboard-shell [class*="border-yellow-"],
-.dark .dashboard-shell [class*="border-orange-"],
-.dark .dashboard-shell [class*="border-emerald-"] {
-  border-color: #4a4a4a !important;
+/* Make sure text within light containers is readable */
+.light .text-white,
+html:not(.dark) .text-white {
+  color: #09090b !important;
 }
 
-@media (max-width: 720px) {
-  .pg-shell {
-    border-inline: 0;
-  }
+/* Overrides for specific text-white elements that are actually on light backgrounds */
+.light .bg-zinc-100 .text-zinc-900,
+html:not(.dark) .bg-zinc-100 .text-zinc-900,
+.light .bg-zinc-100.text-zinc-900,
+html:not(.dark) .bg-zinc-100.text-zinc-900 {
+  background-color: #18181b !important;
+  color: #f4f4f5 !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pg-page *,
-  .pg-page *::before,
-  .pg-page *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
+/* Keep pure white text on elements with dark colored backgrounds in light mode */
+.light .bg-red-600 .text-white,
+html:not(.dark) .bg-red-600 .text-white,
+.light .bg-red-600.text-white,
+html:not(.dark) .bg-red-600.text-white,
+.light .bg-orange-500 .text-white,
+html:not(.dark) .bg-orange-500 .text-white,
+.light .bg-orange-500.text-white,
+html:not(.dark) .bg-orange-500.text-white,
+.light .bg-orange-600 .text-white,
+html:not(.dark) .bg-orange-600 .text-white,
+.light .bg-emerald-500 .text-white,
+html:not(.dark) .bg-emerald-500 .text-white,
+.light .bg-emerald-600 .text-white,
+html:not(.dark) .bg-emerald-600 .text-white,
+.light .bg-zinc-900 .text-white,
+html:not(.dark) .bg-zinc-900 .text-white,
+.light .bg-zinc-950 .text-white,
+html:not(.dark) .bg-zinc-950 .text-white,
+.light .bg-zinc-950 .text-zinc-300,
+html:not(.dark) .bg-zinc-950 .text-zinc-300,
+.light .bg-zinc-950 .text-zinc-400,
+html:not(.dark) .bg-zinc-950 .text-zinc-400,
+.light .bg-zinc-950 .text-zinc-500,
+html:not(.dark) .bg-zinc-950 .text-zinc-500,
+.light .bg-zinc-950 span,
+html:not(.dark) .bg-zinc-950 span,
+.light .bg-zinc-950 code,
+html:not(.dark) .bg-zinc-950 code {
+  color: inherit !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .pg-grid {
-    background-color: var(--background) !important;
-    background-image: radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.06) 0.75px,
-      transparent 0.75px
-    ) !important;
-    background-size: 8px 8px !important;
-    background-position: 0 0 !important;
-  }
+/* Badges adjustments */
+.light .bg-emerald-500\/10,
+html:not(.dark) .bg-emerald-500\/10 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #065f46 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+.light .bg-red-950\/20,
+html:not(.dark) .bg-red-950\/20 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  color: #991b1b !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+.light .bg-orange-500\/5,
+html:not(.dark) .bg-orange-500\/5 {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+}
+
+/* Border overrules for crisp layouts */
+.light .border-zinc-800,
+html:not(.dark) .border-zinc-800 {
+  border-color: #e4e4e7 !important;
+}
+.light .border-zinc-800\/80,
+html:not(.dark) .border-zinc-800\/80 {
+  border-color: rgba(228, 228, 231, 0.9) !important;
+}
+.light .border-zinc-800\/60,
+html:not(.dark) .border-zinc-800\/60 {
+  border-color: rgba(228, 228, 231, 0.75) !important;
+}
+.light .border-zinc-800\/50,
+html:not(.dark) .border-zinc-800\/50 {
+  border-color: rgba(228, 228, 231, 0.6) !important;
+}
+.light .border-zinc-800\/40,
+html:not(.dark) .border-zinc-800\/40 {
+  border-color: rgba(228, 228, 231, 0.5) !important;
+}
+.light .border-zinc-800\/30,
+html:not(.dark) .border-zinc-800\/30 {
+  border-color: rgba(228, 228, 231, 0.4) !important;
+}
+.light .border-zinc-900,
+html:not(.dark) .border-zinc-900 {
+  border-color: #e4e4e7 !important;
+}
+
+/* User-requested: Light mode primary buttons should be a dark grey-like black color */
+.light .bg-zinc-100,
+html:not(.dark) .bg-zinc-100,
+.light button.bg-zinc-100,
+html:not(.dark) button.bg-zinc-100,
+.light button.bg-white:not(.border):not(.bg-transparent),
+html:not(.dark) button.bg-white:not(.border):not(.bg-transparent),
+.light a.bg-\[\#1a1a1a\],
+html:not(.dark) a.bg-\[\#1a1a1a\] {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+  border-color: #27272a !important;
+}
+.light .bg-zinc-100:hover,
+html:not(.dark) .bg-zinc-100:hover,
+.light button.bg-zinc-100:hover,
+html:not(.dark) button.bg-zinc-100:hover,
+.light button.bg-white:not(.border):not(.bg-transparent):hover,
+html:not(.dark) button.bg-white:not(.border):not(.bg-transparent):hover,
+.light a.bg-\[\#1a1a1a\]:hover,
+html:not(.dark) a.bg-\[\#1a1a1a\]:hover {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+}
+.light .bg-zinc-100 svg,
+html:not(.dark) .bg-zinc-100 svg,
+.light button.bg-zinc-100 svg,
+html:not(.dark) button.bg-zinc-100 svg,
+.light button.bg-white:not(.border) svg,
+html:not(.dark) button.bg-white:not(.border) svg {
+  color: #ffffff !important;
+}
+.light .bg-zinc-100 span,
+html:not(.dark) .bg-zinc-100 span,
+.light button.bg-zinc-100 span,
+html:not(.dark) button.bg-zinc-100 span,
+.light button.bg-white:not(.border) span,
+html:not(.dark) button.bg-white:not(.border) span {
+  color: #ffffff !important;
+}
+
+/* User-requested: Inactive buttons/tabs visibility in light mode */
+.light .text-zinc-400,
+html:not(.dark) .text-zinc-400,
+.light .text-zinc-500,
+html:not(.dark) .text-zinc-500 {
+  color: #4b5563 !important; /* Fully readable medium-dark grey */
+}
+.light .text-zinc-400:hover,
+html:not(.dark) .text-zinc-400:hover,
+.light .text-zinc-500:hover,
+html:not(.dark) .text-zinc-500:hover {
+  color: #09090b !important;
+  background-color: rgba(9, 9, 11, 0.05) !important;
+}
+
+/* Inactive navigation tab buttons inside Dashboard top-bar */
+.light button.border-transparent.text-zinc-400,
+html:not(.dark) button.border-transparent.text-zinc-400 {
+  color: #4b5563 !important;
+  background-color: transparent !important;
+}
+.light button.border-transparent.text-zinc-400:hover,
+html:not(.dark) button.border-transparent.text-zinc-400:hover {
+  color: #09090b !important;
+  background-color: rgba(9, 9, 11, 0.05) !important;
+  border-color: rgba(9, 9, 11, 0.1) !important;
+}
+
+/* High-fidelity sub-navigation and header overrides in light mode */
+.light header.sticky.top-0,
+html:not(.dark) header.sticky.top-0 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: #e4e4e7 !important;
+}
+.light .sticky.top-14,
+html:not(.dark) .sticky.top-14 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: #e4e4e7 !important;
+}
+.light .sticky.top-20,
+html:not(.dark) .sticky.top-20 {
+  background-color: #ffffff !important;
+  border-color: #e4e4e7 !important;
 }
 
 @keyframes dash {

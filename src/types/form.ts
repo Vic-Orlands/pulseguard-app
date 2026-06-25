@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { IconSvgElement } from "@hugeicons/react";
 
-export type FormMode = "login" | "signup" | "forgot-password";
+export type FormMode = "oauth" | "login" | "signup" | "forgot-password";
 
 export type FormProps = {
   onToggleMode: (mode: FormMode) => void;
@@ -14,7 +14,7 @@ export type FormFieldProps = {
 };
 
 export type InputWithIconProps = {
-  icon: IconSvgElement;
+  icon: React.ComponentType<{ className?: string }>;
   type?: string;
   placeholder: string;
   error?: string;

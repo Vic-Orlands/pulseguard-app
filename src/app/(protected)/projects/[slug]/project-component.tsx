@@ -128,36 +128,37 @@ export default function DashboardComponent({ project }: { project: Project }) {
   };
 
   return (
-    <div className="pg-page dashboard-shell min-h-screen">
+    <div className="pg-page bg-dot-pattern min-h-screen">
       <Navbar
         alerts={alerts}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        project={project}
       />
 
-      <main className="pg-shell px-10 py-6 pb-24 z-10 relative">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 z-10 relative">
         {/* header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <CardTitle className="text-lg font-bold text-[#1d1d1b]">
+            <h1 className="text-xl font-bold text-zinc-900 dark:text-white font-sans">
               {project.name}
-            </CardTitle>
-            <CardDescription className="text-xs text-[#73736e] mt-0.5">
+            </h1>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               Monitor your application and resolve errors across all environments
-            </CardDescription>
+            </p>
           </div>
           <div className="flex gap-2.5">
             <a href="/documentation" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
+                className="bg-[#0a0a0a] border border-zinc-800 text-zinc-400 hover:text-white text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
               >
                 <HugeiconsIcon icon={HelpCircleIcon} className="h-3.5 w-3.5 mr-1.5" />
                 Documentation
               </Button>
             </a>
             <Button
-              className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
+              className="bg-[#e2e2e2] text-black hover:opacity-90 text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
               onClick={() => setActiveTab("connect-platform")}
             >
               <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />
@@ -170,7 +171,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
         {renderActiveTab()}
       </main>
 
-      {/* floating button for AI implementation later*/}
       <HelpButton />
     </div>
   );

@@ -41,7 +41,7 @@ center_text "╚═╝      ╚═════╝ ╚══════╝╚═
 
 # Tagline
 echo -e "${C_PURPLE}${C_BOLD}"
-center_text "🖥️ Enterprise-Grade Observability Platform" $TERM_WIDTH
+center_text "🖥️  Enterprise-Grade Observability Platform" $TERM_WIDTH
 echo -e "${C_RESET}"
 
 # Draw middle separator

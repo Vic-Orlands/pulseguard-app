@@ -958,8 +958,6 @@ export default function UserSettingsNew() {
     </Dialog>
   );
 
-  );
-
   const renderWorkspaceTab = () => {
     const currentUserRole = workspaceMembers.find((m) => m.userId === user?.id)?.role || "member";
     const isAuthorized = currentUserRole === "owner" || currentUserRole === "admin";

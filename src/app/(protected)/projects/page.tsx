@@ -1,16 +1,28 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, CheckmarkCircle01Icon, Layers01Icon, LayoutGridIcon, ListViewIcon, Loading02Icon, Logout01Icon, Refresh01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
-import Image from "next/image";
-import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
+import {
+  Briefcase,
+  ChevronDown,
+  Check,
+  Plus,
+  Sun,
+  Moon,
+  FolderPlus,
+  ArrowLeft,
+  ArrowRight,
+  RefreshCw,
+  LogOut,
+  Layers,
+  Database,
+  Cpu,
+} from "lucide-react";
+import { Logo } from "@/app/(auth)/signin/page";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,39 +30,53 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ProjectCard from "./components/project-card";
-import ProjectForm from "./components/project-form";
-import CustomErrorMessage from "@/components/dashboard/shared/error-message";
+import { Button } from "@/components/ui/button";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
-import { Briefcase, ChevronDown, Check, Plus } from "lucide-react";
 
 import type { Project } from "@/types/dashboard";
-import type { CreateProjectDialogProps } from "@/types/project";
 import { normalizePostgresString } from "@/lib/utils";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
-const CreateProjectDialog = ({
-  isOpen,
-  onClose,
-  projectName,
-  status,
-}: CreateProjectDialogProps) => {
-  const [step, setStep] = useState<"creating" | "complete">(status);
+// Local Theme Toggle Button
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) {
-      setStep("creating");
-    } else if (status === "complete") {
-      setStep("complete");
-    }
-  }, [isOpen, status]);
+    setMounted(true);
+  }, []);
 
+  if (!mounted) return null;
+
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
+      title={`Switch theme`}
+      id="projects-theme-toggle"
+    >
+      {theme === "dark" ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+    </button>
+  );
+};
+
+// Concentric loader dialog matching premium Traces animations
+const CreateProjectDialog = ({
+  isOpen,
+  projectName,
+  status,
+  onClose,
+}: {
+  isOpen: boolean;
+  projectName: string;
+  status: "creating" | "complete";
+  onClose: () => void;
+}) => {
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -58,7 +84,6 @@ const CreateProjectDialog = ({
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
           />
 
-          {/* Dialog Container */}
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <motion.div
               layout
@@ -68,7 +93,7 @@ const CreateProjectDialog = ({
                 opacity: 1,
                 y: 0,
                 width: 380,
-                height: step === "complete" ? 240 : 260,
+                height: status === "complete" ? 240 : 260,
               }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
               transition={{
@@ -77,19 +102,18 @@ const CreateProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden text-foreground"
+              className="pg-panel border border-zinc-800 bg-[#0a0a0a] rounded-xl shadow-lg overflow-hidden text-white flex flex-col justify-center items-center p-6"
             >
               <AnimatePresence mode="wait">
-                {step === "creating" && (
+                {status === "creating" && (
                   <motion.div
                     key="creating"
                     initial={{ opacity: 0, x: 15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 15 }}
+                    exit={{ opacity: 0, x: -15 }}
                     transition={{ duration: 0.2 }}
-                    className="p-6 h-full flex flex-col items-center justify-center"
+                    className="flex flex-col items-center justify-center text-center"
                   >
-                    {/* Animated SVG */}
                     <div className="mb-4 relative">
                       <svg
                         width="60"
@@ -102,7 +126,7 @@ const CreateProjectDialog = ({
                           cy="40"
                           r="35"
                           fill="none"
-                          stroke="var(--primary)"
+                          stroke="var(--color-orange-500)"
                           strokeWidth="2.5"
                           strokeDasharray="220"
                           strokeDashoffset="220"
@@ -120,14 +144,14 @@ const CreateProjectDialog = ({
                     </div>
 
                     <motion.h3
-                      className="text-sm font-semibold text-foreground mb-1 animate-pulse"
+                      className="text-sm font-semibold text-white mb-1 animate-pulse"
                       animate={{ opacity: [0.7, 1, 0.7] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
                       Creating Project...
                     </motion.h3>
 
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-zinc-500 text-xs">
                       Setting up &quot;{projectName}&quot;
                     </p>
 
@@ -135,7 +159,7 @@ const CreateProjectDialog = ({
                       {[...Array(3)].map((_, i) => (
                         <motion.div
                           key={i}
-                          className="w-2 h-2 bg-primary rounded-full"
+                          className="w-2 h-2 bg-orange-500 rounded-full"
                           animate={{
                             opacity: [0.3, 1, 0.3],
                             scale: [0.8, 1.2, 0.8],
@@ -152,39 +176,29 @@ const CreateProjectDialog = ({
                   </motion.div>
                 )}
 
-                {step === "complete" && (
+                {status === "complete" && (
                   <motion.div
                     key="complete"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: "spring", damping: 15, stiffness: 300 }}
-                    className="p-6 h-full flex flex-col items-center justify-center text-center"
+                    className="flex flex-col items-center justify-center text-center w-full"
                   >
                     <div className="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-3.5 border border-emerald-500/20">
-                      <HugeiconsIcon icon={CheckmarkCircle01Icon} className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="w-7 h-7 text-emerald-400" />
                     </div>
 
-                    <motion.h3
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-sm font-bold text-foreground mb-1"
-                    >
+                    <h3 className="text-sm font-bold text-white mb-1">
                       Project Created
-                    </motion.h3>
+                    </h3>
 
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-muted-foreground text-xs"
-                    >
+                    <p className="text-zinc-500 text-xs">
                       &quot;{projectName}&quot; is ready!
-                    </motion.p>
+                    </p>
 
                     <Button
                       variant="ghost"
-                      className="mt-4 border-border text-foreground hover:bg-muted text-xs h-8 shadow-none font-semibold cursor-pointer"
+                      className="mt-4 border-zinc-800 text-zinc-300 hover:bg-zinc-900 text-xs h-8 shadow-none font-semibold cursor-pointer"
                       onClick={onClose}
                     >
                       Close
@@ -200,37 +214,49 @@ const CreateProjectDialog = ({
   );
 };
 
+// Curated templates for workspace/project pipeline creation
+const PIPELINE_TEMPLATES = [
+  {
+    id: "tpl-1",
+    title: "OpenTelemetry Pipeline",
+    desc: "Unified instrumentation logs, spans, and microservices metrics",
+    icon: Layers,
+  },
+  {
+    id: "tpl-2",
+    title: "Grafana Loki Streams",
+    desc: "High-performance structured search for serverless system logs",
+    icon: Database,
+  },
+  {
+    id: "tpl-3",
+    title: "Tempo Trace Map",
+    desc: "Context-propagating distributed graph mapping user paths",
+    icon: Cpu,
+  },
+];
+
 export default function ProjectSelectionPage() {
   const router = useRouter();
   const { user, logout, workspaces, activeWorkspace, setActiveWorkspace } = useAuth();
-  const curentUser = user && normalizePostgresString(user.avatar);
 
-  const [error, setError] = useState<string>("");
   const [projects, setProjects] = useState<Project[]>([]);
-  const [showForm, setShowForm] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [projectCreated, setProjectCreated] = useState<boolean>(false);
-  const [showCreateDialog, setShowCreateDialog] = useState<boolean>(false);
-  const [creatingProjectName, setCreatingProjectName] = useState<string>("");
+  const [projectActionTab, setProjectActionTab] = useState<"select" | "create">("select");
+  const [error, setError] = useState<string>("");
 
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError("");
-      }, 4000);
+  // Create project form states
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("tpl-1");
 
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
+  // Loading indicator overlay states
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [creatingStatus, setCreatingStatus] = useState<"creating" | "complete">("creating");
+  const [creatingProjectName, setCreatingProjectName] = useState("");
 
-  const toggleViewMode = () => {
-    setViewMode((prev) => (prev === "grid" ? "list" : "grid"));
-  };
-
-  // Fetch all projects
   const getAllProjects = async () => {
     try {
       setIsRefreshing(true);
@@ -252,7 +278,15 @@ export default function ProjectSelectionPage() {
       }
 
       const fetchedProjects: Project[] = await response.json();
-      setProjects(fetchedProjects ?? []);
+      const currentProjects = fetchedProjects ?? [];
+      setProjects(currentProjects);
+
+      // Select first project by default if available
+      if (currentProjects.length > 0) {
+        setSelectedProjectId(currentProjects[0].id);
+      } else {
+        setSelectedProjectId("");
+      }
     } catch (err) {
       setError("Failed to fetch projects. Please try again.");
       console.error("Error fetching projects:", err);
@@ -261,46 +295,42 @@ export default function ProjectSelectionPage() {
     }
   };
 
-  // Initial data fetch
   useEffect(() => {
     if (activeWorkspace) {
       getAllProjects();
     }
   }, [activeWorkspace?.id]);
 
-  // Filter projects based on search query
-  const filteredProjects =
-    projects.length > 0
-      ? projects.filter((project) => {
-          const name = project.name?.toLowerCase() || "";
-          const description = project.description?.toLowerCase() || "";
-          const platform = project.platform?.toLowerCase() || "";
-          const query = searchQuery.toLowerCase();
+  const filteredProjects = projects.filter((project) => {
+    const name = project.name?.toLowerCase() || "";
+    const description = project.description?.toLowerCase() || "";
+    const platform = project.platform?.toLowerCase() || "";
+    const query = searchQuery.toLowerCase();
 
-          return (
-            name.includes(query) ||
-            description.includes(query) ||
-            platform.includes(query)
-          );
-        })
-      : [];
+    return (
+      name.includes(query) ||
+      description.includes(query) ||
+      platform.includes(query)
+    );
+  });
 
-  // Create new project
-  const handleCreateProject = async (projectData: {
-    name: string;
-    description: string;
-    platform: string;
-  }) => {
+  const handleCreateProject = async () => {
+    if (!projectName.trim()) {
+      setError("Project name is required.");
+      return;
+    }
+
     try {
-      setIsLoading(true);
       setError("");
-      setCreatingProjectName(projectData.name);
-      setShowForm(false);
+      setCreatingProjectName(projectName);
+      setCreatingStatus("creating");
       setShowCreateDialog(true);
 
+      const matchedTpl = PIPELINE_TEMPLATES.find((t) => t.id === selectedTemplate);
       const newProjectData = {
-        name: projectData.name,
-        description: projectData.description,
+        name: projectName.trim(),
+        description: projectDescription.trim(),
+        platform: matchedTpl ? matchedTpl.title : "OpenTelemetry Pipeline",
         workspaceId: activeWorkspace?.id,
       };
 
@@ -313,8 +343,8 @@ export default function ProjectSelectionPage() {
 
       if (!response.ok) {
         setError("Failed to create project.");
-        setIsLoading(false);
         setShowCreateDialog(false);
+        return;
       }
 
       const newProject = await response.json();
@@ -324,493 +354,382 @@ export default function ProjectSelectionPage() {
         return;
       }
 
-      if (newProject && !newProject.error) {
-        setTimeout(() => {
-          setProjectCreated(true);
-        }, 3000);
+      setCreatingStatus("complete");
+      toast.success("Project created successfully!");
+      
+      // Auto redirect to new project dashboard after a small delay
+      setTimeout(() => {
+        setShowCreateDialog(false);
+        router.push(`/projects/${newProject.slug}`);
+      }, 1500);
 
-        setTimeout(() => {
-          setShowCreateDialog(false);
-          toast.success("Project created successfully!");
-
-          getAllProjects();
-          setProjectCreated(false);
-          router.push(`/projects/${newProject.slug}`);
-        }, 4000);
-      }
     } catch (err) {
       setError("Failed to create project. Please try again.");
       setShowCreateDialog(false);
       toast.error("Failed to create project.");
       console.error("Error creating project:", err);
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handleNewProjectClick = () => {
-    setShowForm(true);
-    setSearchQuery("");
   };
 
   const handleRefresh = () => {
     getAllProjects();
   };
 
+  const handleEnterProject = () => {
+    const selected = projects.find((p) => p.id === selectedProjectId);
+    if (selected) {
+      router.push(`/projects/${selected.slug}`);
+    }
+  };
+
   return (
-    <div className="pg-page pg-grid min-h-screen py-10 relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,.14),transparent_44%)]"
-      />
+    <div className="min-h-screen w-full flex items-center justify-center text-white relative py-12 px-4 select-none">
+      
+      {/* Floating Toolbar top right */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-3 py-2 bg-zinc-950/40 border border-zinc-800 text-zinc-400 hover:text-white transition-all rounded-full text-xs font-semibold cursor-pointer focus:outline-none">
+              <Briefcase className="h-3.5 w-3.5 text-zinc-500" />
+              <span className="max-w-[120px] truncate">{activeWorkspace?.name || "Select Workspace"}</span>
+              <ChevronDown className="h-3 w-3 text-zinc-600" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-56 bg-[#121212] border border-zinc-800 text-white rounded-lg shadow-sm"
+            align="end"
+          >
+            <DropdownMenuLabel className="text-[10px] font-mono uppercase text-zinc-500 px-3 py-1.5">
+              Switch Workspace
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-zinc-800/60" />
+            <div className="p-1 max-h-48 overflow-y-auto">
+              {workspaces.map((ws) => (
+                <button
+                  key={ws.id}
+                  onClick={() => setActiveWorkspace(ws)}
+                  className={`w-full text-left rounded px-2.5 py-1.5 text-xs transition-all flex items-center justify-between cursor-pointer ${
+                    activeWorkspace?.id === ws.id
+                      ? "bg-orange-500/10 text-orange-400 font-semibold"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
+                  }`}
+                >
+                  <span className="truncate pr-2">{ws.name}</span>
+                  {activeWorkspace?.id === ws.id && (
+                    <Check className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+            <DropdownMenuSeparator className="bg-zinc-800/60" />
+            <div className="p-1">
+              <button
+                onClick={() => router.push("/onboarding")}
+                className="w-full text-left rounded px-2.5 py-1.5 text-xs text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Create Workspace
+              </button>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ThemeToggle />
+
+        <CustomAlertDialog
+          trigger={
+            <button
+              className="p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
+              title="Sign out"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+            </button>
+          }
+          title="Sign out"
+          description="Are you sure you want to sign out of your account?"
+          onConfirm={logout}
+        />
+      </div>
+
+      {/* Centered selector card */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="pg-shell px-6 z-10 relative"
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-[374px] mx-auto px-1"
+        id="project-selection-container"
       >
-        {/* Header with user menu */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05, duration: 0.3 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
-        >
-          <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] transition-all rounded-lg text-xs font-semibold shadow-xs cursor-pointer focus:outline-none">
-                  <Briefcase className="h-3.5 w-3.5 text-[#ff5a1f]" />
-                  <span className="max-w-[120px] truncate">{activeWorkspace?.name || "Select Workspace"}</span>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56 bg-white border border-[#dfdfda] text-[#1d1d1b] rounded-lg shadow-sm"
-                align="start"
-                forceMount
-              >
-                <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground px-3 py-1.5">
-                  Workspaces
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-border" />
-                <div className="p-1 max-h-48 overflow-y-auto">
-                  {workspaces.map((ws) => (
-                    <button
-                      key={ws.id}
-                      onClick={() => setActiveWorkspace(ws)}
-                      className={`w-full text-left rounded-md px-2.5 py-1.5 text-xs transition-all flex items-center justify-between cursor-pointer ${
-                        activeWorkspace?.id === ws.id
-                          ? "bg-[#f7f7f5] text-[#1d1d1b] font-semibold"
-                          : "text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5]"
-                      }`}
-                    >
-                      <span className="truncate pr-2">{ws.name}</span>
-                      {activeWorkspace?.id === ws.id && (
-                        <Check className="h-3.5 w-3.5 text-[#ff5a1f] flex-shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <DropdownMenuSeparator className="bg-[#dfdfda]" />
-                <div className="p-1">
-                  <button
-                    onClick={() => router.push("/onboarding")}
-                    className="w-full text-left rounded-md px-2.5 py-1.5 text-xs text-[#ff5a1f] hover:bg-[#ff5a1f]/10 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Create Workspace
-                  </button>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <Logo />
 
-            <div className="h-6 w-px bg-[#dfdfda] hidden sm:block" />
+        {/* Card Heading */}
+        <div className="text-left mb-6">
+          <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+            Projects
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400 font-sans">
+            Select an existing PulseGuard telemetry workspace or instantiate a new pipeline.
+          </p>
+        </div>
 
-            <div>
-              <h1 className="text-sm font-bold text-[#1d1d1b]">
-                Your Projects
-              </h1>
-              <p className="text-[#73736e] text-[10px] hidden sm:block">
-                Select a project to go to the project dashboard
-              </p>
-            </div>
+        {error && (
+          <div className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+            {error}
           </div>
+        )}
 
-          <motion.div
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="flex gap-2.5 w-full md:w-auto items-center"
+        {/* Tab switcher */}
+        <div className="flex rounded-md bg-zinc-950 p-1 border border-zinc-900 mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              setProjectActionTab("select");
+              setError("");
+            }}
+            className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
+              projectActionTab === "select" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
           >
-            <div className="relative flex-1 md:w-56">
-              <Input
-                placeholder="Search projects..."
-                className="pl-3 w-full bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] placeholder:text-[#858580] transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            Select Active Project
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setProjectActionTab("create");
+              setError("");
+            }}
+            className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
+              projectActionTab === "create" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            Create New Pipeline
+          </button>
+        </div>
 
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-                disabled={isRefreshing}
-                className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] h-8 rounded-lg shadow-none cursor-pointer"
-              >
-                <HugeiconsIcon
-                  icon={Refresh01Icon}
-                  className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-              </Button>
-            </motion.div>
-
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="default"
-                  onClick={handleNewProjectClick}
-                  className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 font-semibold rounded-lg shadow-none cursor-pointer"
-                >
-                  <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
-                  New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-foreground p-0">
-                <AnimatePresence>
-                  {showForm && (
-                    <>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.2 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50"
-                        onClick={() => setShowForm(false)}
-                      />
-                      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                        <motion.div
-                          layout
-                          initial={{ scale: 0.95, opacity: 0, y: 15 }}
-                          animate={{
-                            scale: 1,
-                            opacity: 1,
-                            y: 0,
-                            width: 480,
-                            height: "fit-content",
-                          }}
-                          exit={{ scale: 0.95, opacity: 0, y: 15 }}
-                          transition={{
-                            type: "spring",
-                            damping: 25,
-                            stiffness: 300,
-                            layout: { duration: 0.4, ease: "easeInOut" },
-                          }}
-                          className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ProjectForm
-                            onSubmit={handleCreateProject}
-                            onCancel={() => setShowForm(false)}
-                            isLoading={isLoading}
-                          />
-                        </motion.div>
-                      </div>
-                    </>
-                  )}
-                </AnimatePresence>
-              </DialogContent>
-            </Dialog>
-
-            {/* User dropdown menu */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 overflow-hidden rounded-full border border-border hover:border-muted-foreground/30 transition-all bg-muted cursor-pointer"
-                  >
-                    {curentUser ? (
-                      <Image
-                        className="h-full w-full absolute object-cover"
-                        src={curentUser}
-                        alt={user?.name || ""}
-                        width={50}
-                        height={50}
-                      />
-                    ) : (
-                      <HugeiconsIcon icon={UserIcon} className="h-4 w-4 text-foreground" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-60 bg-white border border-[#dfdfda] text-[#1d1d1b] rounded-lg shadow-sm"
-                  align="end"
-                  forceMount
-                >
-                  <DropdownMenuLabel className="font-normal p-3">
-                    <div className="flex items-center space-x-2.5">
-                      {curentUser ? (
-                        <Image
-                          className="h-10 w-10 rounded-full object-cover border border-border"
-                          src={curentUser}
-                          alt={user?.name || ""}
-                          width={40}
-                          height={40}
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center border border-border">
-                          <HugeiconsIcon icon={UserIcon} className="h-5 w-5 text-foreground" />
-                        </div>
-                      )}
-                      <div className="flex flex-col space-y-0.5 w-32">
-                        <p className="text-xs font-semibold leading-none text-foreground">
-                          {user?.name || "Loading..."}
-                        </p>
-                        <p className="text-[10px] leading-none text-muted-foreground truncate">
-                          {user?.email || ""}
-                        </p>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuSeparator className="bg-border" />
-
-                  <div className="p-1">
-                    <Button
-                      onClick={() => router.push("/settings")}
-                      variant="ghost"
-                      className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:text-[#1d1d1b] hover:bg-[#f7f7f5] transition"
-                    >
-                      <HugeiconsIcon icon={Settings01Icon} className="h-3.5 w-3.5 mr-1.5" />
-                      <span>Account Settings</span>
-                    </Button>
-                  </div>
-
-                  <DropdownMenuSeparator className="bg-[#dfdfda]" />
-
-                  <div className="p-1">
-                    <CustomAlertDialog
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-md h-8 text-xs text-[#73736e] hover:bg-destructive/10 hover:text-destructive transition"
-                        >
-                          <HugeiconsIcon icon={Logout01Icon} className="h-3.5 w-3.5 mr-1.5" />
-                          <span>Sign out</span>
-                        </Button>
-                      }
-                      title="Leaving Already?"
-                      description="Are you sure you want to leave? This will log you out of your project dashboard."
-                      onConfirm={logout}
-                    />
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-        {/* Error message */}
-        <CustomErrorMessage error={error} />
-
-        {/* View Toggle Button */}
-        <AnimatePresence>
-          {filteredProjects.length > 2 && (
-            <motion.div
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-              className="flex justify-end mb-3"
-            >
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  size="icon"
-                  onClick={toggleViewMode}
-                  className="bg-white border border-[#dfdfda] text-[#1d1d1b] hover:bg-[#f7f7f5] h-8 w-8 rounded-lg shadow-none hidden lg:flex cursor-pointer"
-                  title={
-                    viewMode === "grid"
-                      ? "Switch to List Layout"
-                      : "Switch to Grid Layout"
-                  }
-                >
-                  {viewMode === "grid" ? (
-                    <HugeiconsIcon icon={LayoutGridIcon} className="h-4 w-4" />
-                  ) : (
-                    <HugeiconsIcon icon={ListViewIcon} className="h-4 w-4" />
-                  )}
-                </Button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Projects grid or empty state */}
         <AnimatePresence mode="wait">
-          {isRefreshing && projects.length === 0 ? (
+          {projectActionTab === "select" ? (
             <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center justify-center pt-40"
+              key="tab-select"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
             >
-              <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-primary" />
-              <span className="ml-2 text-xs text-muted-foreground">Loading projects...</span>
-            </motion.div>
-          ) : filteredProjects.length > 0 ? (
-            <motion.div
-              key="projects"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-                  : "grid grid-cols-1 md:grid-cols-2 gap-5"
-              }
-            >
-              {filteredProjects.map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
-                >
-                  <ProjectCard
-                    index={index}
-                    project={project}
-                    href={`/projects/${project.slug}`}
-                    viewMode={viewMode}
+              {/* Search & Refresh Inline Bar */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    placeholder="Search projects..."
+                    className="pl-3 pr-8 w-full bg-zinc-900/60 border border-zinc-800 text-white text-xs h-8.5 rounded-lg focus:outline-none focus:border-zinc-500 placeholder:text-zinc-600 transition-all"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                </motion.div>
-              ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="flex items-center justify-center bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white h-8.5 w-8.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                  title="Refresh Projects"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                </button>
+              </div>
+
+              {/* Scrollable Project Cards list */}
+              <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 text-left">
+                {filteredProjects.length > 0 ? (
+                  filteredProjects.map((proj) => {
+                    const isSelected = selectedProjectId === proj.id;
+                    return (
+                      <div
+                        key={proj.id}
+                        onClick={() => setSelectedProjectId(proj.id)}
+                        className={`p-3 rounded-lg border text-left cursor-pointer transition-all select-none ${
+                          isSelected
+                            ? "border-white bg-zinc-900/50 shadow-md scale-[1.01]"
+                            : "border-zinc-800 bg-zinc-950/20 hover:border-zinc-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-white truncate max-w-[210px]">
+                            {proj.name}
+                          </span>
+                          <span className="text-[10px] text-zinc-500 font-mono">
+                            {proj.platform || "OTEL"}
+                          </span>
+                        </div>
+                        {proj.description && (
+                          <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed font-light">
+                            {proj.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                            Active pipeline
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <p className="text-xs text-zinc-500 text-center py-6">
+                    No projects found. Create a new pipeline to get started.
+                  </p>
+                )}
+              </div>
+
+              {/* Proceed Action Button */}
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.99 }}
+                onClick={handleEnterProject}
+                disabled={!selectedProjectId}
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9 px-4 text-sm gap-2 w-full cursor-pointer group mt-2"
+              >
+                <motion.span
+                  className="flex items-center justify-center gap-1.5"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <span>Enter telemetry suite</span>
+                  <ArrowRight className="w-4 h-4" />
+                </motion.span>
+              </motion.button>
             </motion.div>
           ) : (
             <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 15 }}
+              key="tab-create"
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 15 }}
-              className="flex flex-col items-center justify-center pt-40 text-center"
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 text-left"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 15, stiffness: 200 }}
-                className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4 border border-border"
-              >
-                <HugeiconsIcon icon={Layers01Icon} className="h-10 w-10 text-muted-foreground" />
-              </motion.div>
-
-              <h3 className="text-sm font-semibold text-foreground mb-1">
-                {searchQuery ? "No projects found" : "No projects yet"}
-              </h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                {searchQuery
-                  ? "Try a different search term or clear your search"
-                  : "Create your first project to get started"}
-              </p>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-                className="flex gap-2.5"
-              >
-                {searchQuery && (
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={() => setSearchQuery("")}
-                      className="bg-card border border-border text-foreground hover:bg-muted text-xs h-8 shadow-none"
-                    >
-                      Clear Search
-                    </Button>
-                  </motion.div>
-                )}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              {/* Project Name Input */}
+              <div>
+                <label
+                  className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
+                  htmlFor="input-project-name"
                 >
-                  <Dialog open={showForm} onOpenChange={setShowForm}>
-                    <DialogTrigger asChild>
-                      <Button
-                        onClick={handleNewProjectClick}
-                        className="bg-[#171716] text-white hover:bg-[#ff5a1f] text-xs h-8 font-semibold rounded-lg shadow-none cursor-pointer"
+                  Project Name
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                    <FolderPlus className="w-4 h-4" />
+                  </span>
+                  <input
+                    id="input-project-name"
+                    type="text"
+                    placeholder="e.g. Auth Telemetry System"
+                    value={projectName}
+                    onChange={(e) => {
+                      setProjectName(e.target.value);
+                      setError("");
+                    }}
+                    className="w-full h-8.5 pl-9 pr-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Project Description */}
+              <div>
+                <label
+                  className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
+                  htmlFor="input-project-desc"
+                >
+                  Project Description{" "}
+                  <span className="text-zinc-600 text-[10px] font-normal">
+                    (Optional)
+                  </span>
+                </label>
+                <textarea
+                  id="input-project-desc"
+                  placeholder="Describe your observability pipeline and microservices targets..."
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  rows={2}
+                  className="w-full py-1.5 px-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13px] transition-colors duration-200 resize-none"
+                />
+              </div>
+
+              {/* Workspace Template selection */}
+              <div className="space-y-2">
+                <label className="block text-zinc-400 text-xs font-medium select-none">
+                  Select Pipeline Template
+                </label>
+                <div className="space-y-2">
+                  {PIPELINE_TEMPLATES.map((tpl) => {
+                    const isSelected = selectedTemplate === tpl.id;
+                    const IconComponent = tpl.icon;
+                    return (
+                      <div
+                        key={tpl.id}
+                        onClick={() => setSelectedTemplate(tpl.id)}
+                        className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all select-none flex items-start gap-3 ${
+                          isSelected
+                            ? "border-white bg-zinc-900/80 shadow-md"
+                            : "border-zinc-800 bg-zinc-950/10 hover:border-zinc-700"
+                        }`}
                       >
-                        <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1" />
-                        New Project
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] bg-transparent border-none text-[#1d1d1b] p-0">
-                      <AnimatePresence>
-                        {showForm && (
-                          <>
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 0.2 }}
-                              exit={{ opacity: 0 }}
-                              className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50"
-                              onClick={() => setShowForm(false)}
-                            />
-                            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                              <motion.div
-                                layout
-                                initial={{ scale: 0.95, opacity: 0, y: 15 }}
-                                animate={{
-                                  scale: 1,
-                                  opacity: 1,
-                                  y: 0,
-                                  width: 480,
-                                  height: "fit-content",
-                                }}
-                                exit={{ scale: 0.95, opacity: 0, y: 15 }}
-                                transition={{
-                                  type: "spring",
-                                  damping: 25,
-                                  stiffness: 300,
-                                  layout: { duration: 0.4, ease: "easeInOut" },
-                                }}
-                                className="pg-panel border border-[#dfdfda] rounded-xl shadow-lg overflow-hidden"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <ProjectForm
-                                  onSubmit={handleCreateProject}
-                                  onCancel={() => setShowForm(false)}
-                                  isLoading={isLoading}
-                                />
-                              </motion.div>
-                            </div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </DialogContent>
-                  </Dialog>
-                </motion.div>
-              </motion.div>
+                        <div
+                          className={`p-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 mt-0.5 ${
+                            isSelected ? "text-emerald-400 border-zinc-700" : ""
+                          }`}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-white leading-none">
+                              {tpl.title}
+                            </span>
+                            {isSelected && (
+                              <span className="w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
+                                <Check className="w-2.5 h-2.5 text-white stroke-[3.5px]" />
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-zinc-400 mt-1 leading-normal truncate">
+                            {tpl.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Initialize Button */}
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.99 }}
+                onClick={handleCreateProject}
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9 px-4 text-sm gap-2 w-full cursor-pointer group mt-2"
+              >
+                <motion.span
+                  className="flex items-center justify-center gap-1.5"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <span>Initialize pipeline</span>
+                  <ArrowRight className="w-4 h-4" />
+                </motion.span>
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Create Project Dialog */}
-        <CreateProjectDialog
-          isOpen={showCreateDialog}
-          onClose={() => {
-            setShowCreateDialog(false);
-            setProjectCreated(false);
-          }}
-          projectName={creatingProjectName}
-          status={projectCreated ? "complete" : "creating"}
-        />
       </motion.div>
+
+      {/* Concentric Loader Overlay dialog */}
+      <CreateProjectDialog
+        isOpen={showCreateDialog}
+        projectName={creatingProjectName}
+        status={creatingStatus}
+        onClose={() => setShowCreateDialog(false)}
+      />
     </div>
   );
 }

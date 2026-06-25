@@ -1,45 +1,54 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AlertCircleIcon,
-  ArrowRight01Icon,
-  Camera01Icon,
-  CheckmarkCircle01Icon,
-  Loading02Icon,
-  LockIcon,
-  Mail01Icon,
-  Upload01Icon,
-  UserIcon,
-} from "@hugeicons/core-free-icons";
-import Image from "next/image";
-import { useState, useTransition } from "react";
+"use client";
+
+import { useState, useTransition, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { availableAvatars, getRandomAvatars } from "@/components/avatars";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  ArrowLeft,
+  Loader2,
+  Check,
+  ArrowRight,
+  User,
+  Mail,
+  Lock,
+  Upload,
+  Link2,
+  Image as ImageIcon,
+} from "lucide-react";
+
 import { FormField, InputWithIcon } from "./shared";
 import { registerUser } from "@/lib/api/user-api";
-
 import {
   fullSignupSchema,
   type FormProps,
   type SignupFormData,
 } from "@/types/form";
 
-// Get random avatars for the signup form
-const randomAvatars = getRandomAvatars(availableAvatars);
-const isDiceBearAvatar = (avatar: string) =>
-  avatar.startsWith("https://api.dicebear.com/");
+// Preset Unsplash avatars matching Traces design system
+const PRESET_AVATARS = [
+  {
+    id: "av-1",
+    url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80",
+    label: "Cyan Aurora",
+  },
+  {
+    id: "av-2",
+    url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=150&q=80",
+    label: "Glass Tech",
+  },
+  {
+    id: "av-3",
+    url: "https://images.unsplash.com/photo-1618005198143-d366803e1200?auto=format&fit=crop&w=150&q=80",
+    label: "Deep Purple",
+  },
+  {
+    id: "av-4",
+    url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=150&q=80",
+    label: "Silver Core",
+  },
+];
 
 export const SignupForm = ({ onToggleMode }: FormProps) => {
   const [step, setStep] = useState<number>(1);
@@ -47,11 +56,16 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
   const [isPending, startTransition] = useTransition();
   const [uploadedAvatar, setUploadedAvatar] = useState<string>("");
   const [selectedAvatar, setSelectedAvatar] = useState<string>(
-    randomAvatars[0],
+    PRESET_AVATARS[0].url,
   );
   const [avatarType, setAvatarType] = useState<"predefined" | "upload">(
     "predefined",
   );
+
+  const [customAvatarUrl, setCustomAvatarUrl] = useState("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -63,31 +77,59 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
     resolver: zodResolver(fullSignupSchema),
     mode: "onChange",
     defaultValues: {
-      avatar: randomAvatars[0],
+      avatar: PRESET_AVATARS[0].url,
       avatarType: "predefined",
     },
   });
 
-  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedAvatar(result);
-        setValue("avatar", result);
-        setAvatarType("upload");
-        setValue("avatarType", "upload");
-      };
-      reader.readAsDataURL(file);
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
     }
   };
 
-  const handleAvatarSelect = (avatar: string) => {
-    setSelectedAvatar(avatar);
-    setValue("avatar", avatar);
-    setAvatarType("predefined");
-    setValue("avatarType", "predefined");
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      handleImageFile(file);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleImageFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setUploadedAvatar(result);
+      setValue("avatar", result);
+      setAvatarType("upload");
+      setValue("avatarType", "upload");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCustomUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (customAvatarUrl.trim()) {
+      setSelectedAvatar(customAvatarUrl.trim());
+      setValue("avatar", customAvatarUrl.trim());
+      setAvatarType("upload");
+      setValue("avatarType", "upload");
+      setShowUrlInput(false);
+    }
   };
 
   const validateCurrentStep = async () => {
@@ -95,15 +137,17 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
     switch (step) {
       case 1:
-        isValid = await trigger(["name", "email"]);
+        isValid = await trigger([
+          "name",
+          "email",
+          "password",
+          "confirmPassword",
+        ]);
         break;
       case 2:
-        isValid = await trigger(["password", "confirmPassword"]);
-        break;
-      case 3:
         isValid = await trigger(["avatar", "avatarType"]);
         break;
-      case 4:
+      case 3:
         isValid = await trigger(["company", "role"]);
         break;
     }
@@ -116,7 +160,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
     if (!isValid) return;
 
-    if (step === 4) {
+    if (step === 3) {
       handleSubmit(onSubmit)();
       return;
     }
@@ -143,10 +187,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
         toast("Registration successful");
         onToggleMode("login");
-      } catch (error) {
-        setError(
-          error instanceof Error ? error.message : "Registration failed",
-        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Registration failed");
       }
     });
   };
@@ -158,8 +200,8 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
           <>
             <FormField label="Full Name" error={errors.name?.message}>
               <InputWithIcon
-                icon={UserIcon}
-                placeholder="John Doe"
+                icon={User}
+                placeholder="Chimezie Innocent"
                 error={errors.name?.message}
                 {...register("name")}
               />
@@ -167,31 +209,23 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
 
             <FormField label="Email Address" error={errors.email?.message}>
               <InputWithIcon
-                icon={Mail01Icon}
+                icon={Mail}
                 type="email"
-                placeholder="your@email.com"
+                placeholder="name@domain.com"
                 error={errors.email?.message}
                 {...register("email")}
               />
             </FormField>
-          </>
-        );
-      case 2:
-        return (
-          <>
+
             <FormField label="Password" error={errors.password?.message}>
               <InputWithIcon
-                icon={LockIcon}
+                icon={Lock}
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 error={errors.password?.message}
                 showPasswordToggle
                 {...register("password")}
               />
-              <div className="mt-2 text-xs text-gray-400">
-                Must contain at least 8 characters with uppercase, lowercase,
-                and number
-              </div>
             </FormField>
 
             <FormField
@@ -199,9 +233,9 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
               error={errors.confirmPassword?.message}
             >
               <InputWithIcon
-                icon={LockIcon}
+                icon={Lock}
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 error={errors.confirmPassword?.message}
                 showPasswordToggle
                 {...register("confirmPassword")}
@@ -209,160 +243,167 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             </FormField>
           </>
         );
-      case 3:
+      case 2:
         return (
-          <>
-            <FormField label="Profile Picture" error={errors.avatar?.message}>
-              <div className="space-y-3.5">
-                {/* Avatar Type Toggle */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAvatarType("predefined");
-                      setValue("avatarType", "predefined");
-                      setValue("avatar", selectedAvatar);
-                    }}
-                    className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                      avatarType === "predefined"
-                        ? "bg-[#171716] text-white"
-                        : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
-                    }`}
-                  >
-                    <HugeiconsIcon
-                      icon={Camera01Icon}
-                      className="h-3.5 w-3.5 inline mr-1.5"
-                    />
-                    Choose Avatar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAvatarType("upload");
-                      setValue("avatarType", "upload");
-                      if (uploadedAvatar) setValue("avatar", uploadedAvatar);
-                    }}
-                    className={`flex-1 py-2 px-4 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                      avatarType === "upload"
-                        ? "bg-[#171716] text-white"
-                        : "bg-[#f7f7f5] text-[#73736e] border border-[#dfdfda] hover:bg-white hover:text-[#1d1d1b]"
-                    }`}
-                  >
-                    <HugeiconsIcon
-                      icon={Upload01Icon}
-                      className="h-3.5 w-3.5 inline mr-1.5"
-                    />
-                    Upload Image
-                  </button>
-                </div>
+          <div className="space-y-6">
+            <div className="text-left">
+              <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+                Choose your avatar
+              </h2>
+              <p className="mt-2 text-sm text-zinc-400 font-sans">
+                Set up your workspace identity with a high-contrast visual
+                profile or upload yours.
+              </p>
+            </div>
 
-                {/* Avatar Selection */}
-                {avatarType === "predefined" && (
-                  <div className="grid grid-cols-3 gap-3">
-                    {randomAvatars.map((avatar, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleAvatarSelect(avatar)}
-                        className={`relative group overflow-hidden rounded-lg border-2 transition cursor-pointer ${
-                          selectedAvatar === avatar
-                            ? "border-[#1d1d1b] ring-2 ring-[#ff5a1f]/20"
-                            : "border-[#dfdfda] hover:border-[#73736e]"
-                        }`}
-                      >
-                        <Image
-                          src={avatar}
-                          alt={`Avatar ${index + 1}`}
-                          className="w-full h-16 object-cover bg-white"
-                          width={64}
-                          height={64}
-                          unoptimized={isDiceBearAvatar(avatar)}
-                        />
-                        {selectedAvatar === avatar && (
-                          <div className="absolute inset-0 bg-[#ff5a1f]/10 flex items-center justify-center">
-                            <HugeiconsIcon
-                              icon={CheckmarkCircle01Icon}
-                              className="h-5 w-5 text-[#ff5a1f]"
-                            />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Upload Option */}
-                {avatarType === "upload" && (
-                  <div className="space-y-3">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                      id="avatar-upload"
-                    />
-                    <label
-                      htmlFor="avatar-upload"
-                      className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted transition"
-                    >
-                      {uploadedAvatar ? (
-                        <Image
-                          src={uploadedAvatar}
-                          alt="Uploaded avatar"
-                          className="w-12 h-12 rounded-full object-cover"
-                          width={48}
-                          height={48}
-                        />
-                      ) : (
-                        <>
-                          <HugeiconsIcon
-                            icon={Upload01Icon}
-                            className="h-6 w-6 text-[#73736e] mb-1.5"
-                          />
-                          <span className="text-xs text-[#73736e]">
-                            Click to upload image
-                          </span>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                )}
-
-                {/* Current Avatar Preview */}
-                <div className="flex items-center gap-3 p-2.5 bg-[#f7f7f5] border border-[#dfdfda] rounded-lg">
-                  <Image
-                    src={
-                      avatarType === "upload"
-                        ? uploadedAvatar || availableAvatars[2]
-                        : selectedAvatar
-                    }
-                    alt="Current avatar"
-                    className="rounded-full object-contain bg-muted"
-                    width={40}
-                    height={40}
-                    quality={80}
-                    unoptimized={isDiceBearAvatar(
-                      avatarType === "upload"
-                        ? uploadedAvatar || availableAvatars[2]
-                        : selectedAvatar,
-                    )}
-                  />
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      Current Selection
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {avatarType === "upload"
-                        ? "Uploaded Image"
-                        : "Predefined Avatar"}
-                    </p>
-                  </div>
+            {/* Selected Avatar Preview */}
+            <div className="flex justify-center py-2">
+              <div className="relative w-20 h-20 rounded-full bg-zinc-900 border-2 border-zinc-700/80 p-0.5 flex items-center justify-center">
+                <img
+                  src={
+                    avatarType === "upload"
+                      ? uploadedAvatar || PRESET_AVATARS[0].url
+                      : selectedAvatar
+                  }
+                  alt="Avatar Preview"
+                  className="w-full h-full object-cover rounded-full bg-zinc-950"
+                  referrerPolicy="no-referrer"
+                  onError={() => setSelectedAvatar(PRESET_AVATARS[0].url)}
+                />
+                <div className="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950 border-2 border-zinc-950">
+                  <Check className="w-3.5 h-3.5 text-white stroke-[3.5px]" />
                 </div>
               </div>
-            </FormField>
-          </>
+            </div>
+
+            {/* Preset Avatar Selection Grid */}
+            <div className="space-y-3">
+              <label className="block text-zinc-400 text-xs font-medium text-left select-none">
+                Pre-defined Avatars
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                {PRESET_AVATARS.map((avatar) => {
+                  const isSelected =
+                    avatarType === "predefined" &&
+                    selectedAvatar === avatar.url;
+                  return (
+                    <button
+                      key={avatar.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAvatar(avatar.url);
+                        setValue("avatar", avatar.url);
+                        setAvatarType("predefined");
+                        setValue("avatarType", "predefined");
+                        setCustomAvatarUrl("");
+                      }}
+                      className={`relative aspect-square rounded-lg border-2 transition-all cursor-pointer overflow-hidden ${
+                        isSelected
+                          ? "border-white scale-105 shadow-[0_0_12px_rgba(255,255,255,0.1)]"
+                          : "border-zinc-800 hover:border-zinc-600"
+                      }`}
+                    >
+                      <img
+                        src={avatar.url}
+                        alt={avatar.label}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Upload or Link Area */}
+            <div className="space-y-3 text-left">
+              <label className="block text-zinc-400 text-xs font-medium select-none">
+                Upload or custom image
+              </label>
+
+              {/* Drag & Drop uploader zone */}
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`w-full py-5 px-4 rounded-lg border border-dashed text-center transition-all cursor-pointer select-none ${
+                  dragActive
+                    ? "border-white bg-zinc-900/80 text-white"
+                    : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/30 hover:bg-zinc-900/60 text-zinc-400"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <Upload className="w-5 h-5 mx-auto mb-2 text-zinc-500" />
+                <p className="text-xs font-medium text-zinc-300">
+                  {dragActive
+                    ? "Drop your image here"
+                    : "Drag & drop avatar here, or click to browse"}
+                </p>
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  Supports PNG, JPG, GIF (Max 2MB)
+                </p>
+              </div>
+
+              {/* Provide URL Option */}
+              <div className="pt-1">
+                {showUrlInput ? (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                        <Link2 className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/avatar.png"
+                        value={customAvatarUrl}
+                        onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                        className="w-full h-8 pl-8 pr-2 rounded bg-zinc-900/80 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-xs transition-colors"
+                        autoFocus
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCustomUrlSubmit}
+                      className="h-8 px-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium rounded transition-colors cursor-pointer"
+                    >
+                      Apply
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlInput(false)}
+                      className="h-8 px-2 text-zinc-500 hover:text-white text-xs cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(true)}
+                    className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Or use a custom image URL</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         );
-      case 4:
+      case 3:
         return (
           <>
             <FormField
@@ -371,55 +412,41 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             >
               <input
                 type="text"
-                placeholder="Your Company"
-                className="px-4 py-2 w-full rounded-lg bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs placeholder:text-[#858580] focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] focus:border-[#1d1d1b] transition-all"
+                placeholder="PulseGuard Inc."
+                className="w-full h-9.5 px-4 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13.5px] transition-colors"
                 {...register("company")}
               />
             </FormField>
 
             <FormField label="Role (Optional)" error={errors.role?.message}>
-              <Select onValueChange={(value) => setValue("role", value)}>
-                <SelectTrigger className="w-full rounded-lg bg-white border border-[#dfdfda] text-[#1d1d1b] text-xs h-9 focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] focus:border-transparent">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border border-border text-foreground">
-                  <SelectGroup>
-                    <SelectLabel className="text-muted-foreground text-xs">
-                      Role
-                    </SelectLabel>
-                    <SelectItem
-                      value="developer"
-                      className="hover:bg-muted focus:bg-muted text-sm"
-                    >
-                      Developer
-                    </SelectItem>
-                    <SelectItem
-                      value="devops"
-                      className="hover:bg-muted focus:bg-muted text-sm"
-                    >
-                      DevOps Engineer
-                    </SelectItem>
-                    <SelectItem
-                      value="sre"
-                      className="hover:bg-muted focus:bg-muted text-sm"
-                    >
-                      SRE
-                    </SelectItem>
-                    <SelectItem
-                      value="manager"
-                      className="hover:bg-muted focus:bg-muted text-sm"
-                    >
-                      Engineering Manager
-                    </SelectItem>
-                    <SelectItem
-                      value="other"
-                      className="hover:bg-muted focus:bg-muted text-sm"
-                    >
-                      Other
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <select
+                onChange={(e) => setValue("role", e.target.value)}
+                className="w-full h-9.5 px-3 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13.5px] transition-colors"
+              >
+                <option
+                  value=""
+                  disabled
+                  selected
+                  className="bg-zinc-950 text-white"
+                >
+                  Select your role
+                </option>
+                <option value="developer" className="bg-zinc-950 text-white">
+                  Developer
+                </option>
+                <option value="devops" className="bg-zinc-950 text-white">
+                  DevOps Engineer
+                </option>
+                <option value="sre" className="bg-zinc-950 text-white">
+                  SRE
+                </option>
+                <option value="manager" className="bg-zinc-950 text-white">
+                  Engineering Manager
+                </option>
+                <option value="other" className="bg-zinc-950 text-white">
+                  Other
+                </option>
+              </select>
             </FormField>
           </>
         );
@@ -429,152 +456,165 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -15 }}
-    transition={{ duration: 0.3 }}
-    className="w-full"
-  >
-    <div className="text-center mb-6">
-      <h1 className="text-lg font-bold text-[#1d1d1b]">Create an account</h1>
-      <p className="text-xs text-[#73736e] mt-1">Sign up for PulseGuard</p>
-    </div>
-
-    <div className="flex mb-6 items-center justify-center">
-      <div className="flex items-center w-full max-w-md">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="flex-1 relative">
-            <motion.div
-              className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${
-                step > i
-                  ? "bg-emerald-600 dark:bg-emerald-500 text-white"
-                  : step === i
-                    ? "bg-[#171716] text-white"
-                    : "bg-white text-[#73736e] border border-[#dfdfda]"
-              }`}
-              animate={{
-                scale: step === i ? [1, 1.05, 1] : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                repeat: step === i ? Infinity : 0,
-                repeatType: "reverse",
-              }}
-            >
-              {step > i ? (
-                <HugeiconsIcon
-                  icon={CheckmarkCircle01Icon}
-                  className="h-4.5 w-4.5 text-white z-10"
-                />
-              ) : (
-                <span className="text-xs font-semibold">{i}</span>
-              )}
-            </motion.div>
-            <div className="text-[10px] font-medium text-[#73736e] text-center mt-1">
-              {i === 1
-                ? "Account"
-                : i === 2
-                  ? "Security"
-                  : i === 3
-                    ? "Avatar"
-                    : "Details"}
-            </div>
-
-            {i < 4 && (
-              <div
-                className={`absolute top-3.5 left-full w-full h-[1px] -translate-x-5/12 -z-10 ${
-                  step > i
-                    ? "bg-emerald-600 dark:bg-emerald-500"
-                    : "bg-[#dfdfda]"
-                }`}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {error && (
-      <Alert
-        variant="destructive"
-        className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
-      >
-        <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
-        <div>
-          <AlertDescription className="text-xs font-medium leading-none">
-            {error}
-          </AlertDescription>
-        </div>
-      </Alert>
-    )}
-
-    <form className="space-y-4">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`step-${step}`}
-          initial={{ opacity: 0, x: 15 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -15 }}
-          transition={{ duration: 0.2 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-[374px] mx-auto px-1"
+      id="email-form-container"
+    >
+      <div className="mb-6 flex justify-start">
+        <motion.button
+          id="btn-back-to-oauth"
+          type="button"
+          onClick={() => onToggleMode("oauth")}
+          whileHover={{ x: -2 }}
+          className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white text-[13px] font-medium transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
         >
-          {renderStepContent()}
-        </motion.div>
-      </AnimatePresence>
+          <ArrowLeft className="w-4 h-4 text-zinc-500" />
+          <span>Back to options</span>
+        </motion.button>
+      </div>
 
-      <div className="flex gap-3 mt-6">
-        {step > 1 && (
+      {step !== 2 && (
+        <div className="mb-6 text-left">
+          <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+            Create your account
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400 font-sans">
+            Get started with PulseGuard by setting up your credentials
+          </p>
+        </div>
+      )}
+
+      {/* Progress Indicators matching Traces layout */}
+      <div className="flex items-center justify-between mb-8 select-none">
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+              step === 1
+                ? "bg-white text-zinc-950"
+                : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+            }`}
+          >
+            {step > 1 ? <Check className="w-3.5 h-3.5" /> : "1"}
+          </div>
+          <span
+            className={`text-xs font-medium ${
+              step === 1 ? "text-white" : "text-zinc-500"
+            }`}
+          >
+            Credentials
+          </span>
+        </div>
+        <div className="flex-1 h-px bg-zinc-800 mx-4" />
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+              step === 2
+                ? "bg-white text-zinc-950"
+                : step > 2
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "bg-zinc-900 border border-zinc-800 text-zinc-500"
+            }`}
+          >
+            {step > 2 ? <Check className="w-3.5 h-3.5" /> : "2"}
+          </div>
+          <span
+            className={`text-xs font-medium ${
+              step === 2 ? "text-white" : "text-zinc-500"
+            }`}
+          >
+            Avatar
+          </span>
+        </div>
+        <div className="flex-1 h-px bg-zinc-800 mx-4" />
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+              step === 3
+                ? "bg-white text-zinc-950"
+                : "bg-zinc-900 border border-zinc-800 text-zinc-500"
+            }`}
+          >
+            3
+          </div>
+          <span
+            className={`text-xs font-medium ${
+              step === 3 ? "text-white" : "text-zinc-500"
+            }`}
+          >
+            Details
+          </span>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+          {error}
+        </div>
+      )}
+
+      <form className="space-y-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`step-${step}`}
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderStepContent()}
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="flex gap-3 mt-6">
+          {step > 1 && (
+            <motion.button
+              type="button"
+              onClick={prevStep}
+              className="flex items-center justify-center p-3 border border-zinc-800 hover:bg-zinc-900/50 text-zinc-400 hover:text-white font-semibold text-xs rounded-lg transition-all cursor-pointer focus:outline-none"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+              Back
+            </motion.button>
+          )}
           <motion.button
             type="button"
-            onClick={prevStep}
-            className="flex-1 bg-[#f7f7f5] border border-[#dfdfda] text-[#1d1d1b] py-2 rounded-lg hover:bg-white text-xs font-semibold transition cursor-pointer"
+            onClick={nextStep}
+            disabled={isPending}
+            className={`${
+              step > 1 ? "flex-1" : "w-full"
+            } bg-[#e2e2e2] text-black py-2 rounded-lg hover:opacity-90 text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            Back
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-800" />
+            ) : (
+              <>
+                <span>{step === 3 ? "Register" : "Continue"}</span>
+                {step < 3 && <ArrowRight className="h-3.5 w-3.5" />}
+              </>
+            )}
           </motion.button>
-        )}
-        <motion.button
-          type="button"
-          onClick={nextStep}
-          disabled={isPending}
-          className={`${
-            step > 1 ? "flex-1" : "w-full"
-          } bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-10`}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-        >
-          {isPending ? (
-            <HugeiconsIcon
-              icon={Loading02Icon}
-              className="h-4 w-4 animate-spin"
-            />
-          ) : (
-            <>
-              {step === 4 ? "Register" : "Continue"}
-              {!isPending && (
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  className="h-3.5 w-3.5"
-                />
-              )}
-            </>
-          )}
-        </motion.button>
-      </div>
-    </form>
+        </div>
+      </form>
 
-    <div className="text-center mt-6">
-      <p className="text-xs text-[#73736e]">
-        Already have an account?{" "}
-        <button
-          type="button"
-          aria-label="Sign in"
-          onClick={() => onToggleMode("login")}
-          className="text-[#1d1d1b] font-semibold hover:text-[#ff5a1f] hover:underline cursor-pointer transition-colors"
-        >
-          Sign in
-        </button>
-      </p>
-    </div>
-  </motion.div>
+      <div className="mt-8 text-center text-xs text-zinc-500 select-none">
+        <p>
+          Already have an account?{" "}
+          <button
+            type="button"
+            id="link-switch-to-signin"
+            onClick={() => onToggleMode("login")}
+            className="text-zinc-300 hover:text-white underline underline-offset-2 transition-colors cursor-pointer focus:outline-none font-medium ml-1 bg-transparent border-0 p-0"
+          >
+            Sign In
+          </button>
+        </p>
+      </div>
+    </motion.div>
   );
 };

@@ -1,18 +1,17 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import type { FormFieldProps, InputWithIconProps } from "@/types/form";
 
-// Form field component
+// Redesigned Form field matching Traces styles
 export const FormField = ({ label, error, children }: FormFieldProps) => (
-  <div className="space-y-1.5 mb-3.5">
-    <label className="block text-xs font-semibold text-[#1d1d1b]">{label}</label>
+  <div className="text-left w-full mb-4">
+    <label className="block text-zinc-400 text-xs font-medium mb-1.5 select-none">{label}</label>
     {children}
-    {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+    {error && <p className="text-xs text-red-400 mt-2 font-medium text-left">{error}</p>}
   </div>
 );
 
-// Input component with icon
+// Redesigned Input component with absolute positioning icon
 export const InputWithIcon = ({
   icon: Icon,
   type = "text",
@@ -29,15 +28,17 @@ export const InputWithIcon = ({
     : type;
 
   return (
-    <div className="relative">
-      <HugeiconsIcon icon={Icon} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#73736e]" size={15} />
+    <div className="relative w-full">
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 flex items-center justify-center pointer-events-none">
+        <Icon className="h-4 w-4" />
+      </span>
       <input
         type={inputType}
-        className={`pl-10 ${
+        className={`w-full h-9.5 pl-10 ${
           showPasswordToggle ? "pr-10" : "pr-4"
-        } py-2 w-full rounded-lg bg-white border ${
-          error ? "border-destructive" : "border-[#dfdfda]"
-        } text-[#1d1d1b] text-xs placeholder:text-[#858580] focus:outline-none focus:ring-1 focus:ring-[#1d1d1b] focus:border-[#1d1d1b] transition-all`}
+        } rounded-lg bg-zinc-900/60 border ${
+          error ? "border-red-900/50 focus:border-red-500" : "border-zinc-800 focus:border-zinc-500"
+        } text-white placeholder-zinc-600 focus:outline-none text-[13.5px] transition-colors duration-200`}
         placeholder={placeholder}
         {...props}
       />
@@ -45,17 +46,15 @@ export const InputWithIcon = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#73736e] hover:text-[#1d1d1b]"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-white transition-colors p-1 cursor-pointer"
         >
           {showPassword ? (
-            <HugeiconsIcon icon={ViewOffIcon} className="h-4 w-4" />
+            <EyeOff className="h-4 w-4" />
           ) : (
-            <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
           )}
         </button>
       )}
     </div>
   );
 };
-
-

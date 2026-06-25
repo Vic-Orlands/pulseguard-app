@@ -14,12 +14,18 @@ export function useHydrated() {
     setHydrated(true);
   }, []);
 
-  const mode = (searchParams.get("mode") as FormMode) || "login";
+  const mode = (searchParams.get("mode") as FormMode) || "oauth";
 
   const toggleMode = (newMode: FormMode) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("mode", newMode);
-    router.push(`${pathname}?${params.toString()}`);
+    if (typeof document !== "undefined" && (document as any).startViewTransition) {
+      (document as any).startViewTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    } else {
+      router.push(`${pathname}?${params.toString()}`);
+    }
   };
 
   return { mode, toggleMode, hydrated };

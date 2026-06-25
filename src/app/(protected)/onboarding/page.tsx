@@ -1,13 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { createWorkspace } from "@/lib/api/workspace-api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Briefcase, Loader2, ArrowRight } from "lucide-react";
-import { PulseGuardLogo } from "@/components/Icons";
+import { Briefcase, Loader2, ArrowRight, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Logo } from "@/app/(auth)/signin/page";
+
+// Onboarding page theme toggle
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="absolute top-4 right-4 z-50 p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
+      title={`Switch theme`}
+      id="onboarding-theme-toggle"
+    >
+      {theme === "dark" ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+    </button>
+  );
+};
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -29,7 +53,6 @@ export default function OnboardingPage() {
     try {
       await createWorkspace(name.trim());
       toast.success("Workspace created successfully!");
-      // Reload workspaces in the context
       await fetchWorkspaces();
       router.push("/projects");
     } catch (err) {
@@ -41,89 +64,104 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black flex flex-col justify-center items-center px-4 relative overflow-hidden">
-      {/* Tiny Congested Dotted Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          background: "#000000",
-          backgroundImage: `radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px)`,
-          backgroundSize: "8px 8px",
-        }}
-      />
+    <div className="bg-dot-pattern min-h-screen w-full flex items-center justify-center text-white relative overflow-x-hidden select-none py-12 px-4">
+      {/* Floating Theme Toggle */}
+      <ThemeToggle />
 
-      {/* Decorative Brand Glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,0.14),transparent_44%)]"
-      />
+      {/* Main Orchestration Container */}
+      <div className="w-full z-10 flex flex-col justify-center max-w-lg">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[364px] mx-auto px-4"
+          id="onboarding-container"
+        >
+          <Logo />
 
-      <div className="flex items-center justify-center rounded-full backdrop-blur-sm relative z-10 mb-6">
-        <PulseGuardLogo />
-      </div>
-
-      <motion.div
-        className="w-full max-w-md p-8 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] shadow-2xl z-10 relative overflow-hidden"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-semibold text-white tracking-tight">
-            Create your workspace
-          </h1>
-          <p className="text-xs text-[#73736e] mt-2 leading-relaxed">
-            Name your workspace to group your projects, team members, and telemetry databases.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="workspace-name" className="block text-xs font-medium text-gray-400 mb-2">
-              Workspace Name
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                <Briefcase className="h-4 w-4" />
-              </div>
-              <input
-                id="workspace-name"
-                type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (error) setError("");
-                }}
-                placeholder="e.g. Acme Corp, Personal"
-                className="block w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#222] rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ff5a1f] focus:ring-1 focus:ring-[#ff5a1f] transition-all"
-                disabled={loading}
-              />
-            </div>
-            {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+          {/* Header */}
+          <div className="mb-8 text-left">
+            <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+              Create your workspace
+            </h2>
+            <p className="mt-2 text-sm text-zinc-400 font-sans">
+              Name your workspace to group your telemetry databases and projects
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 rounded-lg bg-[#ff5a1f] hover:bg-[#e04e18] text-white font-medium text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating Workspace...
-              </>
-            ) : (
-              <>
-                Continue
-                <ArrowRight className="h-4 w-4" />
-              </>
-            )}
-          </button>
-        </form>
-      </motion.div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Error Feedback */}
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-3 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left"
+                  id="onboarding-error-feedback"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-      <div className="mt-8 text-xs text-[#525252] text-center z-10">
-        &copy; {new Date().getFullYear()} PulseGuard. All rights reserved.
+            <div className="text-left w-full">
+              <label className="block text-zinc-400 text-xs font-medium mb-1.5 select-none" htmlFor="workspace-name">
+                Workspace Name
+              </label>
+              <div className="relative w-full">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 flex items-center justify-center pointer-events-none">
+                  <Briefcase className="h-4 w-4" />
+                </span>
+                <input
+                  id="workspace-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="e.g. Acme Corp, Personal"
+                  className="w-full h-9.5 pl-10 pr-4 rounded-lg bg-zinc-900/60 border border-zinc-800 focus:border-zinc-500 focus:outline-none text-white text-[13.5px] transition-colors duration-200"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Primary Action Button */}
+            <motion.button
+              id="btn-submit-onboarding"
+              type="submit"
+              whileTap={{ scale: 0.99 }}
+              disabled={loading}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
+            >
+              <motion.span 
+                className="flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-zinc-800" />
+                    <span>Creating workspace...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continue</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-zinc-800" />
+                  </>
+                )}
+              </motion.span>
+            </motion.button>
+          </form>
+        </motion.div>
+      </div>
+
+      {/* Trademark bottom line */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-mono text-zinc-600 select-none tracking-wider font-light">
+        PULSEGUARD &copy; {new Date().getFullYear()}
       </div>
     </div>
   );

@@ -118,6 +118,16 @@ export const listWorkspaceMembers = async (workspaceId: string): Promise<Workspa
   return res.json();
 };
 
+export const listInvitations = async (workspaceId: string): Promise<WorkspaceInvitation[]> => {
+  const res = await fetch(`${url}/api/workspaces/${workspaceId}/invitations`, {
+    ...headerConfig,
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch invitations");
+  }
+  return res.json();
+};
+
 export const updateMemberRole = async (
   workspaceId: string,
   userId: string,

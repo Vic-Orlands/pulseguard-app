@@ -1,14 +1,14 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Loading02Icon, Mail01Icon } from "@hugeicons/core-free-icons";
+"use client";
+
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
+
 import { FormField, InputWithIcon } from "./shared";
 import { sendResetPasswordEmail } from "@/lib/api/user-api";
-
 import {
   type FormProps,
   forgotPasswordSchema,
@@ -44,7 +44,9 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
           );
           reset();
           toast("Password reset email sent!");
-          onToggleMode("login");
+          setTimeout(() => {
+            onToggleMode("login");
+          }, 2000);
         }
       } catch (err) {
         setError(
@@ -59,74 +61,79 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
-      className="w-full"
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-[364px] mx-auto"
+      id="email-form-container"
     >
-      <div className="text-center mb-6">
-        <h1 className="text-lg font-bold text-[#1d1d1b]">Forgot Password?</h1>
-        <p className="text-xs text-[#73736e] mt-1">
-          Enter your email to receive a password reset link.
+      <div className="mb-6 flex justify-start">
+        <motion.button
+          id="btn-back-to-login"
+          type="button"
+          onClick={() => onToggleMode("login")}
+          whileHover={{ x: -2 }}
+          className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white text-[13px] font-medium transition-colors cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+        >
+          <ArrowLeft className="w-4 h-4 text-zinc-500" />
+          <span>Back to Sign In</span>
+        </motion.button>
+      </div>
+
+      <div className="mb-6 text-left">
+        <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
+          Reset password
+        </h2>
+        <p className="mt-2 text-sm text-zinc-400 font-sans">
+          Enter your email address to receive a secure recovery link
         </p>
       </div>
 
       {error && (
-        <Alert
-          variant="destructive"
-          className="mb-4 border-destructive bg-destructive/10 text-destructive text-xs py-2 px-3 flex items-center gap-2"
-        >
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 shrink-0" />
-          <div>
-            <AlertDescription className="text-xs font-medium leading-none">{error}</AlertDescription>
-          </div>
-        </Alert>
+        <div className="p-3 mb-4 rounded-lg bg-red-950/40 border border-red-900/50 text-red-400 text-xs text-left">
+          {error}
+        </div>
       )}
 
       {success && (
-        <Alert className="mb-4 border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs py-2 px-3 flex items-center gap-2">
-          <HugeiconsIcon icon={AlertCircleIcon} className="h-4 w-4 text-emerald-500 shrink-0" />
-          <div>
-            <AlertDescription className="text-xs font-medium leading-none">{success}</AlertDescription>
-          </div>
-        </Alert>
+        <div className="p-3 mb-4 rounded-lg bg-emerald-950/40 border border-emerald-900/50 text-emerald-400 text-xs text-left">
+          {success}
+        </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField label="Email" error={errors.email?.message}>
+        <FormField label="Email Address" error={errors.email?.message}>
           <InputWithIcon
-            icon={Mail01Icon}
+            icon={Mail}
             type="email"
-            placeholder="your@email.com"
+            placeholder="name@domain.com"
             error={errors.email?.message}
             {...register("email")}
           />
         </FormField>
 
+        {/* Primary Action Button */}
         <motion.button
+          id="btn-submit-form"
           type="submit"
+          whileTap={{ scale: 0.99 }}
           disabled={isPending}
-          className="w-full bg-[#171716] text-white py-2 rounded-lg hover:bg-[#ff5a1f] text-xs font-semibold transition flex items-center justify-center h-10 cursor-pointer"
-          whileHover={{ scale: isPending ? 1 : 1.01 }}
-          whileTap={{ scale: isPending ? 1 : 0.99 }}
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
         >
-          {isPending ? (
-            <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
-          ) : (
-            <>Send Reset Link</>
-          )}
+          <motion.span 
+            className="flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.04 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-zinc-800" />
+                <span>Sending link...</span>
+              </>
+            ) : (
+              <span>Send Reset Link</span>
+            )}
+          </motion.span>
         </motion.button>
       </form>
-
-      <div className="mt-6 text-center">
-        <button
-          type="button"
-          className="text-[#1d1d1b] hover:text-[#ff5a1f] hover:underline cursor-pointer text-xs transition-colors"
-          onClick={() => onToggleMode("login")}
-          aria-label="Back to login"
-        >
-          &larr; Back to login
-        </button>
-      </div>
     </motion.div>
   );
 }
-
