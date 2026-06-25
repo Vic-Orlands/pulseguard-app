@@ -28,7 +28,11 @@ const ThemeToggle = () => {
       title={`Switch theme`}
       id="onboarding-theme-toggle"
     >
-      {theme === "dark" ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+      {theme === "dark" ? (
+        <Sun className="w-4 h-4 text-orange-400" />
+      ) : (
+        <Moon className="w-4 h-4 text-indigo-500" />
+      )}
     </button>
   );
 };
@@ -56,7 +60,9 @@ export default function OnboardingPage() {
       await fetchWorkspaces();
       router.push("/projects");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create workspace");
+      setError(
+        err instanceof Error ? err.message : "Failed to create workspace",
+      );
       toast.error("Failed to create workspace");
     } finally {
       setLoading(false);
@@ -65,10 +71,8 @@ export default function OnboardingPage() {
 
   return (
     <div className="bg-dot-pattern min-h-screen w-full flex items-center justify-center text-white relative overflow-x-hidden select-none py-12 px-4">
-      {/* Floating Theme Toggle */}
       <ThemeToggle />
 
-      {/* Main Orchestration Container */}
       <div className="w-full z-10 flex flex-col justify-center max-w-lg">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -78,9 +82,11 @@ export default function OnboardingPage() {
           className="w-full max-w-[364px] mx-auto px-4"
           id="onboarding-container"
         >
+          <div>
+            
+          </div>
           <Logo />
 
-          {/* Header */}
           <div className="mb-8 text-left">
             <h2 className="text-2xl font-normal tracking-[-0.058em] text-white font-sans">
               Create your workspace
@@ -91,7 +97,6 @@ export default function OnboardingPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Error Feedback */}
             <AnimatePresence mode="wait">
               {error && (
                 <motion.div
@@ -107,7 +112,10 @@ export default function OnboardingPage() {
             </AnimatePresence>
 
             <div className="text-left w-full">
-              <label className="block text-zinc-400 text-xs font-medium mb-1.5 select-none" htmlFor="workspace-name">
+              <label
+                className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
+                htmlFor="workspace-name"
+              >
                 Workspace Name
               </label>
               <div className="relative w-full">
@@ -135,9 +143,9 @@ export default function OnboardingPage() {
               type="submit"
               whileTap={{ scale: 0.99 }}
               disabled={loading}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
             >
-              <motion.span 
+              <motion.span
                 className="flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.04 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}

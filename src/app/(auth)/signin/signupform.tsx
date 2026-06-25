@@ -531,7 +531,7 @@ export const SignupForm = ({ onToggleMode }: FormProps) => {
             disabled={isPending}
             className={`${
               step > 1 ? "flex-1" : "w-full"
-            } bg-[#e2e2e2] text-black py-2 rounded-lg hover:opacity-90 text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
+            } bg-btn-primary py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer h-9.5`}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >

@@ -113,6 +113,9 @@ importers:
       framer-motion:
         specifier: ^12.7.4
         version: 12.40.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      hugeicons-react:
+        specifier: ^0.4.0
+        version: 0.4.0(react@19.2.7)
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.8
@@ -504,6 +507,9 @@ packages:
     resolution: {integrity: sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw==}
     peerDependencies:
       react-hook-form: ^7.55.0
+
+  '@hugeicons/core-free-icons@3.3.0':
+    resolution: {integrity: sha512-qYyr4JQ2eQIHTSTbITvnJvs6ERNK64D9gpwZnf2IyuG0exzqfyABLO/oTB71FB3RZPfu1GbwycdiGSo46apjMQ==}
 
   '@hugeicons/core-free-icons@4.2.1':
     resolution: {integrity: sha512-75jYZKYyA9VwS35YRmmGUGzFedbY+Fl0Vxx5FzXR2CGDlIhNRumFeVqaaKoClf2MeYEJwPAVMEL9RwCYtOgnSw==}
@@ -3342,6 +3348,11 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
+  hugeicons-react@0.4.0:
+    resolution: {integrity: sha512-HA2UI3VkDd1dNi9P4JGjaMODdGEs4QVMwQcc34W0aoGHptdsIex/756Jik4GFYN/023jGFKNVvQKhx2IpZtV+g==}
+    peerDependencies:
+      react: '>=16.0.0'
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -4928,6 +4939,8 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.79.0(react@19.2.7)
+
+  '@hugeicons/core-free-icons@3.3.0': {}
 
   '@hugeicons/core-free-icons@4.2.1': {}
 
@@ -7945,6 +7958,12 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  hugeicons-react@0.4.0(react@19.2.7):
+    dependencies:
+      '@hugeicons/core-free-icons': 3.3.0
+      '@hugeicons/react': 1.1.7(react@19.2.7)
+      react: 19.2.7
 
   ieee754@1.2.1: {}
 

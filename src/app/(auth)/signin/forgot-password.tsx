@@ -112,7 +112,7 @@ export default function ForgotPassword({ onToggleMode }: FormProps) {
           type="submit"
           whileTap={{ scale: 0.99 }}
           disabled={isPending}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#e2e2e2] text-black hover:opacity-90 h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-btn-primary h-9.5 px-4 text-sm gap-2 w-full cursor-pointer group"
         >
           <motion.span 
             className="flex items-center justify-center gap-2"

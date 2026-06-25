@@ -434,3 +434,20 @@ html:not(.dark) .sticky.top-20 {
   stroke-dasharray: 6 6;
   animation: dash 1.2s linear infinite;
 }
+
+/* Theme-aware primary action button */
+.bg-btn-primary {
+  background-color: #e2e2e2 !important;
+  color: #000000 !important;
+}
+
+.light .bg-btn-primary,
+:root[data-theme="light"] .bg-btn-primary,
+html:not(.dark) .bg-btn-primary {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+}
+
+.bg-btn-primary:hover {
+  opacity: 0.9 !important;
+}

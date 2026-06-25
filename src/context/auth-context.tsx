@@ -11,8 +11,8 @@ import React, {
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser, logoutUser } from "@/lib/api/user-api";
 import { listWorkspaces, type Workspace } from "@/lib/api/workspace-api";
-
 import type { UserProps } from "@/types/user";
+import { LoaderCircle } from "lucide-react";
 
 interface AuthContextType {
   user: UserProps | null;
@@ -34,17 +34,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<UserProps | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
+  const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(
+    null,
+  );
 
   const shouldFetchUser =
-    pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/settings") || pathname === "/onboarding";
+    pathname === "/" ||
+    pathname.startsWith("/projects") ||
+    pathname.startsWith("/settings") ||
+    pathname === "/onboarding";
 
   const fetchWorkspaces = useCallback(async () => {
     try {
       const wsData = await listWorkspaces();
       setWorkspaces(wsData);
       if (wsData.length > 0) {
-        const storedWsId = localStorage.getItem("pulseguard_active_workspace_id");
+        const storedWsId = localStorage.getItem(
+          "pulseguard_active_workspace_id",
+        );
         const found = wsData.find((w) => w.id === storedWsId);
         if (found) {
           setActiveWorkspaceState(found);
@@ -111,7 +118,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!loading && user) {
-      const savedRedirect = localStorage.getItem("pulseguard_post_auth_redirect");
+      const savedRedirect = localStorage.getItem(
+        "pulseguard_post_auth_redirect",
+      );
       if (savedRedirect) {
         localStorage.removeItem("pulseguard_post_auth_redirect");
         router.push(savedRedirect);
@@ -119,7 +128,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const isAcceptingInvite = pathname.startsWith("/accept-invite");
-      if (workspaces.length === 0 && pathname !== "/onboarding" && !isAcceptingInvite) {
+      if (
+        workspaces.length === 0 &&
+        pathname !== "/onboarding" &&
+        !isAcceptingInvite
+      ) {
         router.push("/onboarding");
       } else if (workspaces.length > 0 && pathname === "/onboarding") {
         router.push("/projects");
@@ -152,7 +165,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }}
           />
           <div className="flex flex-col items-center gap-3 relative z-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-[#ff5a1f]" />
+            <LoaderCircle
+              size={17}
+              strokeWidth={1.5}
+              className="animate-spin text-[#ff5a1f]"
+            />
             <p className="text-xs text-[#73736e]">Loading PulseGuard...</p>
           </div>
         </div>

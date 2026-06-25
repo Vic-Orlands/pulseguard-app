@@ -1087,7 +1087,11 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             }))
                           }
                           className="w-24 px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        <div>
+                          min="1"
+                        />
+                      </div>
+
+                      <div>
                         <h4 className="text-xs font-semibold text-foreground mb-3">
                           Escalation Levels
                         </h4>
