@@ -325,6 +325,38 @@ html:not(.dark) .bg-orange-500\/5 {
   background-color: rgba(249, 115, 22, 0.08) !important;
 }
 
+/* Form error/success message banners – light mode */
+.light .bg-red-950\/40,
+html:not(.dark) .bg-red-950\/40 {
+  background-color: rgba(254, 226, 226, 0.8) !important; /* light red tint */
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.light .bg-red-950\/40.text-red-400,
+html:not(.dark) .bg-red-950\/40.text-red-400,
+.light .bg-red-950\/40 .text-red-400,
+html:not(.dark) .bg-red-950\/40 .text-red-400 {
+  color: #991b1b !important; /* dark red — readable on light bg */
+}
+
+.light .bg-emerald-950\/40,
+html:not(.dark) .bg-emerald-950\/40 {
+  background-color: rgba(209, 250, 229, 0.8) !important; /* light green tint */
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+.light .bg-emerald-950\/40.text-emerald-400,
+html:not(.dark) .bg-emerald-950\/40.text-emerald-400,
+.light .bg-emerald-950\/40 .text-emerald-400,
+html:not(.dark) .bg-emerald-950\/40 .text-emerald-400 {
+  color: #065f46 !important; /* dark green — readable on light bg */
+}
+
+/* field-level inline error text */
+.light .text-red-400,
+html:not(.dark) .text-red-400 {
+  color: #dc2626 !important;
+}
+
+
 /* Border overrules for crisp layouts */
 .light .border-zinc-800,
 html:not(.dark) .border-zinc-800 {
@@ -455,5 +487,3 @@ html:not(.dark) .sticky.top-20 {
   stroke-dasharray: 6 6;
   animation: dash 1.2s linear infinite;
 }
-
-
