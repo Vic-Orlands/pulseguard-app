@@ -158,7 +158,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
               </Button>
             </a>
             <Button
-              className="bg-btn-primary text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
+              className="bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent text-xs h-8 px-3 font-semibold rounded-lg shadow-none cursor-pointer"
               onClick={() => setActiveTab("connect-platform")}
             >
               <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />
