@@ -34,15 +34,9 @@
            relative transition-all duration-150 ease-in-out active:scale-[0.99]
            disabled:pointer-events-none disabled:opacity-50
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500
-           bg-[#18181b] text-white border border-zinc-800 hover:opacity-90
+           bg-[#18181b] border border-zinc-800 hover:opacity-90
            dark:bg-[#e2e2e2] dark:border-transparent
            h-9 px-4 text-sm gap-2 cursor-pointer;
-    /* Force button text color independent of --color-white swap */
-    color: #ffffff;
-  }
-
-  .dark .btn-primary {
-    color: #09090b;
   }
 
   /* Ghost / secondary button (transparent bg, muted text) */
@@ -636,4 +630,19 @@ html:not(.dark) .sticky.top-20 {
 .animate-dash {
   stroke-dasharray: 6 6;
   animation: dash 1.2s linear infinite;
+}
+
+/* ── btn-primary text color ─────────────────────────────────────────────────
+   Unlayered CSS wins over everything inside @layer (base/components/utilities).
+   Light mode: dark bg (#18181b) → white text
+   Dark mode:  light bg (#e2e2e2) → near-black text
+   Cannot use text-white/@apply because --color-white is swapped to #09090b
+   in light mode by the zinc inversion block above.
+──────────────────────────────────────────────────────────────────────────── */
+.btn-primary {
+  color: #ffffff;
+}
+
+.dark .btn-primary {
+  color: #09090b;
 }
