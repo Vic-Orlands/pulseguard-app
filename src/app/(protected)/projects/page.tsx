@@ -230,8 +230,6 @@ const CreateProjectDialog = ({
   );
 };
 
-// Project creation template removal placeholder
-
 export default function ProjectSelectionPage() {
   const router = useRouter();
   const {
@@ -346,7 +344,6 @@ export default function ProjectSelectionPage() {
 
       const newProjectData = {
         name: projectName.trim(),
-        // Backend requires a non-empty description; fall back to the name.
         description: projectDescription.trim() || projectName.trim(),
         platform: "OpenTelemetry Project",
         workspaceId: activeWorkspace.id,
@@ -403,7 +400,6 @@ export default function ProjectSelectionPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center text-white relative py-12 px-4 select-none">
-      {/* Floating Toolbar top right */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -471,7 +467,6 @@ export default function ProjectSelectionPage() {
         />
       </div>
 
-      {/* Centered selector card */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -484,7 +479,6 @@ export default function ProjectSelectionPage() {
           <Logo />
         </div>
 
-        {/* Card Heading */}
         <div className="text-left mb-6">
           <h2 className="form-heading">Projects</h2>
           <p className="mt-2 form-subtitle">
@@ -495,7 +489,6 @@ export default function ProjectSelectionPage() {
 
         {error && <div className="banner-error mb-4">{error}</div>}
 
-        {/* Tab switcher */}
         <div className="flex rounded-md bg-zinc-950 p-1 border border-zinc-900 mb-6">
           <button
             type="button"
@@ -571,29 +564,23 @@ export default function ProjectSelectionPage() {
                         onClick={() => setSelectedProjectId(proj.id)}
                         className={`p-3 rounded-lg border text-left cursor-pointer transition-all select-none ${
                           isSelected
-                            ? "border-white bg-zinc-900/50 shadow-md scale-[1.01]"
+                            ? "border-zinc-600 bg-zinc-900/50"
                             : "border-zinc-800 bg-zinc-950/20 hover:border-zinc-700"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-white truncate max-w-[210px]">
+                          <h4 className="text-sm font-semibold text-white truncate max-w-[210px]">
                             {proj.name}
-                          </span>
-                          <span className="text-[10px] text-zinc-500 font-mono">
-                            {proj.platform || "OTEL"}
-                          </span>
+                          </h4>
+                          {isSelected && (
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          )}
                         </div>
                         {proj.description && (
-                          <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed font-light">
+                          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-light truncate">
                             {proj.description}
                           </p>
                         )}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
-                            Active project
-                          </span>
-                        </div>
                       </div>
                     );
                   })

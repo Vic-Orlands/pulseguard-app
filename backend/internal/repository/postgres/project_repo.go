@@ -104,7 +104,7 @@ func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*mod
 func (repo *ProjectRepository) DeleteBySlug(ctx context.Context, slug string) (*models.Project, error) {
     // First, select the project to return it after deletion
     query := `
-        SELECT p.id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
+        SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
         FROM projects p
         LEFT JOIN errors e ON p.id = e.project_id
         WHERE p.slug = $1
@@ -186,7 +186,7 @@ func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID str
 	query := `
 		DELETE FROM projects
 		WHERE owner_id = $1
-		RETURNING id, name, slug, description, owner_id, created_at, updated_at
+		RETURNING id, workspace_id, name, slug, description, owner_id, created_at, updated_at
 	`
 
 	rows, err := repo.db.QueryContext(ctx, query, ownerID)

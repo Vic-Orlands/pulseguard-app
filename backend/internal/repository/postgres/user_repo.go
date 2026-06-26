@@ -74,8 +74,8 @@ func (repo *UserRepository) GetByEmail(ctx context.Context, email string) (*mode
 // get current user
 func (repo *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
-	row := repo.db.QueryRowContext(ctx, "SELECT id, email, name, image, provider, provider_id, created_at FROM users WHERE id=$1", id)
-	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.Image, &user.Provider, &user.ProviderID, &user.CreatedAt)
+	row := repo.db.QueryRowContext(ctx, "SELECT id, email, name, image, provider, provider_id, created_at, updated_at FROM users WHERE id=$1", id)
+	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.Image, &user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		return nil, err
