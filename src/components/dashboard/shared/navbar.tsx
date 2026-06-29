@@ -265,12 +265,12 @@ export default function Header({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-[min(92vw,42rem)] bg-pg-modal border border-pg-border text-pg-text rounded-2xl shadow-xl p-0 z-50 text-left overflow-hidden"
+              className="w-[min(92vw,42rem)] bg-pg-modal border border-pg-border text-pg-text rounded-lg shadow-none p-0 z-50 text-left overflow-hidden"
               align="start"
               sideOffset={10}
             >
               <div className="grid md:grid-cols-[16rem_minmax(0,1fr)]">
-                <div className="border-b border-pg-border/70 bg-pg-surface/40 md:border-r md:border-b-0">
+                <div className="border-b border-pg-border/70 bg-pg-surface/25 md:border-r md:border-b-0">
                   <div className="border-b border-pg-border/50 px-4 py-3">
                     <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                       Workspaces
@@ -288,9 +288,9 @@ export default function Header({
                         <button
                           key={ws.id}
                           onClick={() => handleWorkspacePreview(ws.id)}
-                          className={`w-full rounded-xl border px-3 py-2.5 text-left transition-all ${
+                          className={`w-full rounded-lg border px-3 py-2.5 text-left transition-all ${
                             isPreviewWorkspace
-                              ? "border-orange-500/50 bg-orange-500/8 text-pg-text"
+                              ? "border-pg-border bg-pg-modal text-pg-text"
                               : "border-transparent text-pg-muted hover:border-pg-border hover:bg-pg-surface hover:text-pg-text"
                           }`}
                         >
@@ -317,7 +317,7 @@ export default function Header({
                         setIsOrgSwitcherOpen(false);
                         setIsCreateWorkspaceModalOpen(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl border border-pg-border bg-pg-modal px-3 py-2.5 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-surface"
+                      className="flex w-full items-center gap-2 rounded-lg border border-pg-border bg-pg-modal px-3 py-2.5 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-surface"
                     >
                       <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
                       <span>Create Workspace</span>
@@ -339,7 +339,7 @@ export default function Header({
                       {previewWorkspace && (
                         <button
                           onClick={handleOpenWorkspace}
-                          className="rounded-lg border border-pg-border px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-pg-muted transition-colors hover:bg-pg-surface hover:text-pg-text"
+                          className="rounded-md border border-pg-border px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-pg-muted transition-colors hover:bg-pg-surface hover:text-pg-text"
                         >
                           Open workspace
                         </button>
@@ -372,10 +372,10 @@ export default function Header({
                                 )
                               }
                               disabled={isProjectNavigationPending}
-                              className={`rounded-xl border p-3 text-left transition-all ${
+                              className={`rounded-lg border p-3 text-left transition-all ${
                                 isCurrentProject
-                                  ? "border-orange-500/50 bg-orange-500/8"
-                                  : "border-pg-border bg-pg-surface/40 hover:border-orange-500/30 hover:bg-pg-surface"
+                                  ? "border-pg-border bg-pg-modal"
+                                  : "border-pg-border bg-pg-surface/25 hover:bg-pg-surface"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-3">
@@ -388,7 +388,7 @@ export default function Header({
                                   </p>
                                 </div>
                                 {isCurrentProject ? (
-                                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.12em] text-emerald-400">
+                                  <span className="rounded-full border border-pg-border bg-pg-surface px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.12em] text-pg-text">
                                     Live
                                   </span>
                                 ) : (
@@ -466,7 +466,7 @@ export default function Header({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-52 bg-pg-modal border border-pg-border rounded-lg shadow-xl p-1 z-50 text-left text-pg-text"
+              className="w-52 bg-pg-modal border border-pg-border rounded-lg shadow-none p-1 z-50 text-left text-pg-text"
               align="end"
               forceMount
             >
@@ -554,7 +554,7 @@ export default function Header({
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`h-7 px-2.5 flex items-center justify-center transition-all cursor-pointer rounded text-[11px] shrink-0 border bg-transparent ${
                       isSelected
-                        ? "border-orange-500/80 text-orange-400 bg-orange-500/5 font-semibold shadow-sm shadow-orange-950/20"
+                        ? "border-pg-border text-pg-text bg-pg-surface font-semibold"
                         : "border-transparent text-pg-muted hover:text-pg-text hover:bg-pg-surface/40"
                     }`}
                   >
@@ -575,10 +575,8 @@ export default function Header({
 
       {/* 3. Get Integration Key Modal */}
       <Dialog open={isCliModalOpen} onOpenChange={setIsCliModalOpen}>
-        <DialogContent className="pg-modal max-w-2xl overflow-hidden p-0">
-          <div className="relative bg-dot-pattern">
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(249,115,22,0.12),transparent_28%),radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_34%),linear-gradient(180deg,rgba(0,0,0,0.28),transparent_72%)]" />
-            <div className="relative space-y-5 p-6">
+        <DialogContent className="pg-modal max-w-2xl overflow-hidden p-0 shadow-none">
+          <div className="space-y-5 p-6">
               <DialogHeader className="space-y-1 text-left">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-[0.24em] text-emerald-400">
                   Access Authorization
@@ -598,7 +596,7 @@ export default function Header({
                   Active Integration Key
                 </span>
                 <div className="flex flex-col gap-2 md:flex-row">
-                  <div className="relative flex-1 overflow-hidden rounded-xl border border-pg-border bg-pg-surface px-3 py-2">
+                  <div className="relative flex-1 overflow-hidden rounded-lg border border-pg-border bg-pg-surface px-3 py-2">
                     <input
                       type={showModalApiKey ? "text" : "password"}
                       value={apiKey}
@@ -693,11 +691,10 @@ export default function Header({
                   </div>
                 </div>
 
-                <div className="max-h-44 overflow-x-auto rounded-xl border border-pg-border bg-pg-surface p-3 font-mono text-[10.5px] text-pg-text whitespace-pre">
+                <div className="max-h-44 overflow-x-auto rounded-lg border border-pg-border bg-pg-surface p-3 font-mono text-[10.5px] text-pg-text whitespace-pre">
                   {getCodeSnippet()}
                 </div>
               </div>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

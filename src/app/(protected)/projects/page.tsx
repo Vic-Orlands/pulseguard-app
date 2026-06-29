@@ -410,7 +410,7 @@ export default function ProjectSelectionPage() {
   };
 
   return (
-    <div className="relative min-h-screen select-none text-pg-text">
+    <div className="pg-page pg-grid min-h-screen py-10 relative overflow-hidden select-none text-pg-text">
       <div className="absolute right-4 top-4 z-50 flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -423,7 +423,7 @@ export default function ProjectSelectionPage() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-64 rounded-2xl border border-pg-border bg-pg-modal p-1.5 text-pg-text shadow-xl"
+            className="w-64 rounded-lg border border-pg-border bg-pg-modal p-1.5 text-pg-text shadow-none"
             align="end"
           >
             <DropdownMenuLabel className="px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
@@ -437,7 +437,7 @@ export default function ProjectSelectionPage() {
                   onClick={() => setActiveWorkspace(ws)}
                   className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-all ${
                     activeWorkspace?.id === ws.id
-                      ? "bg-orange-500/10 text-pg-text"
+                      ? "bg-pg-surface text-pg-text"
                       : "text-pg-muted hover:bg-pg-surface hover:text-pg-text"
                   }`}
                 >
@@ -483,33 +483,29 @@ export default function ProjectSelectionPage() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        className="pg-shell relative px-4 pb-20 pt-10 md:px-8 md:pt-14"
+        className="pg-shell relative px-6 pb-20 pt-10 md:pt-14"
         id="project-selection-container"
       >
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/25 to-transparent" />
-
-        <div className="mb-8 flex items-start justify-between gap-6">
-          <div className="space-y-5">
-            <div className="w-fit pl-4">
+        <div className="mb-6 flex items-start justify-between gap-6">
+          <div className="space-y-4">
+            <div className="w-fit">
               <Logo />
             </div>
             <div className="max-w-2xl">
-              <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-orange-400">
-                Telemetry Control Room
-              </p>
-              <h1 className="mt-3 text-4xl font-normal tracking-[-0.065em] text-pg-text md:text-5xl">
-                Ship and navigate projects with the same visual system as the rest of PulseGuard.
+              <h1 className="text-lg font-bold text-pg-text mb-0.5">
+                Projects
               </h1>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-pg-muted">
-                Choose a workspace, jump into an active project, or spin up a new telemetry stream without leaving this dashboard shell.
+              <p className="text-xs text-pg-muted max-w-xl">
+                Select an existing PulseGuard workspace project or initialize a
+                new observability surface.
                 {user?.name ? ` Signed in as ${user.name}.` : ""}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
+          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
             <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
               Active workspace
             </p>
@@ -517,13 +513,13 @@ export default function ProjectSelectionPage() {
               {activeWorkspace?.name || "No workspace selected"}
             </p>
           </div>
-          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
             <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
               Visible projects
             </p>
             <p className="mt-3 text-lg text-pg-text">{filteredProjects.length}</p>
           </div>
-          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
             <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
               Current mode
             </p>
@@ -533,29 +529,29 @@ export default function ProjectSelectionPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_22rem]">
-          <section className="rounded-[28px] border border-pg-border bg-pg-modal/88 shadow-[0_30px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_22rem]">
+          <section className="rounded-xl border border-pg-border bg-pg-modal">
             <div className="border-b border-pg-border/70 px-5 py-5 md:px-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h2 className="text-2xl font-normal tracking-[-0.058em] text-pg-text">
+                  <h2 className="text-lg font-bold text-pg-text">
                     Projects
                   </h2>
-                  <p className="mt-2 text-sm text-pg-muted">
-                    Select an existing PulseGuard workspace project or initialize a new observability surface.
+                  <p className="mt-1 text-xs text-pg-muted">
+                    Browse or create projects in the active workspace.
                   </p>
                 </div>
 
-                <div className="flex rounded-xl border border-pg-border bg-pg-surface/60 p-1">
+                <div className="flex rounded-lg border border-pg-border bg-pg-surface/40 p-1">
                   <button
                     type="button"
                     onClick={() => {
                       setProjectActionTab("select");
                       setError("");
                     }}
-                    className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
+                    className={`rounded-md px-4 py-2 text-xs font-medium transition-all ${
                       projectActionTab === "select"
-                        ? "bg-pg-modal text-pg-text shadow-sm"
+                        ? "bg-pg-modal text-pg-text"
                         : "text-pg-muted hover:text-pg-text"
                     }`}
                   >
@@ -567,9 +563,9 @@ export default function ProjectSelectionPage() {
                       setProjectActionTab("create");
                       setError("");
                     }}
-                    className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
+                    className={`rounded-md px-4 py-2 text-xs font-medium transition-all ${
                       projectActionTab === "create"
-                        ? "bg-pg-modal text-pg-text shadow-sm"
+                        ? "bg-pg-modal text-pg-text"
                         : "text-pg-muted hover:text-pg-text"
                     }`}
                   >
@@ -623,10 +619,10 @@ export default function ProjectSelectionPage() {
                               key={proj.id}
                               type="button"
                               onClick={() => setSelectedProjectId(proj.id)}
-                              className={`rounded-2xl border p-4 text-left transition-all ${
+                              className={`rounded-lg border p-4 text-left transition-all ${
                                 isSelected
-                                  ? "border-orange-500/50 bg-orange-500/8 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
-                                  : "border-pg-border bg-pg-surface/35 hover:border-orange-500/25 hover:bg-pg-surface/60"
+                                  ? "border-pg-border bg-pg-modal"
+                                  : "border-pg-border bg-pg-surface/25 hover:bg-pg-surface/40"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-3">
@@ -649,7 +645,7 @@ export default function ProjectSelectionPage() {
                           );
                         })
                       ) : (
-                        <div className="col-span-full rounded-2xl border border-dashed border-pg-border bg-pg-surface/20 px-6 py-12 text-center">
+                        <div className="col-span-full rounded-lg border border-dashed border-pg-border bg-pg-surface/20 px-6 py-12 text-center">
                           <p className="text-sm text-pg-text">No projects found.</p>
                           <p className="mt-1 text-xs text-pg-muted">
                             Create a new project to start ingesting telemetry.
@@ -714,7 +710,7 @@ export default function ProjectSelectionPage() {
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
                         rows={4}
-                        className="w-full resize-none rounded-2xl border border-pg-border bg-pg-surface px-3 py-3 text-[13px] text-pg-text transition-colors duration-200 focus:border-zinc-500 focus:outline-none"
+                        className="w-full resize-none rounded-lg border border-pg-border bg-pg-surface px-3 py-3 text-[13px] text-pg-text transition-colors duration-200 focus:border-zinc-500 focus:outline-none"
                       />
                     </div>
 
@@ -735,7 +731,7 @@ export default function ProjectSelectionPage() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-[28px] border border-pg-border bg-pg-surface/35 p-5">
+            <div className="rounded-xl border border-pg-border bg-pg-surface/25 p-5">
               <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                 Active context
               </p>
@@ -746,7 +742,7 @@ export default function ProjectSelectionPage() {
                 {selectedProject?.description ||
                   "Use the left panel to choose a project or create a new one inside the current workspace."}
               </p>
-              <div className="mt-4 rounded-2xl border border-pg-border bg-pg-modal/80 p-4">
+              <div className="mt-4 rounded-lg border border-pg-border bg-pg-modal p-4">
                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Workspace
                 </p>
@@ -759,7 +755,7 @@ export default function ProjectSelectionPage() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-pg-border bg-pg-surface/35 p-5">
+            <div className="rounded-xl border border-pg-border bg-pg-surface/25 p-5">
               <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                 Recommended flow
               </p>

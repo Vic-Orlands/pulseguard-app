@@ -144,17 +144,17 @@ export default function DashboardComponent({ project }: { project: Project }) {
       />
 
       <main className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 md:px-8 md:py-8">
-        <div className="rounded-[32px] border border-pg-border bg-pg-modal/82 p-5 shadow-[0_30px_100px_rgba(0,0,0,0.18)] backdrop-blur-sm md:p-6">
+        <div className="rounded-xl border border-pg-border bg-pg-modal p-5 md:p-6">
           <div className="flex flex-col gap-6 border-b border-pg-border/70 pb-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-orange-400">
+                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Project Dashboard
                 </p>
-                <h1 className="mt-3 text-3xl font-normal tracking-[-0.06em] text-pg-text md:text-4xl">
+                <h1 className="mt-2 text-lg font-bold text-pg-text md:text-xl">
                   {project.name}
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-pg-muted">
+                <p className="mt-1 max-w-2xl text-xs leading-6 text-pg-muted">
                   Monitor application health, trace regressions, and move from
                   active incidents to platform actions without leaving this
                   workspace shell.
@@ -164,14 +164,14 @@ export default function DashboardComponent({ project }: { project: Project }) {
                 <a href="/documentation" target="_blank" rel="noopener noreferrer">
                   <Button
                     variant="outline"
-                    className="h-9 rounded-xl border-pg-border bg-pg-surface px-3 text-xs font-medium text-pg-muted shadow-none hover:text-pg-text"
+                    className="h-8 rounded-lg border-pg-border bg-pg-surface px-3 text-xs font-medium text-pg-muted shadow-none hover:text-pg-text"
                   >
                     <HugeiconsIcon icon={HelpCircleIcon} className="mr-1.5 h-3.5 w-3.5" />
                     Documentation
                   </Button>
                 </a>
                 <Button
-                  className="btn-primary h-9 rounded-xl px-3 text-xs font-semibold shadow-none"
+                  className="btn-primary h-8 rounded-lg px-3 text-xs font-semibold shadow-none"
                   onClick={() => {
                     setIsConnectPlatformPending(true);
                     setActiveTab("connect-platform");
@@ -186,7 +186,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-pg-border bg-pg-surface/45 p-4">
+              <div className="rounded-lg border border-pg-border bg-pg-surface/25 p-4">
                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Active tab
                 </p>
@@ -194,7 +194,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
                   {activeTab.replace("-", " ")}
                 </p>
               </div>
-              <div className="rounded-2xl border border-pg-border bg-pg-surface/45 p-4">
+              <div className="rounded-lg border border-pg-border bg-pg-surface/25 p-4">
                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Project slug
                 </p>
@@ -202,7 +202,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
                   {project.slug}
                 </p>
               </div>
-              <div className="rounded-2xl border border-pg-border bg-pg-surface/45 p-4">
+              <div className="rounded-lg border border-pg-border bg-pg-surface/25 p-4">
                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Active alerts
                 </p>
