@@ -27,9 +27,9 @@ import {
 import { Logo } from "@/app/(auth)/signin/page";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
+import { Button } from "@/components/ui/button";
 
 import type { Project } from "@/types/dashboard";
-import { normalizePostgresString } from "@/lib/utils";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -262,6 +262,8 @@ export default function ProjectSelectionPage() {
   const [creatingProjectName, setCreatingProjectName] = useState("");
   const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] =
     useState(false);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [isEnteringProject, setIsEnteringProject] = useState(false);
 
   const getAllProjects = async () => {
     try {
@@ -324,6 +326,10 @@ export default function ProjectSelectionPage() {
       platform.includes(query)
     );
   });
+  const selectedProject =
+    filteredProjects.find((project) => project.id === selectedProjectId) ??
+    projects.find((project) => project.id === selectedProjectId) ??
+    null;
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
@@ -338,6 +344,7 @@ export default function ProjectSelectionPage() {
 
     try {
       setError("");
+      setIsCreatingProject(true);
       setCreatingProjectName(projectName);
       setCreatingStatus("creating");
       setShowCreateDialog(true);
@@ -361,6 +368,7 @@ export default function ProjectSelectionPage() {
         const msg = errBody?.error || `Server error (${response.status})`;
         setError(msg);
         setShowCreateDialog(false);
+        setIsCreatingProject(false);
         return;
       }
 
@@ -368,6 +376,7 @@ export default function ProjectSelectionPage() {
       if (newProject.error) {
         setShowCreateDialog(false);
         setError(`${newProject.error}, use a different name`);
+        setIsCreatingProject(false);
         return;
       }
 
@@ -384,6 +393,7 @@ export default function ProjectSelectionPage() {
       setShowCreateDialog(false);
       toast.error("Failed to create project.");
       console.error("Error creating project:", err);
+      setIsCreatingProject(false);
     }
   };
 
@@ -394,54 +404,55 @@ export default function ProjectSelectionPage() {
   const handleEnterProject = () => {
     const selected = projects.find((p) => p.id === selectedProjectId);
     if (selected) {
+      setIsEnteringProject(true);
       router.push(`/projects/${selected.slug}`);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center text-white relative py-12 px-4 select-none">
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+    <div className="relative min-h-screen select-none text-pg-text">
+      <div className="absolute right-4 top-4 z-50 flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-2 bg-zinc-950/40 border border-zinc-800 text-zinc-400 hover:text-white transition-all rounded-full text-xs font-semibold cursor-pointer focus:outline-none">
-              <Briefcase className="h-3.5 w-3.5 text-zinc-500" />
-              <span className="max-w-[120px] truncate">
+            <button className="flex items-center gap-1.5 rounded-full border border-pg-border bg-pg-overlay px-3 py-2 text-xs font-semibold text-pg-muted transition-all hover:bg-pg-surface hover:text-pg-text focus:outline-none">
+              <Briefcase className="h-3.5 w-3.5 text-pg-subtle" />
+              <span className="max-w-[140px] truncate">
                 {activeWorkspace?.name || "Select Workspace"}
               </span>
-              <ChevronDown className="h-3 w-3 text-zinc-600" />
+              <ChevronDown className="h-3 w-3 text-pg-subtle" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56 bg-[#121212] border border-zinc-800 text-white rounded-lg shadow-sm"
+            className="w-64 rounded-2xl border border-pg-border bg-pg-modal p-1.5 text-pg-text shadow-xl"
             align="end"
           >
-            <DropdownMenuLabel className="text-[10px] font-mono uppercase text-zinc-500 px-3 py-1.5">
+            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
               Switch Workspace
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-zinc-800/60" />
-            <div className="p-1 max-h-48 overflow-y-auto">
+            <DropdownMenuSeparator className="bg-pg-border/60" />
+            <div className="max-h-56 space-y-1 overflow-y-auto p-1">
               {workspaces.map((ws) => (
                 <button
                   key={ws.id}
                   onClick={() => setActiveWorkspace(ws)}
-                  className={`w-full text-left rounded px-2.5 py-1.5 text-xs transition-all flex items-center justify-between cursor-pointer ${
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-all ${
                     activeWorkspace?.id === ws.id
-                      ? "bg-slate-800/10 text-white font-semibold"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
+                      ? "bg-orange-500/10 text-pg-text"
+                      : "text-pg-muted hover:bg-pg-surface hover:text-pg-text"
                   }`}
                 >
                   <span className="truncate pr-2">{ws.name}</span>
                   {activeWorkspace?.id === ws.id && (
-                    <Check className="h-3.5 w-3.5 text-white flex-shrink-0" />
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
                   )}
                 </button>
               ))}
             </div>
-            <DropdownMenuSeparator className="bg-zinc-800/60" />
+            <DropdownMenuSeparator className="bg-pg-border/60" />
             <div className="p-1">
               <button
                 onClick={() => setIsCreateWorkspaceModalOpen(true)}
-                className="w-full text-left bg-slate-800/10 text-white rounded px-2.5 py-1.5 text-xs hover:bg-zinc-800 hover:text-zinc-100 transition-all flex items-center gap-1.5 cursor-pointer font-medium"
+                className="flex w-full items-center gap-1.5 rounded-xl border border-pg-border bg-pg-surface px-3 py-2 text-left text-xs font-medium text-pg-text transition-all hover:bg-pg-overlay"
               >
                 <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
                 Create Workspace
@@ -455,10 +466,10 @@ export default function ProjectSelectionPage() {
         <CustomAlertDialog
           trigger={
             <button
-              className="p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
+              className="flex items-center justify-center rounded-full border border-pg-border bg-pg-overlay p-2.5 text-pg-muted transition-all hover:bg-pg-surface hover:text-pg-text"
               title="Sign out"
             >
-              <LogOut className="w-4 h-4 text-red-500" />
+              <LogOut className="h-4 w-4 text-red-500" />
             </button>
           }
           title="Sign out"
@@ -468,222 +479,298 @@ export default function ProjectSelectionPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -15 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[374px] mx-auto px-1"
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        className="pg-shell relative px-4 pb-20 pt-10 md:px-8 md:pt-14"
         id="project-selection-container"
       >
-        <div className="w-fit pl-4">
-          <Logo />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/25 to-transparent" />
+
+        <div className="mb-8 flex items-start justify-between gap-6">
+          <div className="space-y-5">
+            <div className="w-fit pl-4">
+              <Logo />
+            </div>
+            <div className="max-w-2xl">
+              <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-orange-400">
+                Telemetry Control Room
+              </p>
+              <h1 className="mt-3 text-4xl font-normal tracking-[-0.065em] text-pg-text md:text-5xl">
+                Ship and navigate projects with the same visual system as the rest of PulseGuard.
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-pg-muted">
+                Choose a workspace, jump into an active project, or spin up a new telemetry stream without leaving this dashboard shell.
+                {user?.name ? ` Signed in as ${user.name}.` : ""}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="text-left mb-6">
-          <h2 className="form-heading">Projects</h2>
-          <p className="mt-2 form-subtitle">
-            Select an existing PulseGuard telemetry workspace or instantiate a
-            new project.
-          </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+              Active workspace
+            </p>
+            <p className="mt-3 text-lg text-pg-text">
+              {activeWorkspace?.name || "No workspace selected"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+              Visible projects
+            </p>
+            <p className="mt-3 text-lg text-pg-text">{filteredProjects.length}</p>
+          </div>
+          <div className="rounded-2xl border border-pg-border bg-pg-surface/40 p-4">
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+              Current mode
+            </p>
+            <p className="mt-3 text-lg text-pg-text">
+              {projectActionTab === "select" ? "Browse projects" : "Create project"}
+            </p>
+          </div>
         </div>
 
-        {error && <div className="banner-error mb-4">{error}</div>}
-
-        <div className="flex rounded-md bg-zinc-950 p-1 border border-zinc-900 mb-6">
-          <button
-            type="button"
-            onClick={() => {
-              setProjectActionTab("select");
-              setError("");
-            }}
-            className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
-              projectActionTab === "select"
-                ? "bg-zinc-800 text-white"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            Select Active Project
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setProjectActionTab("create");
-              setError("");
-            }}
-            className={`flex-1 text-center py-1.5 text-xs font-medium rounded transition-all cursor-pointer ${
-              projectActionTab === "create"
-                ? "bg-zinc-800 text-white"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            Create New Project
-          </button>
-        </div>
-
-        <AnimatePresence mode="wait">
-          {projectActionTab === "select" ? (
-            <motion.div
-              key="tab-select"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4"
-            >
-              {/* Search & Refresh Inline Bar */}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    placeholder="Search projects..."
-                    className="pl-3 pr-8 w-full bg-zinc-900/60 border border-zinc-800 text-white text-xs h-8.5 rounded-lg focus:outline-none focus:border-zinc-500 placeholder:text-zinc-600 transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="flex items-center justify-center bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white h-8.5 w-8.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                  title="Refresh Projects"
-                >
-                  <RefreshCw
-                    className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
-                  />
-                </button>
-              </div>
-
-              {/* Scrollable Project Cards list */}
-              <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 text-left">
-                {filteredProjects.length > 0 ? (
-                  filteredProjects.map((proj) => {
-                    const isSelected = selectedProjectId === proj.id;
-                    return (
-                      <div
-                        key={proj.id}
-                        onClick={() => setSelectedProjectId(proj.id)}
-                        className={`p-3 rounded-lg border text-left cursor-pointer transition-all select-none ${
-                          isSelected
-                            ? "border-zinc-600 bg-zinc-900/50"
-                            : "border-zinc-800 bg-zinc-950/20 hover:border-zinc-700"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold text-white truncate max-w-[210px]">
-                            {proj.name}
-                          </h4>
-                          {isSelected && (
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                          )}
-                        </div>
-                        {proj.description && (
-                          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-light truncate">
-                            {proj.description}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-xs text-zinc-500 text-center py-6">
-                    No projects found. Create a new project to get started.
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_22rem]">
+          <section className="rounded-[28px] border border-pg-border bg-pg-modal/88 shadow-[0_30px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+            <div className="border-b border-pg-border/70 px-5 py-5 md:px-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-normal tracking-[-0.058em] text-pg-text">
+                    Projects
+                  </h2>
+                  <p className="mt-2 text-sm text-pg-muted">
+                    Select an existing PulseGuard workspace project or initialize a new observability surface.
                   </p>
-                )}
-              </div>
+                </div>
 
-              {/* Proceed Action Button */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.99 }}
-                onClick={handleEnterProject}
-                disabled={!selectedProjectId}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group mt-2"
-              >
-                <motion.span
-                  className="flex items-center justify-center gap-1.5"
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  <span>Enter telemetry suite</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.span>
-              </motion.button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="tab-create"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4 text-left"
-            >
-              {/* Project Name Input */}
-              <div>
-                <label
-                  className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
-                  htmlFor="input-project-name"
-                >
-                  Project Name
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                    <FolderPlus className="w-4 h-4" />
-                  </span>
-                  <input
-                    id="input-project-name"
-                    type="text"
-                    placeholder="e.g. Auth Telemetry System"
-                    value={projectName}
-                    onChange={(e) => {
-                      setProjectName(e.target.value);
+                <div className="flex rounded-xl border border-pg-border bg-pg-surface/60 p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectActionTab("select");
                       setError("");
                     }}
-                    className="input-field pl-9"
-                  />
+                    className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
+                      projectActionTab === "select"
+                        ? "bg-pg-modal text-pg-text shadow-sm"
+                        : "text-pg-muted hover:text-pg-text"
+                    }`}
+                  >
+                    Select Active Project
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectActionTab("create");
+                      setError("");
+                    }}
+                    className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
+                      projectActionTab === "create"
+                        ? "bg-pg-modal text-pg-text shadow-sm"
+                        : "text-pg-muted hover:text-pg-text"
+                    }`}
+                  >
+                    Create New Project
+                  </button>
                 </div>
               </div>
+            </div>
 
-              {/* Project Description */}
-              <div>
-                <label
-                  className="block text-zinc-400 text-xs font-medium mb-1.5 select-none"
-                  htmlFor="input-project-desc"
-                >
-                  Project Description
-                  <span className="text-pg-subtle text-[10px] font-normal">
-                    (defaults to project name if left empty)
-                  </span>
-                </label>
-                <textarea
-                  id="input-project-desc"
-                  placeholder="Describe your observability project and microservices targets..."
-                  value={projectDescription}
-                  onChange={(e) => setProjectDescription(e.target.value)}
-                  rows={2}
-                  className="w-full py-1.5 px-3 rounded-lg bg-pg-surface border border-pg-border focus:border-zinc-500 focus:outline-none text-pg-text text-[13px] transition-colors duration-200 resize-none"
-                />
+            <div className="space-y-5 p-5 md:p-6">
+              {error && <div className="banner-error">{error}</div>}
+
+              <AnimatePresence mode="wait">
+                {projectActionTab === "select" ? (
+                  <motion.div
+                    key="tab-select"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-5"
+                  >
+                    <div className="flex gap-2">
+                      <input
+                        placeholder="Search projects, descriptions, platforms..."
+                        className="h-10 w-full rounded-xl border border-pg-border bg-pg-surface px-3 text-sm text-pg-text outline-none transition-colors placeholder:text-pg-subtle focus:border-zinc-500"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-10 w-10 border-pg-border bg-pg-surface p-0 text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        aria-label="Refresh projects"
+                      >
+                        <RefreshCw
+                          className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                        />
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {filteredProjects.length > 0 ? (
+                        filteredProjects.map((proj) => {
+                          const isSelected = selectedProjectId === proj.id;
+
+                          return (
+                            <button
+                              key={proj.id}
+                              type="button"
+                              onClick={() => setSelectedProjectId(proj.id)}
+                              className={`rounded-2xl border p-4 text-left transition-all ${
+                                isSelected
+                                  ? "border-orange-500/50 bg-orange-500/8 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]"
+                                  : "border-pg-border bg-pg-surface/35 hover:border-orange-500/25 hover:bg-pg-surface/60"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <h4 className="truncate text-sm font-semibold text-pg-text">
+                                    {proj.name}
+                                  </h4>
+                                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-pg-muted">
+                                    {proj.description || "Telemetry workspace ready for instrumentation."}
+                                  </p>
+                                </div>
+                                {isSelected && (
+                                  <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                                )}
+                              </div>
+                              <div className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+                                {proj.platform || "OpenTelemetry Project"}
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="col-span-full rounded-2xl border border-dashed border-pg-border bg-pg-surface/20 px-6 py-12 text-center">
+                          <p className="text-sm text-pg-text">No projects found.</p>
+                          <p className="mt-1 text-xs text-pg-muted">
+                            Create a new project to start ingesting telemetry.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="btn-primary mt-1 w-full"
+                      onClick={handleEnterProject}
+                      disabled={!selectedProjectId}
+                      loading={isEnteringProject}
+                      loadingText="Opening telemetry suite..."
+                    >
+                      <span>Enter telemetry suite</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="tab-create"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4 text-left"
+                  >
+                    <div>
+                      <label className="form-label" htmlFor="input-project-name">
+                        Project Name
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pg-subtle">
+                          <FolderPlus className="h-4 w-4" />
+                        </span>
+                        <input
+                          id="input-project-name"
+                          type="text"
+                          placeholder="e.g. Auth Telemetry System"
+                          value={projectName}
+                          onChange={(e) => {
+                            setProjectName(e.target.value);
+                            setError("");
+                          }}
+                          className="input-field pl-9"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="input-project-desc">
+                        Project Description
+                        <span className="ml-1 text-[10px] font-normal text-pg-subtle">
+                          (defaults to project name if left empty)
+                        </span>
+                      </label>
+                      <textarea
+                        id="input-project-desc"
+                        placeholder="Describe your observability project and microservices targets..."
+                        value={projectDescription}
+                        onChange={(e) => setProjectDescription(e.target.value)}
+                        rows={4}
+                        className="w-full resize-none rounded-2xl border border-pg-border bg-pg-surface px-3 py-3 text-[13px] text-pg-text transition-colors duration-200 focus:border-zinc-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="btn-primary mt-2 w-full"
+                      onClick={handleCreateProject}
+                      loading={isCreatingProject}
+                      loadingText="Initializing project..."
+                    >
+                      <span>Initialize project</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </section>
+
+          <aside className="space-y-4">
+            <div className="rounded-[28px] border border-pg-border bg-pg-surface/35 p-5">
+              <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+                Active context
+              </p>
+              <p className="mt-3 text-lg text-pg-text">
+                {selectedProject?.name || activeWorkspace?.name || "Choose a project"}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-pg-muted">
+                {selectedProject?.description ||
+                  "Use the left panel to choose a project or create a new one inside the current workspace."}
+              </p>
+              <div className="mt-4 rounded-2xl border border-pg-border bg-pg-modal/80 p-4">
+                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+                  Workspace
+                </p>
+                <p className="mt-2 text-sm text-pg-text">
+                  {activeWorkspace?.name || "No workspace selected"}
+                </p>
+                <p className="mt-1 text-xs text-pg-muted">
+                  {projects.length} project{projects.length === 1 ? "" : "s"} available in this workspace.
+                </p>
               </div>
+            </div>
 
-              {/* Initialize Button */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.99 }}
-                onClick={handleCreateProject}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group mt-2"
-              >
-                <motion.span
-                  className="flex items-center justify-center gap-1.5"
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  <span>Initialize project</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.span>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <div className="rounded-[28px] border border-pg-border bg-pg-surface/35 p-5">
+              <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+                Recommended flow
+              </p>
+              <ol className="mt-3 space-y-3 text-sm text-pg-muted">
+                <li>1. Select a workspace from the top-right switcher.</li>
+                <li>2. Pick a project with matching telemetry scope.</li>
+                <li>3. Enter the suite and continue setup from the project dashboard.</li>
+              </ol>
+            </div>
+          </aside>
+        </div>
       </motion.div>
 
       {/* Concentric Loader Overlay dialog */}
@@ -691,7 +778,10 @@ export default function ProjectSelectionPage() {
         isOpen={showCreateDialog}
         projectName={creatingProjectName}
         status={creatingStatus}
-        onClose={() => setShowCreateDialog(false)}
+        onClose={() => {
+          setShowCreateDialog(false);
+          setIsCreatingProject(false);
+        }}
       />
 
       <CreateWorkspaceModal

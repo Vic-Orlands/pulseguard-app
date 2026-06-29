@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Briefcase, Loader2, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Briefcase } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { createWorkspace } from "@/lib/api/workspace-api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface CreateWorkspaceModalProps {
   isOpen: boolean;
@@ -22,6 +29,14 @@ export function CreateWorkspaceModal({
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setName("");
+      setError("");
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,50 +67,30 @@ export function CreateWorkspaceModal({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="pg-modal max-w-sm w-full relative z-10 text-left p-6"
-          >
-            <button
-              onClick={onClose}
-              className="absolute right-4 top-4 p-1 text-pg-subtle hover:text-pg-text transition-colors cursor-pointer z-20 bg-transparent border-0 focus:outline-none"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="mb-6 text-left">
-              <h2 className="text-xl font-normal tracking-[-0.058em] text-pg-text font-sans">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="pg-modal max-w-md p-0">
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.18),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_42%)]" />
+          <div className="relative space-y-5 p-6">
+            <DialogHeader className="space-y-1 text-left">
+              <DialogTitle className="text-xl font-normal tracking-[-0.058em] text-pg-text font-sans">
                 Create new workspace
-              </h2>
-              <p className="mt-1.5 text-xs text-pg-muted font-sans leading-relaxed">
-                Name your workspace to group your telemetry databases and
-                projects
-              </p>
-            </div>
+              </DialogTitle>
+              <DialogDescription className="text-xs leading-relaxed text-pg-muted">
+                Name your workspace to group telemetry projects, environments,
+                and ownership boundaries.
+              </DialogDescription>
+            </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && <div className="banner-error">{error}</div>}
 
-              <div className="text-left w-full">
+              <div className="text-left">
                 <label className="form-label" htmlFor="modal-workspace-name">
                   Workspace Name
                 </label>
-                <div className="relative w-full">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pg-subtle flex items-center justify-center pointer-events-none">
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pg-subtle pointer-events-none">
                     <Briefcase className="h-4 w-4" />
                   </span>
                   <input
@@ -114,31 +109,24 @@ export function CreateWorkspaceModal({
                 </div>
               </div>
 
-              <motion.button
-                type="submit"
-                whileTap={{ scale: 0.99 }}
-                disabled={loading}
-                className="btn-primary w-full"
-              >
-                <motion.span
-                  className="flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-9 border-pg-border bg-transparent text-pg-muted shadow-none hover:bg-pg-surface hover:text-pg-text"
+                  onClick={onClose}
+                  disabled={loading}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-current" />
-                      <span>Creating workspace...</span>
-                    </>
-                  ) : (
-                    <span>Create Workspace</span>
-                  )}
-                </motion.span>
-              </motion.button>
+                  Cancel
+                </Button>
+                <Button type="submit" className="btn-primary w-full sm:w-auto" loading={loading} loadingText="Creating workspace...">
+                  Create Workspace
+                </Button>
+              </div>
             </form>
-          </motion.div>
+          </div>
         </div>
-      )}
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
