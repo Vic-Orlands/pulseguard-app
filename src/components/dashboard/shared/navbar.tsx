@@ -196,16 +196,6 @@ export default function Header({
     router.push(`/projects/${slug}`);
   };
 
-  const handleOpenWorkspace = () => {
-    if (!previewWorkspace) {
-      return;
-    }
-
-    setActiveWorkspace(previewWorkspace);
-    setIsOrgSwitcherOpen(false);
-    router.push("/projects");
-  };
-
   const getCodeSnippet = () => {
     switch (modalCodeTab) {
       case "node":
@@ -249,7 +239,7 @@ export default function Header({
           >
             <DropdownMenuTrigger asChild>
               <button
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-pg-surface transition-colors text-[11px] font-mono text-pg-muted hover:text-pg-text cursor-pointer focus:outline-none"
+                className="flex items-center gap-1 px-2 py-1 rounded hover:bg-pg-surface transition-colors text-xs font-sans text-pg-muted hover:text-pg-text cursor-pointer focus:outline-none"
                 id="org-switcher-button"
               >
                 <Building className="w-3 h-3 text-pg-subtle" />
@@ -275,9 +265,6 @@ export default function Header({
                     <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                       Workspaces
                     </p>
-                    <p className="mt-1 text-xs text-pg-muted">
-                      Pick a workspace to browse its projects.
-                    </p>
                   </div>
                   <div className="max-h-80 space-y-1 overflow-y-auto p-2">
                     {workspaces.map((ws) => {
@@ -288,22 +275,17 @@ export default function Header({
                         <button
                           key={ws.id}
                           onClick={() => handleWorkspacePreview(ws.id)}
-                          className={`w-full rounded-lg border px-3 py-2.5 text-left transition-all ${
+                          className={`w-full rounded-lg px-3 py-2.5 text-left transition-all ${
                             isPreviewWorkspace
-                              ? "border-pg-border bg-pg-modal text-pg-text"
-                              : "border-transparent text-pg-muted hover:border-pg-border hover:bg-pg-surface hover:text-pg-text"
+                              ? "bg-pg-surface text-pg-text"
+                              : "text-pg-muted hover:bg-pg-surface hover:text-pg-text"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium">
-                                {ws.name}
-                              </p>
-                              <p className="mt-0.5 text-[10px] font-mono uppercase tracking-[0.14em] text-pg-subtle">
-                                {isActiveWorkspace ? "Current workspace" : "Workspace"}
-                              </p>
-                            </div>
-                            {isActiveWorkspace && (
+                            <p className="min-w-0 truncate text-xs font-medium font-sans">
+                              {ws.name}
+                            </p>
+                            {isPreviewWorkspace && (
                               <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
                             )}
                           </div>
@@ -317,7 +299,7 @@ export default function Header({
                         setIsOrgSwitcherOpen(false);
                         setIsCreateWorkspaceModalOpen(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-lg border border-pg-border bg-pg-modal px-3 py-2.5 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-surface"
+                      className="flex w-full items-center gap-1 rounded-lg bg-transparent px-3 py-2.5 text-left text-xs font-medium font-sans text-pg-text transition-colors hover:bg-pg-surface"
                     >
                       <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
                       <span>Create Workspace</span>
@@ -327,24 +309,9 @@ export default function Header({
 
                 <div className="flex min-h-[22rem] flex-col">
                   <div className="border-b border-pg-border/50 px-4 py-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
-                          Projects
-                        </p>
-                        <p className="mt-1 text-sm text-pg-text">
-                          {previewWorkspace?.name || "Select a workspace"}
-                        </p>
-                      </div>
-                      {previewWorkspace && (
-                        <button
-                          onClick={handleOpenWorkspace}
-                          className="rounded-md border border-pg-border px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-pg-muted transition-colors hover:bg-pg-surface hover:text-pg-text"
-                        >
-                          Open workspace
-                        </button>
-                      )}
-                    </div>
+                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
+                      Projects
+                    </p>
                   </div>
 
                   <div className="flex-1 p-2">
@@ -372,15 +339,15 @@ export default function Header({
                                 )
                               }
                               disabled={isProjectNavigationPending}
-                              className={`rounded-lg border p-3 text-left transition-all ${
+                              className={`rounded-lg p-3 text-left transition-all ${
                                 isCurrentProject
-                                  ? "border-pg-border bg-pg-modal"
-                                  : "border-pg-border bg-pg-surface/25 hover:bg-pg-surface"
+                                  ? "bg-pg-surface"
+                                  : "bg-transparent hover:bg-pg-surface"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <p className="truncate text-sm font-medium text-pg-text">
+                                  <p className="truncate text-xs font-medium font-sans text-pg-text">
                                     {workspaceProject.name}
                                   </p>
                                   <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-pg-muted">
@@ -388,9 +355,7 @@ export default function Header({
                                   </p>
                                 </div>
                                 {isCurrentProject ? (
-                                  <span className="rounded-full border border-pg-border bg-pg-surface px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.12em] text-pg-text">
-                                    Live
-                                  </span>
+                                  <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
                                 ) : (
                                   <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-pg-subtle" />
                                 )}
@@ -438,7 +403,7 @@ export default function Header({
 
           <button
             onClick={() => setIsCliModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 h-7.5 px-2.5 rounded border border-pg-border hover:bg-pg-surface text-pg-muted hover:text-pg-text transition-all text-xs font-mono cursor-pointer bg-transparent"
+            className="hidden sm:flex items-center gap-1 h-7.5 px-2.5 rounded hover:bg-pg-surface text-pg-muted hover:text-pg-text transition-all text-xs font-sans cursor-pointer bg-transparent"
           >
             <Key className="w-3.5 h-3.5 text-emerald-400" />
             <span>Get integration key</span>
@@ -552,12 +517,15 @@ export default function Header({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`h-7 px-2.5 flex items-center justify-center transition-all cursor-pointer rounded text-[11px] shrink-0 border bg-transparent ${
+                    className={`h-7 px-2.5 flex items-center justify-center gap-1 transition-all cursor-pointer rounded text-xs font-sans shrink-0 bg-transparent ${
                       isSelected
-                        ? "border-pg-border text-pg-text bg-pg-surface font-semibold"
-                        : "border-transparent text-pg-muted hover:text-pg-text hover:bg-pg-surface/40"
+                        ? "text-pg-text bg-pg-surface font-semibold"
+                        : "text-pg-muted hover:text-pg-text hover:bg-pg-surface/40"
                     }`}
                   >
+                    {isSelected && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    )}
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -641,7 +609,7 @@ export default function Header({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-10 border-pg-border bg-pg-surface px-3 text-xs font-mono text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
+                    className="h-10 border-pg-border/60 bg-pg-surface px-3 text-xs font-sans text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
                     loading={isRegeneratingKey}
                     loadingText="Regenerating..."
                     onClick={() => {
@@ -669,7 +637,7 @@ export default function Header({
                   <span className="block text-[10px] font-mono font-semibold uppercase tracking-[0.18em] text-pg-subtle">
                     How to integrate in your project
                   </span>
-                  <div className="flex w-fit rounded-lg border border-pg-border bg-pg-surface p-0.5 text-[9px] font-mono font-medium text-pg-muted">
+                  <div className="flex w-fit rounded-lg border border-pg-border/60 bg-pg-surface p-0.5 text-[9px] font-sans font-medium text-pg-muted">
                     {[
                       { id: "curl", label: "cURL" },
                       { id: "node", label: "Node.js" },
@@ -744,7 +712,7 @@ function BackToProjectButton({
   ) : (
     <button className="flex items-center gap-1.5 text-pg-muted hover:text-pg-text border-pg-border/80 mr-4 h-full pr-4 border-r transition-colors cursor-pointer shrink-0 bg-transparent">
       <ChevronRight className="w-3.5 h-3.5 rotate-180 text-pg-faint" />
-      <span className="font-sans text-[11px]">Back to Projects</span>
+      <span className="font-sans text-xs">Back to Projects</span>
     </button>
   );
 

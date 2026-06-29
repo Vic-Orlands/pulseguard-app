@@ -11,7 +11,7 @@ export default function HelpButton() {
       whileTap={{ scale: 0.95 }}
     >
       <button
-        className="btn-primary rounded-full h-14 w-14 shadow-lg"
+        className="btn-primary rounded-full h-14 w-14 shadow-none"
         title="Help"
       >
         <HugeiconsIcon icon={LifebuoyIcon} className="h-6 w-6" />

@@ -95,7 +95,7 @@ export const DeleteProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="pg-modal shadow-sm overflow-hidden"
+              className="pg-modal shadow-none overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">

@@ -416,7 +416,7 @@ const AlertPage = ({ project }: { project: Project }) => {
 
     return (
       <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-        <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-sm text-foreground">
+        <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-none text-foreground">
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-sm font-bold text-foreground">{title}</h2>
             <button
@@ -765,7 +765,7 @@ const AlertPage = ({ project }: { project: Project }) => {
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 z-10 mt-2 bg-slate-700 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 z-10 mt-2 bg-slate-700 border border-slate-600 rounded-lg shadow-none max-h-48 overflow-y-auto">
             {options.map((option) => (
               <button
                 key={option.value}
@@ -812,7 +812,7 @@ const AlertPage = ({ project }: { project: Project }) => {
 
     const GroupDialog = () => (
       <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50">
-        <div className="bg-card border border-border rounded-lg p-5 w-full max-w-md mx-4 shadow-sm text-foreground">
+        <div className="bg-card border border-border rounded-lg p-5 w-full max-w-md mx-4 shadow-none text-foreground">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-foreground">
               {editingGroup ? "Edit Group" : "Create New Group"}
@@ -1404,7 +1404,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 onClick={() => setView("grid")}
                 className={`p-1.5 rounded transition-all cursor-pointer ${
                   view === "grid"
-                    ? "bg-background text-foreground font-semibold shadow-xs"
+                    ? "bg-background text-foreground font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -1414,7 +1414,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 onClick={() => setView("list")}
                 className={`p-1.5 rounded transition-all cursor-pointer ${
                   view === "list"
-                    ? "bg-background text-foreground font-semibold shadow-xs"
+                    ? "bg-background text-foreground font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >

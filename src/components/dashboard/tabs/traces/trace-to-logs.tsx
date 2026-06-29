@@ -184,7 +184,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
               "flex items-center p-2.5 rounded-lg cursor-pointer ml-2 border",
               level > 0 && "ml-6",
               isSelected
-                ? "bg-primary text-primary-foreground font-semibold border-primary shadow-xs"
+                ? "bg-primary text-primary-foreground font-semibold border-primary"
                 : "border-border hover:bg-muted/50 text-foreground"
             )}
             style={{

@@ -46,7 +46,7 @@ const LogsVolumeChart: React.FC<LogsVolumeChartProps> = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-popover border border-border rounded-md p-2.5 shadow-sm text-popover-foreground">
+        <div className="bg-popover border border-border rounded-md p-2.5 shadow-none text-popover-foreground">
           <p className="text-muted-foreground text-[10px] mb-1 font-semibold">{`Time: ${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-xs font-semibold" style={{ color: entry.color }}>

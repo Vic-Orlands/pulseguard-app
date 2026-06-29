@@ -138,7 +138,7 @@ export function ErrorDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={isStatusLoading ? () => {} : onClose}>
-      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground shadow-2xl overflow-y-auto">
+      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground shadow-none overflow-y-auto">
         {selectedError ? (
           <div className="space-y-6 text-foreground">
             {/* Header */}

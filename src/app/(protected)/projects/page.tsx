@@ -49,7 +49,7 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
+      className="p-2.5 rounded-full border border-pg-border/60 bg-pg-overlay text-pg-muted hover:text-pg-text transition-all cursor-pointer flex items-center justify-center hover:bg-pg-surface"
       title={`Switch theme`}
       id="projects-theme-toggle"
     >
@@ -504,31 +504,6 @@ export default function ProjectSelectionPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 mb-6">
-          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
-              Active workspace
-            </p>
-            <p className="mt-3 text-lg text-pg-text">
-              {activeWorkspace?.name || "No workspace selected"}
-            </p>
-          </div>
-          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
-              Visible projects
-            </p>
-            <p className="mt-3 text-lg text-pg-text">{filteredProjects.length}</p>
-          </div>
-          <div className="rounded-xl border border-pg-border bg-pg-surface/30 p-4">
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
-              Current mode
-            </p>
-            <p className="mt-3 text-lg text-pg-text">
-              {projectActionTab === "select" ? "Browse projects" : "Create project"}
-            </p>
-          </div>
-        </div>
-
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_22rem]">
           <section className="rounded-xl border border-pg-border bg-pg-modal">
             <div className="border-b border-pg-border/70 px-5 py-5 md:px-6">
@@ -542,14 +517,14 @@ export default function ProjectSelectionPage() {
                   </p>
                 </div>
 
-                <div className="flex rounded-lg border border-pg-border bg-pg-surface/40 p-1">
+                <div className="flex rounded-lg border border-pg-border/60 bg-pg-surface/40 p-1">
                   <button
                     type="button"
                     onClick={() => {
                       setProjectActionTab("select");
                       setError("");
                     }}
-                    className={`rounded-md px-4 py-2 text-xs font-medium transition-all ${
+                    className={`rounded-md px-4 py-2 text-xs font-sans font-medium transition-all ${
                       projectActionTab === "select"
                         ? "bg-pg-modal text-pg-text"
                         : "text-pg-muted hover:text-pg-text"
@@ -563,7 +538,7 @@ export default function ProjectSelectionPage() {
                       setProjectActionTab("create");
                       setError("");
                     }}
-                    className={`rounded-md px-4 py-2 text-xs font-medium transition-all ${
+                    className={`rounded-md px-4 py-2 text-xs font-sans font-medium transition-all ${
                       projectActionTab === "create"
                         ? "bg-pg-modal text-pg-text"
                         : "text-pg-muted hover:text-pg-text"
@@ -598,7 +573,7 @@ export default function ProjectSelectionPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-10 w-10 border-pg-border bg-pg-surface p-0 text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
+                        className="h-10 w-10 border-pg-border/60 bg-pg-surface p-0 text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
                         onClick={handleRefresh}
                         disabled={isRefreshing}
                         aria-label="Refresh projects"
@@ -619,15 +594,15 @@ export default function ProjectSelectionPage() {
                               key={proj.id}
                               type="button"
                               onClick={() => setSelectedProjectId(proj.id)}
-                              className={`rounded-lg border p-4 text-left transition-all ${
+                              className={`rounded-lg p-4 text-left transition-all ${
                                 isSelected
-                                  ? "border-pg-border bg-pg-modal"
-                                  : "border-pg-border bg-pg-surface/25 hover:bg-pg-surface/40"
+                                  ? "bg-pg-surface"
+                                  : "bg-transparent hover:bg-pg-surface/40"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <h4 className="truncate text-sm font-semibold text-pg-text">
+                                  <h4 className="truncate text-sm font-semibold font-sans text-pg-text">
                                     {proj.name}
                                   </h4>
                                   <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-pg-muted">
@@ -656,7 +631,7 @@ export default function ProjectSelectionPage() {
 
                     <Button
                       type="button"
-                      className="btn-primary mt-1 w-full"
+                      className="btn-primary mt-1 w-full font-sans shadow-none"
                       onClick={handleEnterProject}
                       disabled={!selectedProjectId}
                       loading={isEnteringProject}
@@ -716,7 +691,7 @@ export default function ProjectSelectionPage() {
 
                     <Button
                       type="button"
-                      className="btn-primary mt-2 w-full"
+                      className="btn-primary mt-2 w-full font-sans shadow-none"
                       onClick={handleCreateProject}
                       loading={isCreatingProject}
                       loadingText="Initializing project..."
@@ -731,7 +706,7 @@ export default function ProjectSelectionPage() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-xl border border-pg-border bg-pg-surface/25 p-5">
+            <div className="rounded-xl border border-pg-border/60 bg-pg-surface/25 p-5">
               <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                 Active context
               </p>
@@ -742,7 +717,7 @@ export default function ProjectSelectionPage() {
                 {selectedProject?.description ||
                   "Use the left panel to choose a project or create a new one inside the current workspace."}
               </p>
-              <div className="mt-4 rounded-lg border border-pg-border bg-pg-modal p-4">
+              <div className="mt-4 rounded-lg border border-pg-border/60 bg-pg-modal p-4">
                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                   Workspace
                 </p>
@@ -755,7 +730,7 @@ export default function ProjectSelectionPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-pg-border bg-pg-surface/25 p-5">
+            <div className="rounded-xl border border-pg-border/60 bg-pg-surface/25 p-5">
               <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-pg-subtle">
                 Recommended flow
               </p>
