@@ -31,7 +31,7 @@ export function CustomAlertDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex space-x-2.5 mt-2">
-          <AlertDialogCancel className="flex-1 border border-pg-border hover:border-zinc-700 bg-transparent hover:bg-zinc-900/60 text-pg-subtle hover:text-pg-text text-xs h-9 px-4 rounded-[5px] shadow-none font-semibold cursor-pointer transition-all duration-200">
+          <AlertDialogCancel className="flex-1 border border-pg-border/60 bg-transparent hover:bg-pg-surface text-pg-subtle hover:text-pg-text text-xs h-9 px-4 rounded-[5px] shadow-none font-semibold cursor-pointer transition-all duration-200">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction

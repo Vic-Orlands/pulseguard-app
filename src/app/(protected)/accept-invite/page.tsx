@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useAuth } from "@/context/auth-context";
 import {
   getInvitation,
@@ -16,10 +15,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  CheckmarkCircle01Icon,
   Cancel01Icon,
+  Loading02Icon,
+  CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
-import { Logo } from "@/app/(auth)/signin/page";
 
 export default function AcceptInvitePage() {
   const router = useRouter();
@@ -212,7 +211,10 @@ export default function AcceptInvitePage() {
                   >
                     {isAccepting ? (
                       <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-current" />
+                        <HugeiconsIcon
+                          icon={Loading02Icon}
+                          className="w-4 h-4 animate-spin text-current"
+                        />
                         Accepting Invite...
                       </>
                     ) : (

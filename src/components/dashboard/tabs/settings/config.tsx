@@ -158,7 +158,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-sm text-foreground">
+      <div className="bg-card border border-border rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-none text-foreground">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
           <div className="flex items-center space-x-2.5">

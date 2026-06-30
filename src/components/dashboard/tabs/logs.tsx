@@ -472,7 +472,7 @@ const LogsTab = ({ project }: { project: Project }) => {
               key={step.id}
               className="relative flex items-start mb-8 last:mb-0"
             >
-              <div className="relative top-8 z-10 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-xs">
+              <div className="relative top-8 z-10 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-none">
                 {typeof Icon === "function" ? (
                   <Icon className="w-5 h-5" />
                 ) : (

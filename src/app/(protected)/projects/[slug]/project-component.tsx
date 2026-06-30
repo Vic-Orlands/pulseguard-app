@@ -5,7 +5,6 @@ import { Add01Icon, HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { CardDescription, CardTitle } from "@/components/ui/card";
 import HelpButton from "@/components/dashboard/shared/help-button";
 
 import LogsTab from "@/components/dashboard/tabs/logs";
@@ -33,6 +32,8 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const [total, setTotal] = useState<number>(0);
   const [errors, setErrors] = useState<Error[]>([]);
   const [activeTab, setActiveTab] = useState<NavItem>(defaultTab);
+  const [isConnectPlatformPending, setIsConnectPlatformPending] =
+    useState(false);
   const [errorsConfig, setErrorsConfig] = useState({
     project_id: project.id as string,
     page: 1 as number,
@@ -64,6 +65,12 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const handleConfig = (key: string, value: string | number) => {
     setErrorsConfig((prev) => ({ ...prev, [key]: value }));
   };
+
+  useEffect(() => {
+    if (activeTab === "connect-platform") {
+      setIsConnectPlatformPending(false);
+    }
+  }, [activeTab]);
 
   const alerts: Alert[] = [
     {
@@ -136,43 +143,39 @@ export default function DashboardComponent({ project }: { project: Project }) {
         project={project}
       />
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 pb-24 z-10 relative">
-        {/* header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-pg-text font-sans">
-              {project.name}
-            </h1>
-            <p className="text-xs text-pg-muted mt-1">
-              Monitor your application and resolve errors across all environments
-            </p>
+      <main className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 md:px-8 md:py-8">
+        <div className="rounded-xl border border-pg-border bg-pg-modal p-5 md:p-6">
+          <div className="flex justify-end border-b border-pg-border/70 pb-5">
+            <div className="flex flex-wrap gap-2">
+                <a href="/documentation" target="_blank" rel="noopener noreferrer">
+                  <Button
+                    variant="outline"
+                    className="h-8 rounded-lg border-pg-border/60 bg-pg-surface px-3 text-xs font-sans font-medium text-pg-muted shadow-none hover:text-pg-text"
+                  >
+                    <HugeiconsIcon icon={HelpCircleIcon} className="mr-1.5 h-3.5 w-3.5" />
+                    Documentation
+                  </Button>
+                </a>
+                <Button
+                  className="btn-primary h-8 rounded-lg px-3 text-xs font-sans font-semibold shadow-none"
+                  onClick={() => {
+                    setIsConnectPlatformPending(true);
+                    setActiveTab("connect-platform");
+                  }}
+                  loading={isConnectPlatformPending}
+                  loadingText="Opening platform flow..."
+                >
+                  <HugeiconsIcon icon={Add01Icon} className="mr-1.5 h-3.5 w-3.5" />
+                  Connect Platform
+                </Button>
+            </div>
           </div>
-          <div className="flex gap-2.5">
-            <a href="/documentation" target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                className="bg-pg-surface border border-pg-border text-pg-muted hover:text-pg-text text-xs h-8 px-3 shadow-none font-medium rounded-lg cursor-pointer"
-              >
-                <HugeiconsIcon icon={HelpCircleIcon} className="h-3.5 w-3.5 mr-1.5" />
-                Documentation
-              </Button>
-            </a>
-            <Button
-              className="btn-primary h-8 px-3 text-xs font-semibold rounded-lg shadow-none"
-              onClick={() => setActiveTab("connect-platform")}
-            >
-              <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5 mr-1.5" />
-              Connect Platform
-            </Button>
-          </div>
-        </div>
 
-        {/* active tabs */}
-        {renderActiveTab()}
+          <div className="pt-6">{renderActiveTab()}</div>
+        </div>
       </main>
 
       <HelpButton />
     </div>
   );
 }
-

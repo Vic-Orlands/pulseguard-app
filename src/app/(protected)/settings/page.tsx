@@ -619,7 +619,7 @@ export default function UserSettingsNew() {
                     <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-card border border-border text-foreground rounded-lg shadow-sm">
+                <DropdownMenuContent className="bg-card border border-border text-foreground rounded-lg shadow-none">
                   {["Ascending", "Descending"].map((order) => (
                     <DropdownMenuItem
                       key={order}

@@ -25,13 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/app/(auth)/signin/page";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
 import type { Project } from "@/types/dashboard";
 import { normalizePostgresString } from "@/lib/utils";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 

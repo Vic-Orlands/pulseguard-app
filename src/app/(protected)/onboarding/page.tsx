@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
-import { createWorkspace } from "@/lib/api/workspace-api";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
-import { Briefcase, Loader2, ArrowRight } from "lucide-react";
-import { Logo } from "@/app/(auth)/signin/page";
+import { createWorkspace } from "@/lib/api/workspace-api";
+import { Briefcase, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
-
+import { Logo } from "@/app/(auth)/signin/page";
+import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading02Icon } from "@hugeicons/core-free-icons";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -126,7 +127,10 @@ export default function OnboardingPage() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-current" />
+                    <HugeiconsIcon
+                      icon={Loading02Icon}
+                      className="w-4 h-4 animate-spin text-current"
+                    />
                     <span>Creating workspace...</span>
                   </>
                 ) : (
