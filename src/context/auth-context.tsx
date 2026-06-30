@@ -47,23 +47,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchWorkspaces = useCallback(async () => {
     try {
       const wsData = await listWorkspaces();
-      setWorkspaces(wsData);
-      if (wsData.length > 0) {
+      const safeWsData = Array.isArray(wsData) ? wsData : [];
+      setWorkspaces(safeWsData);
+      
+      if (safeWsData.length > 0) {
         const storedWsId = localStorage.getItem(
           "pulseguard_active_workspace_id",
         );
-        const found = wsData.find((w) => w.id === storedWsId);
+        const found = safeWsData.find((w) => w.id === storedWsId);
         if (found) {
           setActiveWorkspaceState(found);
         } else {
-          setActiveWorkspaceState(wsData[0]);
-          localStorage.setItem("pulseguard_active_workspace_id", wsData[0].id);
+          setActiveWorkspaceState(safeWsData[0]);
+          localStorage.setItem("pulseguard_active_workspace_id", safeWsData[0].id);
         }
       } else {
         setActiveWorkspaceState(null);
       }
     } catch (err) {
       console.error("Error fetching workspaces:", err);
+      setWorkspaces((prev) => (Array.isArray(prev) ? prev : []));
+      setActiveWorkspaceState(null);
     }
   }, []);
 
