@@ -8,7 +8,7 @@ PulseGuard is a full-stack observability workspace for investigating application
 - [Marketing site repository](https://github.com/Vic-Orlands/pulseguard-site)
 
 
-![PulseGuard incident overview](./docs/assets/incident-overview.png)
+<img width="1800" height="1169" alt="PulseGuard website" src="https://github.com/user-attachments/assets/37d2b838-3d03-4bc7-8c9c-177c242f8fc6" />
 
 
 ## What it brings together
