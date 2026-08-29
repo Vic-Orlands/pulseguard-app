@@ -58,6 +58,7 @@ type trackErrorRequest struct {
 	SessionID      string                 `json:"sessionId"`
 	ProjectID      string                 `json:"projectId"`
 	Environment    string                 `json:"environment"`
+	Release        string                 `json:"release"`
 	Metadata       map[string]interface{} `json:"metadata"`
 }
 
@@ -78,6 +79,11 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.ProjectID == "" {
+		if authorizedProjectID, ok := apiMiddleware.AuthorizedProjectID(ctx); ok {
+			req.ProjectID = authorizedProjectID
+		}
+	}
 	if req.ProjectID == "" || req.Message == "" {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_fields"),
@@ -111,12 +117,19 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
-	if !ok {
-		span.SetStatus(codes.Error, "Unauthorized")
-		h.logger.Error(ctx, "Unauthorized access to track error", nil)
-		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
-		return
+	userID := req.UserID
+	if !apiMiddleware.IsIngestAuth(ctx) {
+		var ok bool
+		userID, ok = util.GetUserIDFromContext(ctx, h.metrics)
+		if !ok {
+			span.SetStatus(codes.Error, "Unauthorized")
+			h.logger.Error(ctx, "Unauthorized access to track error", nil)
+			util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+			return
+		}
+	}
+	if userID == "" {
+		userID = "anonymous"
 	}
 
 	// Handle session
@@ -158,6 +171,7 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		UserID:         req.UserID,
 		SessionID:      req.SessionID,
 		Environment:    req.Environment,
+		Release:        req.Release,
 		OccurredAt:     time.Now(),
 		Status:         "ACTIVE",
 	}
@@ -262,26 +276,14 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 	_, span := h.tracer.Start(ctx, "ListErrorsByProject")
 	defer span.End()
 
-	projectID := r.URL.Query().Get("project_id")
-	if projectID == "" {
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_project_id"),
 		))
 		span.SetStatus(codes.Error, "Missing project_id")
 		h.logger.Error(ctx, "Missing project_id in list errors request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing project_id")
-		return
-	}
-
-	_, err := uuid.Parse(projectID)
-	if err != nil {
-		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("error_type", "invalid_project_id"),
-		))
-		span.SetStatus(codes.Error, "Invalid project_id")
-		span.RecordError(err)
-		h.logger.Error(ctx, "Invalid project_id format", err)
-		util.WriteError(w, http.StatusBadRequest, "Invalid project_id")
 		return
 	}
 
@@ -330,6 +332,9 @@ func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
 	}
 	if limit := r.URL.Query().Get("limit"); limit != "" {
 		if l, err := strconv.Atoi(limit); err == nil && l > 0 {
+			if l > 100 {
+				l = 100
+			}
 			filters.Limit = l
 		}
 	}

@@ -27,7 +27,7 @@ import {
   BarChart2
 } from "@/components/phosphor-icons";
 import { format, subHours, subDays } from "date-fns";
-import { PulseChart } from "@/components/dashboard/shared/apex-chart";
+import { PulseChart } from "@/components/dashboard/shared/pulse-chart";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { fetchMetrics } from "@/lib/api/otlp-api";
 import type { Project, Metric, TimeProp } from "@/types/dashboard";

@@ -1,0 +1,51 @@
+{
+  "name": "pulseguard",
+  "version": "2.0.0",
+  "description": "Browser SDK for PulseGuard error tracking, sessions, logs, and traces.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vic-Orlands/pulseguard-app.git",
+    "directory": "packages/sdk"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean --external react",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.0"
+  },
+  "keywords": [
+    "observability",
+    "error-tracking",
+    "opentelemetry",
+    "pulseguard"
+  ]
+}

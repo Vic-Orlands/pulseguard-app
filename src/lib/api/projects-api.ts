@@ -1,17 +1,16 @@
+import { jsonAuthConfig } from "@/lib/security/csrf";
 import { HttpError } from "../utils";
 
 export interface Project {
+  id?: string;
   slug: string;
   name: string;
   description: string;
+  dsn?: string;
+  firstEventAt?: string | null;
 }
 
 const url = process.env.NEXT_PUBLIC_API_URL;
-
-const headerConfig = {
-  credentials: "include" as const,
-  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
-};
 
 // SETTINGS - PROJECT API FUNCTIONS
 export const createProject = async (data: {
@@ -19,10 +18,10 @@ export const createProject = async (data: {
   description: string;
   platform: string;
   workspaceId: string;
-}) => {
+}): Promise<Project> => {
   const res = await fetch(`${url}/api/projects`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify(data),
   });
 
@@ -48,7 +47,7 @@ export const createProject = async (data: {
 export const updateProject = async (slug: string, data: Project) => {
   const res = await fetch(`${url}/api/projects/${slug}`, {
     method: "PUT",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify(data),
   });
 
@@ -79,7 +78,7 @@ export const deleteProject = async (slug: string) => {
   try {
     const res = await fetch(`${url}/api/projects/${slug}`, {
       method: "DELETE",
-      ...headerConfig,
+      ...jsonAuthConfig(),
     });
 
     if (!res.ok) throw new Error(`Error: ${res.statusText}`);
@@ -91,33 +90,11 @@ export const deleteProject = async (slug: string) => {
   }
 };
 
-export const batchDeleteProjects = async (slugs: string[]) => {
-  try {
-    const results = [];
-    for (const slug of slugs) {
-      const res = await fetch(`${url}/api/projects/${slug}`, {
-        method: "DELETE",
-        ...headerConfig,
-      });
-      if (!res.ok) {
-        console.error(`Error deleting project ${slug}:`, res.statusText);
-        results.push({ slug, success: false, error: res.statusText });
-      } else {
-        results.push({ slug, success: true });
-      }
-    }
-    return results;
-  } catch (error) {
-    console.error("Error deleting projects in batch:", error);
-    return null;
-  }
-};
-
 export const deleteAllProjects = async () => {
   try {
     const res = await fetch(`${url}/api/projects`, {
       method: "DELETE",
-      ...headerConfig,
+      ...jsonAuthConfig(),
     });
     if (!res.ok) throw new Error(`Error: ${res.statusText}`);
 
@@ -126,4 +103,15 @@ export const deleteAllProjects = async () => {
     console.error("Error deleting all projects:", error);
     return null;
   }
+};
+
+export const rotateProjectDSN = async (slug: string) => {
+  const res = await fetch(`${url}/api/projects/${slug}/dsn/rotate`, {
+    method: "POST",
+    ...jsonAuthConfig(),
+  });
+  if (!res.ok) {
+    throw new HttpError("Failed to rotate DSN", res.status);
+  }
+  return res.json() as Promise<{ dsn: string; slug: string; name: string }>;
 };

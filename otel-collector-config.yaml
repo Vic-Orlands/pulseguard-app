@@ -117,7 +117,7 @@ service:
 
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, attributes, batch, resourcedetection]
       exporters: [prometheus, debug]
 
     logs:

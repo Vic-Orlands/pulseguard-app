@@ -1,9 +1,6 @@
-const url = process.env.NEXT_PUBLIC_API_URL;
+import { jsonAuthConfig } from "@/lib/security/csrf";
 
-const headerConfig = {
-  credentials: "include" as const,
-  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
-};
+const url = process.env.NEXT_PUBLIC_API_URL;
 
 export interface Workspace {
   id: string;
@@ -53,7 +50,7 @@ export interface Team {
 export const createWorkspace = async (name: string): Promise<Workspace> => {
   const res = await fetch(`${url}/api/workspaces`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ name }),
   });
   if (!res.ok) {
@@ -65,7 +62,7 @@ export const createWorkspace = async (name: string): Promise<Workspace> => {
 
 export const listWorkspaces = async (): Promise<Workspace[]> => {
   const res = await fetch(`${url}/api/workspaces`, {
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch workspaces");
@@ -82,7 +79,7 @@ export const inviteMember = async (
 ): Promise<WorkspaceInvitation> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/invite`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ email, role, allProjects, projectIds }),
   });
   if (!res.ok) {
@@ -95,7 +92,7 @@ export const inviteMember = async (
 export const getInvitation = async (token: string): Promise<WorkspaceInvitation & { workspaceName: string }> => {
   const res = await fetch(`${url}/api/invitations/get`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ token }),
   });
   if (!res.ok) {
@@ -107,7 +104,7 @@ export const getInvitation = async (token: string): Promise<WorkspaceInvitation 
 export const acceptInvitation = async (token: string): Promise<void> => {
   const res = await fetch(`${url}/api/invitations/accept`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ token }),
   });
   if (!res.ok) {
@@ -118,7 +115,7 @@ export const acceptInvitation = async (token: string): Promise<void> => {
 
 export const listWorkspaceMembers = async (workspaceId: string): Promise<WorkspaceMember[]> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/members`, {
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch members");
@@ -128,7 +125,7 @@ export const listWorkspaceMembers = async (workspaceId: string): Promise<Workspa
 
 export const listInvitations = async (workspaceId: string): Promise<WorkspaceInvitation[]> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/invitations`, {
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch invitations");
@@ -143,7 +140,7 @@ export const updateMemberRole = async (
 ): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/members/${userId}/role`, {
     method: "PUT",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ role }),
   });
   if (!res.ok) {
@@ -159,7 +156,7 @@ export const updateMemberStatus = async (
 ): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/members/${userId}/status`, {
     method: "PUT",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ status }),
   });
   if (!res.ok) {
@@ -174,7 +171,7 @@ export const removeWorkspaceMember = async (
 ): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/members/${userId}`, {
     method: "DELETE",
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -188,7 +185,7 @@ export const updateWorkspace = async (
 ): Promise<Workspace> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}`, {
     method: "PUT",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ name }),
   });
   if (!res.ok) {
@@ -201,7 +198,7 @@ export const updateWorkspace = async (
 export const deleteWorkspace = async (workspaceId: string): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}`, {
     method: "DELETE",
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -209,29 +206,9 @@ export const deleteWorkspace = async (workspaceId: string): Promise<void> => {
   }
 };
 
-export const updateMemberAccess = async (
-  workspaceId: string,
-  userId: string,
-  allProjects: boolean,
-  projectIds: string[] = [],
-): Promise<void> => {
-  const res = await fetch(
-    `${url}/api/workspaces/${workspaceId}/members/${userId}/access`,
-    {
-      method: "PUT",
-      ...headerConfig,
-      body: JSON.stringify({ allProjects, projectIds }),
-    },
-  );
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to update project access");
-  }
-};
-
 export const listTeams = async (workspaceId: string): Promise<Team[]> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/teams`, {
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch teams");
@@ -242,7 +219,7 @@ export const listTeams = async (workspaceId: string): Promise<Team[]> => {
 export const createTeam = async (workspaceId: string, name: string): Promise<Team> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/teams`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
     body: JSON.stringify({ name }),
   });
   if (!res.ok) {
@@ -259,7 +236,7 @@ export const addTeamMember = async (
 ): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/teams/${teamId}/members/${userId}`, {
     method: "POST",
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -274,7 +251,7 @@ export const removeTeamMember = async (
 ): Promise<void> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/teams/${teamId}/members/${userId}`, {
     method: "DELETE",
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -287,10 +264,48 @@ export const listTeamMembers = async (
   teamId: string
 ): Promise<string[]> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/teams/${teamId}/members`, {
-    ...headerConfig,
+    ...jsonAuthConfig(),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch team members");
+  }
+  return res.json();
+};
+
+export interface WorkspaceUsage {
+  plan: string;
+  maxProjects: number;
+  projectCount: number;
+  monthlyEvents: number;
+  eventsUsed: number;
+  retentionDays: number;
+  maxSourceMaps: number;
+  resetsAt: string;
+}
+
+export const updateMemberAccess = async (
+  workspaceId: string,
+  userId: string,
+  allProjects: boolean,
+  projectIds: string[],
+): Promise<void> => {
+  const res = await fetch(`${url}/api/workspaces/${workspaceId}/members/${userId}/access`, {
+    method: "PUT",
+    ...jsonAuthConfig(),
+    body: JSON.stringify({ allProjects, projectIds }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "" }));
+    throw new Error(err.error || "Failed to update member access");
+  }
+};
+
+export const getWorkspaceUsage = async (workspaceId: string): Promise<WorkspaceUsage> => {
+  const res = await fetch(`${url}/api/workspaces/${workspaceId}/usage`, {
+    ...jsonAuthConfig(),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch usage");
   }
   return res.json();
 };

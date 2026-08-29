@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"pulseguard/internal/models"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/auth"
@@ -58,25 +59,67 @@ type resetPasswordRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
+func cookieSecure() bool {
+	if os.Getenv("APP_ENV") == "production" {
+		return true
+	}
+	return strings.HasPrefix(strings.ToLower(os.Getenv("FRONTEND_URL")), "https://")
+}
+
+func applyCookieDomain(cookie *http.Cookie) {
+	if domain := strings.TrimSpace(os.Getenv("COOKIE_DOMAIN")); domain != "" {
+		cookie.Domain = domain
+	}
+}
+
 func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 	cookie := &http.Cookie{
 		Name:     "auth_token",
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   os.Getenv("APP_ENV") == "production",
+		Secure:   cookieSecure(),
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   timer,
 	}
-	if domain := strings.TrimSpace(os.Getenv("COOKIE_DOMAIN")); domain != "" {
-		cookie.Domain = domain
-	}
-
+	applyCookieDomain(cookie)
 	if timer < 0 {
 		cookie.Expires = time.Unix(0, 0)
 	}
-
 	http.SetCookie(w, cookie)
+}
+
+func handleSetCSRFCookie(w http.ResponseWriter, token string, timer int) {
+	cookie := &http.Cookie{
+		Name:     "csrf_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   cookieSecure(),
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   timer,
+	}
+	applyCookieDomain(cookie)
+	if timer < 0 {
+		cookie.Expires = time.Unix(0, 0)
+		cookie.Value = ""
+	}
+	http.SetCookie(w, cookie)
+}
+
+func generateCSRFToken() string {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func issueCSRFToken(w http.ResponseWriter, r *http.Request) string {
+	if cookie, err := r.Cookie("csrf_token"); err == nil && len(cookie.Value) >= 32 {
+		return cookie.Value
+	}
+	token := generateCSRFToken()
+	handleSetCSRFCookie(w, token, 3600)
+	return token
 }
 
 func NewUserHandler(userService *service.UserService, sessionService *service.SessionService, metrics *otel.Metrics, tokenService *auth.TokenService, logger *logger.Logger, tracer trace.Tracer) *UserHandler {
@@ -213,49 +256,20 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create session
-	sessionID := uuid.New().String()
-	session := &models.Session{
-		SessionID:     sessionID,
-		ProjectID:     r.URL.Query().Get("project_id"),
-		UserID:        user.ID.String(),
-		StartTime:     time.Now(),
-		ErrorCount:    0,
-		EventCount:    0,
-		PageviewCount: 0,
-		CreatedAt:     time.Now(),
-	}
-	if session.ProjectID != "" {
-		if err := h.sessionService.CreateSession(ctx, session); err != nil {
-			h.logger.Error(ctx, "Failed to create session during login", err)
-		} else {
-			h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
-				attribute.String("user_id", user.ID.String()),
-				attribute.String("session_id", sessionID),
-				attribute.String("project_id", session.ProjectID),
-			))
-		}
-	}
+	handleSetCookie(w, token, 3600)
+	csrf := issueCSRFToken(w, r)
 
-	// Metrics
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "login"),
 		attribute.String("user_id", user.ID.String()),
 	))
-
-	// Set cookie in response
-	handleSetCookie(w, token, 3600)
-
-	span.SetStatus(codes.Ok, "Login successful")
 	span.SetAttributes(
 		attribute.String("user_id", user.ID.String()),
-		attribute.String("session_id", sessionID),
 	)
 
-	// Return success response
 	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"message":    "Login successful",
-		"session_id": sessionID,
+		"csrf_token": csrf,
 	})
 }
 
@@ -277,6 +291,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handleSetCookie(w, "", -1)
+	handleSetCSRFCookie(w, "", -1)
 
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "logout"),
@@ -310,7 +325,18 @@ func (h *UserHandler) CheckCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, user)
+	csrf := issueCSRFToken(w, r)
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"id":         user.ID,
+		"email":      user.Email,
+		"name":       user.Name,
+		"avatar":     user.Image,
+		"provider":   user.Provider,
+		"providerId": user.ProviderID,
+		"createdAt":  user.CreatedAt,
+		"updatedAt":  user.UpdatedAt,
+		"csrf_token": csrf,
+	})
 }
 
 // UpdateUser updates user details by namem and password
@@ -389,6 +415,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	// Expire the auth_token cookie
 	handleSetCookie(w, "", -1)
+	handleSetCSRFCookie(w, "", -1)
 
 	util.WriteJSON(w, http.StatusOK, map[string]string{"message": "User deleted successfully"})
 }

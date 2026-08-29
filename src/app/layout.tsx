@@ -80,12 +80,14 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem={false}
         >
-          <TelemetryProvider
-            projectId={currentProjectId}
-            issueTrackerUrl={trackerUrl}
-          >
-            <AuthProvider>{children}</AuthProvider>
-          </TelemetryProvider>
+          <AuthProvider>
+            <TelemetryProvider
+              projectId={currentProjectId}
+              issueTrackerUrl={trackerUrl}
+            >
+              {children}
+            </TelemetryProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Toaster />
       </body>

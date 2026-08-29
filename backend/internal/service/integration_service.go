@@ -7,14 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
 	"pulseguard/internal/models"
 	"pulseguard/internal/repository/postgres"
+	"pulseguard/internal/util"
 
 	"github.com/google/uuid"
 )
@@ -42,7 +41,7 @@ type IntegrationService struct {
 func NewIntegrationService(repo *postgres.IntegrationRepository) *IntegrationService {
 	return &IntegrationService{
 		repo:       repo,
-		httpClient: &http.Client{Timeout: 8 * time.Second},
+		httpClient: util.NewSafeHTTPClient(8 * time.Second),
 	}
 }
 
@@ -307,7 +306,7 @@ func (s *IntegrationService) dispatch(ctx context.Context, item *models.ProjectI
 }
 
 func (s *IntegrationService) postJSON(ctx context.Context, rawURL string, payload any) error {
-	if !isSafeHTTPSURL(rawURL) {
+	if !util.IsSafeHTTPSURL(rawURL) {
 		return fmt.Errorf("https webhook url is required")
 	}
 	return s.postJSONAuth(ctx, rawURL, "", payload)
@@ -316,7 +315,7 @@ func (s *IntegrationService) postJSON(ctx context.Context, rawURL string, payloa
 func validateProviderConfig(provider string, config map[string]any) error {
 	switch provider {
 	case "slack", "discord":
-		if !isSafeHTTPSURL(stringVal(config, "webhook_url")) {
+		if !util.IsSafeHTTPSURL(stringVal(config, "webhook_url")) {
 			return fmt.Errorf("a valid https webhook url is required")
 		}
 	case "github":
@@ -348,11 +347,11 @@ func validateProviderConfig(provider string, config map[string]any) error {
 		if stringVal(config, "email") == "" || stringVal(config, "api_token") == "" || stringVal(config, "project_key") == "" {
 			return fmt.Errorf("jira site, email, api_token, and project_key are required")
 		}
-		if !isSafeHTTPSURL("https://" + site + "/") {
+		if !util.IsSafeHTTPSURL("https://" + site + "/") {
 			return fmt.Errorf("jira site must be a public https host")
 		}
 	case "microsoft_teams", "webhook":
-		if !isSafeHTTPSURL(stringVal(config, "webhook_url")) {
+		if !util.IsSafeHTTPSURL(stringVal(config, "webhook_url")) {
 			return fmt.Errorf("a valid https webhook url is required")
 		}
 	case "telegram":
@@ -365,21 +364,6 @@ func validateProviderConfig(provider string, config map[string]any) error {
 		}
 	}
 	return nil
-}
-
-func isSafeHTTPSURL(raw string) bool {
-	parsed, err := url.Parse(raw)
-	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil {
-		return false
-	}
-	host := strings.ToLower(parsed.Hostname())
-	if host == "localhost" || strings.HasSuffix(host, ".local") || strings.HasSuffix(host, ".internal") {
-		return false
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		return !ip.IsLoopback() && !ip.IsPrivate() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified()
-	}
-	return true
 }
 
 func (s *IntegrationService) postJSONAuth(ctx context.Context, url, auth string, payload any) error {

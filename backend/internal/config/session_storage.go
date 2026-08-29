@@ -80,9 +80,10 @@ func InitSessionStore() error {
 	}
 
 	store := sessions.NewCookieStore(hashKey, blockKey)
+	frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
 	store.Options = &sessions.Options{
 		HttpOnly: true,
-		Secure:   os.Getenv("APP_ENV") == "production",
+		Secure:   os.Getenv("APP_ENV") == "production" || strings.HasPrefix(strings.ToLower(frontendURL), "https://"),
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   sessionMaxAge,
 	}

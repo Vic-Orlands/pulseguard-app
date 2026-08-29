@@ -8,6 +8,7 @@ import (
 
 	"pulseguard/internal/models"
 	"pulseguard/internal/repository/postgres"
+	"pulseguard/internal/util"
 
 	"github.com/google/uuid"
 )
@@ -135,6 +136,9 @@ func (s *AlertService) EvaluateOnError(ctx context.Context, projectID, errorMess
 		if rule.NotifyInApp {
 			s.notifyWorkspace(ctx, project, rule, title, body)
 		}
+		if rule.NotifyEmail {
+			s.emailWorkspace(ctx, project, rule, title, body)
+		}
 		if s.integSvc != nil {
 			s.integSvc.DispatchAlert(ctx, project, rule, body)
 		}
@@ -170,5 +174,27 @@ func (s *AlertService) notifyWorkspace(ctx context.Context, project *models.Proj
 			Href:        href,
 			CreatedAt:   time.Now(),
 		})
+	}
+}
+
+func (s *AlertService) emailWorkspace(ctx context.Context, project *models.Project, rule *models.Alert, title, body string) {
+	wsID, err := uuid.Parse(project.WorkspaceID)
+	if err != nil {
+		return
+	}
+	members, err := s.wsRepo.ListWorkspaceMembers(ctx, wsID)
+	if err != nil {
+		return
+	}
+	href := fmt.Sprintf("%s/projects/%s?tab=alerts", util.FrontendURL(), project.Slug)
+	for _, member := range members {
+		if member.Status != "active" || member.UserEmail == "" {
+			continue
+		}
+		prefs, _ := s.notifRepo.GetPrefs(ctx, member.UserID.String())
+		if prefs != nil && !prefs.EmailAlerts {
+			continue
+		}
+		_ = util.SendAlertEmail(member.UserEmail, title, body, href)
 	}
 }

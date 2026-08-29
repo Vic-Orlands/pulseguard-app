@@ -56,7 +56,7 @@ func (h *IntegrationHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 	item, err := h.svc.Upsert(r.Context(), projectID, req.Provider, req.Config, enabled)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to save integration")
 		return
 	}
 	item.Config = map[string]any{}
@@ -106,7 +106,7 @@ func (h *IntegrationHandler) Test(w http.ResponseWriter, r *http.Request) {
 	}
 	id := chi.URLParam(r, "integration_id")
 	if err := h.svc.Test(r.Context(), id, projectID); err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to test integration")
 		return
 	}
 	util.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})

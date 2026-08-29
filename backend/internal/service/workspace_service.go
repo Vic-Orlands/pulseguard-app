@@ -331,3 +331,7 @@ func (s *WorkspaceService) RemoveTeamMember(ctx context.Context, workspaceID, te
 func (s *WorkspaceService) ListTeamMembers(ctx context.Context, workspaceID, teamID uuid.UUID) ([]uuid.UUID, error) {
 	return s.workspaceRepo.ListTeamMembersInWorkspace(ctx, workspaceID, teamID)
 }
+
+func (s *WorkspaceService) GetUsage(ctx context.Context, wsID uuid.UUID) (*models.WorkspaceUsage, error) {
+	return s.workspaceRepo.GetUsage(ctx, wsID.String())
+}

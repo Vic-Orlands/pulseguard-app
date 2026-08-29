@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
-	"time"
 
-	"pulseguard/internal/models"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/auth"
@@ -14,7 +11,6 @@ import (
 	"pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -60,8 +56,8 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("OAuth error: %v", err), http.StatusInternalServerError)
 		h.logger.Error(ctx, "OAuth callback failed", err)
+		http.Error(w, "OAuth authentication failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -87,40 +83,19 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create session (add this to match email/password login behavior)
-	sessionID := uuid.New().String()
-	session := &models.Session{
-		SessionID:     sessionID,
-		ProjectID:     r.URL.Query().Get("project_id"),
-		UserID:        dbUser.ID.String(),
-		StartTime:     time.Now(),
-		ErrorCount:    0,
-		EventCount:    0,
-		PageviewCount: 0,
-		CreatedAt:     time.Now(),
-	}
-	if session.ProjectID != "" {
-		if err := h.sessionService.CreateSession(ctx, session); err != nil {
-			h.logger.Error(ctx, "Failed to create session during OAuth login", err)
-		} else {
-			h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
-				attribute.String("user_id", dbUser.ID.String()),
-				attribute.String("session_id", sessionID),
-				attribute.String("project_id", session.ProjectID),
-			))
-		}
-	}
-
-	// Set cookie in response
 	handleSetCookie(w, token, 3600)
+	_ = issueCSRFToken(w, r)
+
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("activity_type", "login"),
+		attribute.String("user_id", dbUser.ID.String()),
+	))
 
 	span.SetStatus(codes.Ok, "Login successful")
 	span.SetAttributes(
 		attribute.String("user_id", dbUser.ID.String()),
-		attribute.String("session_id", sessionID),
 	)
 
-	// Redirect to frontend with token
 	redirectURL := os.Getenv("FRONTEND_URL") + "/projects"
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }

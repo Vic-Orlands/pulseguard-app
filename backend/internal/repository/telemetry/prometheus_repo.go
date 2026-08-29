@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"pulseguard/internal/models"
+
+	"github.com/google/uuid"
 )
 
 type PrometheusRepository struct {
@@ -38,6 +40,10 @@ type prometheusResult struct {
 }
 
 func (r *PrometheusRepository) QueryMetrics(ctx context.Context, projectID string) ([]*models.Metric, error) {
+	if _, err := uuid.Parse(projectID); err != nil {
+		return nil, fmt.Errorf("invalid project id")
+	}
+
 	queries := map[string]string{
 		"http_requests_total":      `pulseguard_http_requests_total`,
 		"http_request_duration_ms": `pulseguard_http_request_duration_ms`,
@@ -51,8 +57,7 @@ func (r *PrometheusRepository) QueryMetrics(ctx context.Context, projectID strin
 	metrics := make([]*models.Metric, 0)
 
 	for metricName, queryTemplate := range queries {
-		query := queryTemplate
-		// query := fmt.Sprintf(`%s{project_id="%s"}`, queryTemplate, projectID)
+		query := fmt.Sprintf(`%s{project_id=%q}`, queryTemplate, projectID)
 		u, err := url.Parse(fmt.Sprintf("%s/api/v1/query?query=%s", r.baseURL, url.QueryEscape(query)))
 		if err != nil {
 			return nil, fmt.Errorf("parse query URL for %s: %w", metricName, err)

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") || "";
   const authHeaders = await getAuthForwardHeaders();
   if (!authHeaders || !url) {
-    return NextResponse.json({ success: true, skipped: true });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const payload = await request.json();

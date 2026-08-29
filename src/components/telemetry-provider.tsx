@@ -8,7 +8,9 @@ import React, {
   ReactNode,
   JSX,
 } from "react";
+import { csrfHeaders, getCsrfToken } from "@/lib/security/csrf";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { useAuth } from "@/context/auth-context";
 import {
   endSession,
   getSessionId,
@@ -32,7 +34,6 @@ interface TelemetryProviderProps {
   issueTrackerUrl?: string;
 }
 
-// Error Boundary Wrapper hidden:
 const TelemetryErrorBoundary = ({
   userId,
   children,
@@ -47,17 +48,25 @@ const TelemetryErrorBoundary = ({
   </ErrorBoundary>
 );
 
-// main Telemetry Provider
 export function TelemetryProvider({
   children,
   projectId,
   initialUserId,
   issueTrackerUrl,
 }: TelemetryProviderProps): JSX.Element {
-  const [userId, setUserId] = useState<string | undefined>(initialUserId);
+  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | undefined>(
+    initialUserId ?? user?.id,
+  );
   const [reporter, setReporter] = useState<ReturnType<
     typeof setupClientErrorTracking
   > | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      setUserId(user.id);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     updateClientErrorTracking({ userId, projectId });
@@ -66,6 +75,9 @@ export function TelemetryProvider({
   useEffect(() => {
     if (!projectId) {
       console.warn("PulseGuard SDK: Missing project ID. Telemetry disabled.");
+      return;
+    }
+    if (!user || !getCsrfToken()) {
       return;
     }
 
@@ -78,10 +90,11 @@ export function TelemetryProvider({
 
     fetch("/api/telemetry/pageview", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "x-project-id": projectId,
-        "X-CSRF-Token": "pulseguard-web",
+        ...csrfHeaders(),
       },
       body: JSON.stringify({
         page: window.location.pathname,
@@ -101,16 +114,16 @@ export function TelemetryProvider({
       .catch(() => undefined);
 
     return () => {
-      reporter?.cleanup?.();
+      tracker?.cleanup?.();
     };
-  }, [userId, projectId, issueTrackerUrl]);
+  }, [user, userId, projectId, issueTrackerUrl]);
 
   const logout = async () => {
     endSession();
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
-      headers: { "X-CSRF-Token": "pulseguard-web" },
+      headers: { ...csrfHeaders() },
     }).catch(console.error);
     setUserId(undefined);
   };

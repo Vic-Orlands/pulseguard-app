@@ -14,6 +14,6 @@ export async function getAuthForwardHeaders(): Promise<{
       .getAll()
       .map((cookie) => `${cookie.name}=${cookie.value}`)
       .join("; "),
-    "X-CSRF-Token": "pulseguard-web",
+    "X-CSRF-Token": cookieStore.get("csrf_token")?.value ?? "",
   };
 }

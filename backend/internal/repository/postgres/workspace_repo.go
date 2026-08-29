@@ -89,11 +89,11 @@ func (repo *WorkspaceRepository) Create(ctx context.Context, ws *models.Workspac
 }
 
 func (repo *WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Workspace, error) {
-	query := `SELECT id, name, slug, created_at, updated_at FROM workspaces WHERE id = $1`
+	query := `SELECT id, name, slug, COALESCE(plan, 'free'), events_used, events_reset_at, created_at, updated_at FROM workspaces WHERE id = $1`
 	row := repo.db.QueryRowContext(ctx, query, id)
 
 	var ws models.Workspace
-	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.Plan, &ws.EventsUsed, &ws.EventsResetAt, &ws.CreatedAt, &ws.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("workspace not found")
@@ -104,11 +104,11 @@ func (repo *WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 }
 
 func (repo *WorkspaceRepository) GetBySlug(ctx context.Context, slug string) (*models.Workspace, error) {
-	query := `SELECT id, name, slug, created_at, updated_at FROM workspaces WHERE slug = $1`
+	query := `SELECT id, name, slug, COALESCE(plan, 'free'), events_used, events_reset_at, created_at, updated_at FROM workspaces WHERE slug = $1`
 	row := repo.db.QueryRowContext(ctx, query, slug)
 
 	var ws models.Workspace
-	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+	err := row.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.Plan, &ws.EventsUsed, &ws.EventsResetAt, &ws.CreatedAt, &ws.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("workspace not found")
@@ -120,7 +120,7 @@ func (repo *WorkspaceRepository) GetBySlug(ctx context.Context, slug string) (*m
 
 func (repo *WorkspaceRepository) ListByUser(ctx context.Context, userID uuid.UUID) ([]*models.Workspace, error) {
 	query := `
-		SELECT w.id, w.name, w.slug, w.created_at, w.updated_at
+		SELECT w.id, w.name, w.slug, COALESCE(w.plan, 'free'), w.events_used, w.events_reset_at, w.created_at, w.updated_at
 		FROM workspaces w
 		JOIN workspace_members wm ON w.id = wm.workspace_id
 		WHERE wm.user_id = $1 AND wm.status = 'active'
@@ -135,7 +135,7 @@ func (repo *WorkspaceRepository) ListByUser(ctx context.Context, userID uuid.UUI
 	var workspaces []*models.Workspace
 	for rows.Next() {
 		var ws models.Workspace
-		err := rows.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.CreatedAt, &ws.UpdatedAt)
+		err := rows.Scan(&ws.ID, &ws.Name, &ws.Slug, &ws.Plan, &ws.EventsUsed, &ws.EventsResetAt, &ws.CreatedAt, &ws.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -513,4 +513,104 @@ func (repo *WorkspaceRepository) UpdateMemberAccess(ctx context.Context, workspa
 	`
 	_, err := repo.db.ExecContext(ctx, query, allProjects, pq.Array(projectIDs), time.Now(), workspaceID, userID)
 	return err
+}
+
+func (repo *WorkspaceRepository) ConsumeEvent(ctx context.Context, workspaceID string) (*models.WorkspaceUsage, error) {
+	query := `
+		UPDATE workspaces
+		SET
+			events_used = CASE
+				WHEN events_reset_at < date_trunc('month', NOW()) THEN 1
+				ELSE events_used + 1
+			END,
+			events_reset_at = CASE
+				WHEN events_reset_at < date_trunc('month', NOW()) THEN date_trunc('month', NOW())
+				ELSE events_reset_at
+			END
+		WHERE id = $1
+		RETURNING id, COALESCE(plan, 'free'), events_used, events_reset_at
+	`
+	var id uuid.UUID
+	var plan string
+	var used int64
+	var resetAt time.Time
+	if err := repo.db.QueryRowContext(ctx, query, workspaceID).Scan(&id, &plan, &used, &resetAt); err != nil {
+		return nil, err
+	}
+	limits := models.LimitsFor(plan)
+	count, err := repo.CountProjects(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	return &models.WorkspaceUsage{
+		Plan:          limits.Name,
+		MaxProjects:   limits.MaxProjects,
+		ProjectCount:  count,
+		MonthlyEvents: limits.MonthlyEvents,
+		EventsUsed:    used,
+		RetentionDays: limits.RetentionDays,
+		MaxSourceMaps: limits.MaxSourceMaps,
+		ResetsAt:      resetAt,
+	}, nil
+}
+
+func (repo *WorkspaceRepository) CountProjects(ctx context.Context, workspaceID string) (int, error) {
+	var count int
+	err := repo.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM projects WHERE workspace_id = $1`, workspaceID).Scan(&count)
+	return count, err
+}
+
+func (repo *WorkspaceRepository) GetUsage(ctx context.Context, workspaceID string) (*models.WorkspaceUsage, error) {
+	query := `
+		SELECT COALESCE(plan, 'free'), events_used, events_reset_at
+		FROM workspaces
+		WHERE id = $1
+	`
+	var plan string
+	var used int64
+	var resetAt time.Time
+	if err := repo.db.QueryRowContext(ctx, query, workspaceID).Scan(&plan, &used, &resetAt); err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	if resetAt.Before(startOfMonth) {
+		used = 0
+	}
+	limits := models.LimitsFor(plan)
+	count, err := repo.CountProjects(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	return &models.WorkspaceUsage{
+		Plan:          limits.Name,
+		MaxProjects:   limits.MaxProjects,
+		ProjectCount:  count,
+		MonthlyEvents: limits.MonthlyEvents,
+		EventsUsed:    used,
+		RetentionDays: limits.RetentionDays,
+		MaxSourceMaps: limits.MaxSourceMaps,
+		ResetsAt:      resetAt,
+	}, nil
+}
+
+func (repo *WorkspaceRepository) ListAllForRetention(ctx context.Context) ([]models.WorkspaceRetention, error) {
+	rows, err := repo.db.QueryContext(ctx, `SELECT id::text, COALESCE(plan, 'free') FROM workspaces`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []models.WorkspaceRetention
+	for rows.Next() {
+		var id, plan string
+		if err := rows.Scan(&id, &plan); err != nil {
+			return nil, err
+		}
+		limits := models.LimitsFor(plan)
+		items = append(items, models.WorkspaceRetention{
+			ID:            id,
+			RetentionDays: limits.RetentionDays,
+		})
+	}
+	return items, rows.Err()
 }

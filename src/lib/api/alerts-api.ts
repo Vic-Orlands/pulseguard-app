@@ -1,10 +1,11 @@
+import { csrfHeaders } from "@/lib/security/csrf";
 import type { Alert } from "@/types/dashboard";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
 const headers = (projectId?: string) => ({
   "Content-Type": "application/json",
-  "X-CSRF-Token": "pulseguard-web",
+  ...csrfHeaders(),
   ...(projectId ? { "X-Project-ID": projectId } : {}),
 });
 

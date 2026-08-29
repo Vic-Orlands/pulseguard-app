@@ -3,12 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/logger"
 	"pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -41,10 +44,10 @@ type createWorkspaceRequest struct {
 }
 
 type inviteMemberRequest struct {
-	Email        string   `json:"email"`
-	Role         string   `json:"role"`
-	AllProjects  *bool    `json:"allProjects"`
-	ProjectIDs   []string `json:"projectIds"`
+	Email       string   `json:"email"`
+	Role        string   `json:"role"`
+	AllProjects *bool    `json:"allProjects"`
+	ProjectIDs  []string `json:"projectIds"`
 }
 
 type updateWorkspaceRequest struct {
@@ -169,16 +172,23 @@ func (h *WorkspaceHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info(ctx, "Invitation created", "email", req.Email, "workspace_id", wsIDStr)
+	workspaceName := "a PulseGuard workspace"
+	if ws, err := h.wsService.GetWorkspace(ctx, wsID); err == nil && ws != nil {
+		workspaceName = ws.Name
+	}
+	go func(email, name, token string) {
+		_ = util.SendInviteEmail(email, name, util.FormatInviteURL(token))
+	}(req.Email, workspaceName, invite.Token)
 	util.WriteJSON(w, http.StatusCreated, map[string]interface{}{
-		"id":           invite.ID,
-		"workspaceId":  invite.WorkspaceID,
-		"email":        invite.Email,
-		"role":         invite.Role,
-		"token":        invite.Token,
-		"expiresAt":    invite.ExpiresAt,
-		"status":       invite.Status,
-		"allProjects":  invite.AllProjects,
-		"projectIds":   invite.ProjectIDs,
+		"id":          invite.ID,
+		"workspaceId": invite.WorkspaceID,
+		"email":       invite.Email,
+		"role":        invite.Role,
+		"token":       invite.Token,
+		"expiresAt":   invite.ExpiresAt,
+		"status":      invite.Status,
+		"allProjects": invite.AllProjects,
+		"projectIds":  invite.ProjectIDs,
 	})
 }
 
@@ -238,6 +248,17 @@ func (h *WorkspaceHandler) GetInvitation(w http.ResponseWriter, r *http.Request)
 
 	invite, err := h.wsService.GetInvitationByToken(ctx, token)
 	if err != nil {
+		util.WriteError(w, http.StatusNotFound, "Invitation not found")
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(ctx)
+	if err != nil {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	callerEmail, _ := claims["email"].(string)
+	if !strings.EqualFold(strings.TrimSpace(callerEmail), strings.TrimSpace(invite.Email)) {
 		util.WriteError(w, http.StatusNotFound, "Invitation not found")
 		return
 	}
@@ -545,7 +566,7 @@ func (h *WorkspaceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	ws, err := h.wsService.UpdateWorkspaceName(ctx, wsID, req.Name)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to update workspace")
 		return
 	}
 	util.WriteJSON(w, http.StatusOK, ws)
@@ -587,8 +608,22 @@ func (h *WorkspaceHandler) UpdateMemberAccess(w http.ResponseWriter, r *http.Req
 		allProjects = *req.AllProjects
 	}
 	if err := h.wsService.UpdateMemberAccess(ctx, wsID, userID, allProjects, req.ProjectIDs); err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to update member access")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *WorkspaceHandler) GetUsage(w http.ResponseWriter, r *http.Request) {
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+	usage, err := h.wsService.GetUsage(r.Context(), wsID)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, "Failed to load usage")
+		return
+	}
+	util.WriteJSON(w, http.StatusOK, usage)
 }

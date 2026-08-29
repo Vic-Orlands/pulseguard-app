@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") as string;
   const logger = createLogger("error-api", projectId);
   const authHeaders = await getAuthForwardHeaders();
-
-  if (!authHeaders) {
-    return NextResponse.json({ success: true, skipped: true });
+  if (!authHeaders || !url) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   return tracer.startActiveSpan("error-api.process", async (span) => {

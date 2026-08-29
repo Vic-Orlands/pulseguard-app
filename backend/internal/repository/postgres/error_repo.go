@@ -83,12 +83,12 @@ func (r *ErrorRepository) Track(ctx context.Context, errorData *models.Error, me
 	}
 
 	_, err = tx.ExecContext(ctx, `
-        INSERT INTO errors (id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+        INSERT INTO errors (id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status, release)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
 		errorData.ID, errorData.ProjectID, errorData.Message, errorData.StackTrace, errorData.Fingerprint,
 		errorData.OccurredAt, errorData.LastSeen, errorData.Environment, errorData.Count, errorData.Source,
 		errorData.Type, errorData.URL, errorData.ComponentStack, errorData.BrowserInfo, errorData.UserID,
-		errorData.SessionID, errorData.Status)
+		errorData.SessionID, errorData.Status, errorData.Release)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert error: %w", err)
 	}

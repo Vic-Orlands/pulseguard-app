@@ -58,6 +58,11 @@ func (h *SessionHandler) StartSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.ProjectID == "" {
+		if projectID, ok := apiMiddleware.AuthorizedProjectID(ctx); ok {
+			req.ProjectID = projectID
+		}
+	}
 	if req.ProjectID == "" || req.SessionID == "" {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_fields"),
@@ -198,26 +203,14 @@ func (h *SessionHandler) GetSessions(w http.ResponseWriter, r *http.Request) {
 	_, span := h.tracer.Start(ctx, "GetSessions")
 	defer span.End()
 
-	projectID := r.URL.Query().Get("project_id")
-	if projectID == "" {
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_project_id"),
 		))
 		span.SetStatus(codes.Error, "Missing project ID")
 		h.logger.Error(ctx, "Missing project_id in get sessions request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing project ID")
-		return
-	}
-
-	_, err := uuid.Parse(projectID)
-	if err != nil {
-		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("error_type", "invalid_project_id"),
-		))
-		span.SetStatus(codes.Error, "Invalid project_id")
-		span.RecordError(err)
-		h.logger.Error(ctx, "Invalid project_id format", err)
-		util.WriteError(w, http.StatusBadRequest, "Invalid project_id")
 		return
 	}
 
@@ -231,12 +224,18 @@ func (h *SessionHandler) GetSessions(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		end = time.Now()
 	}
+	if end.Before(start) {
+		start, end = end, start
+	}
+	const maxSessionRange = 31 * 24 * time.Hour
+	if end.Sub(start) > maxSessionRange {
+		start = end.Add(-maxSessionRange)
+	}
 
 	sessions, err := h.sessionService.GetSessions(ctx, projectID, start, end)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "fetch_sessions_failed"),
-			attribute.String("error_message", err.Error()),
 		))
 		span.SetStatus(codes.Error, "Failed CountSessions to fetch sessions")
 		span.RecordError(err)
@@ -259,4 +258,71 @@ func (h *SessionHandler) GetSessions(w http.ResponseWriter, r *http.Request) {
 	)
 
 	util.WriteJSON(w, http.StatusOK, sessions)
+}
+
+func (h *SessionHandler) TrackEvent(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Missing project ID")
+		return
+	}
+	var req struct {
+		SessionID string `json:"sessionId"`
+		UserID    string `json:"userId"`
+		EventName string `json:"eventName"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.SessionID != "" {
+		_ = h.sessionService.CreateSession(ctx, &models.Session{
+			SessionID: req.SessionID,
+			ProjectID: projectID,
+			UserID:    req.UserID,
+			StartTime: time.Now(),
+			CreatedAt: time.Now(),
+		})
+		_ = h.sessionService.IncrementEventCount(ctx, req.SessionID)
+	}
+	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("activity_type", "event"),
+		attribute.String("project_id", projectID),
+		attribute.String("event_name", req.EventName),
+	))
+	util.WriteJSON(w, http.StatusAccepted, map[string]bool{"ok": true})
+}
+
+func (h *SessionHandler) TrackPageview(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Missing project ID")
+		return
+	}
+	var req struct {
+		SessionID string `json:"sessionId"`
+		UserID    string `json:"userId"`
+		Page      string `json:"page"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.SessionID != "" {
+		_ = h.sessionService.CreateSession(ctx, &models.Session{
+			SessionID: req.SessionID,
+			ProjectID: projectID,
+			UserID:    req.UserID,
+			StartTime: time.Now(),
+			CreatedAt: time.Now(),
+		})
+		_ = h.sessionService.IncrementPageviewCount(ctx, req.SessionID)
+	}
+	h.metrics.PageViewsTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("project_id", projectID),
+		attribute.String("page", req.Page),
+	))
+	util.WriteJSON(w, http.StatusAccepted, map[string]bool{"ok": true})
 }

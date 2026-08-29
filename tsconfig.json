@@ -33,9 +33,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/lib/prometheus.ts",
-    "src/components/Icons.jsx",
-    "src/app/(public)/blog/loki.mdx",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

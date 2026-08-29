@@ -2,6 +2,13 @@ import { DashboardData, Log, Trace, TraceSummary } from "@/types/dashboard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+function projectHeaders(projectId?: string) {
+  return {
+    "Content-Type": "application/json",
+    ...(projectId ? { "X-Project-ID": projectId } : {}),
+  };
+}
+
 interface TimeRange {
   start?: string;
   end?: string;
@@ -18,7 +25,7 @@ export async function fetchMetrics(projectId: string) {
 
   try {
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
 
@@ -58,7 +65,7 @@ export async function fetchLogs(
 
   try {
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
     if (!res.ok) {
@@ -85,7 +92,7 @@ export async function fetchTraces(
 
   try {
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
     if (!res.ok) {
@@ -109,7 +116,7 @@ export async function fetchLogToTrace(
     const url = new URL(`${API_URL}/api/traces/${traceId}`);
     if (projectId) url.searchParams.set("project_id", projectId);
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
     if (!res.ok) {
@@ -141,7 +148,7 @@ export async function fetchSessions(
 
   try {
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
 
@@ -176,7 +183,7 @@ export async function fetchDashboardData(
 
   try {
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: projectHeaders(projectId),
       credentials: "include",
     });
 

@@ -980,6 +980,19 @@ html:not(.dark) .sticky.top-20 {
   color: #ffffff !important;
 }
 
+.provider-logo {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
 .pg-code {
   background: #0c0c0e;
   color: #e4e4e7;

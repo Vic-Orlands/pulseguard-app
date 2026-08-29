@@ -137,6 +137,7 @@ func main() {
 	sessionRepo := telemetry.NewSessionRepository(conn)
 	prometheusRepo := telemetry.NewPrometheusRepository(prometheusURL)
 	telemetryStore := postgres.NewTelemetryRepository(conn)
+	sourceMapRepo := postgres.NewSourceMapRepository(conn)
 
 	// Init services
 	tokenService := auth.NewTokenService(jwtSecret)
@@ -148,7 +149,7 @@ func main() {
 	notificationService := service.NewNotificationService(notificationRepo)
 	alertService := service.NewAlertService(alertRepo, errorRepo, notificationRepo, projectRepo, workspaceRepo, integrationService)
 	tracesService := service.NewTracesService(telemetryStore, tempoRepo)
-	projectService := service.NewProjectService(projectRepo)
+	projectService := service.NewProjectService(projectRepo, workspaceRepo)
 	sessionService := service.NewSessionService(sessionRepo)
 	metricsService := service.NewMetricsService(prometheusRepo)
 	dashboardService := service.NewDashboardService(alertService, metricsService, errorService, sessionService)
@@ -167,6 +168,7 @@ func main() {
 		tracesService,
 		dashboardService,
 		sessionService,
+		sourceMapRepo,
 		port,
 		appLogger,
 		metrics,
@@ -210,6 +212,8 @@ func main() {
 		}
 	}()
 
+	go runRetentionLoop(workspaceRepo, projectRepo, appLogger)
+
 	// Listen for OS signals
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -234,5 +238,29 @@ func main() {
 	}
 	if err := metricsServer.Shutdown(ctx); err != nil {
 		appLogger.Error(ctx, "Metrics server forced to shutdown", err)
+	}
+}
+
+func runRetentionLoop(wsRepo *postgres.WorkspaceRepository, projectRepo *postgres.ProjectRepository, log *logger.Logger) {
+	ticker := time.NewTicker(6 * time.Hour)
+	defer ticker.Stop()
+	run := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		workspaces, err := wsRepo.ListAllForRetention(ctx)
+		if err != nil {
+			log.Error(ctx, "Failed to list workspaces for retention", err)
+			return
+		}
+		for _, ws := range workspaces {
+			cutoff := time.Now().Add(-time.Duration(ws.RetentionDays) * 24 * time.Hour)
+			if err := projectRepo.ApplyRetention(ctx, ws.ID, cutoff); err != nil {
+				log.Error(ctx, "Retention cleanup failed", err)
+			}
+		}
+	}
+	run()
+	for range ticker.C {
+		run()
 	}
 }

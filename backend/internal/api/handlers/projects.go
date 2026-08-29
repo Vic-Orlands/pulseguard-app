@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -90,6 +91,10 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 			util.WriteErrorFields(w, "Project name already exists", []string{"name"})
 			return
 		}
+		if errors.Is(err, service.ErrProjectLimit) {
+			util.WriteError(w, http.StatusConflict, "Project limit reached for this plan")
+			return
+		}
 
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "create_project_failed")))
 		util.WriteError(w, http.StatusInternalServerError, "Failed to create project")
@@ -108,6 +113,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 	))
 
 	util.WriteJSON(w, http.StatusCreated, project)
+	go h.projectService.NotifyProjectReady(context.Background(), project)
 }
 
 // ListByOwner handles fetches all projects owned by a specific user or filtered by workspace
@@ -272,4 +278,24 @@ func (h *ProjectHandler) DeleteAllByOwner(w http.ResponseWriter, r *http.Request
 
 	h.logger.Info(ctx, "All projects deleted for user", "user_id", userID)
 	util.WriteJSON(w, http.StatusNoContent, nil)
+}
+
+func (h *ProjectHandler) RotateDSN(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := chi.URLParam(r, "slug")
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	project, err := h.projectService.RotateIngestKey(ctx, slug, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "Project not found")
+			return
+		}
+		util.WriteError(w, http.StatusInternalServerError, "Failed to rotate DSN")
+		return
+	}
+	util.WriteJSON(w, http.StatusOK, project)
 }

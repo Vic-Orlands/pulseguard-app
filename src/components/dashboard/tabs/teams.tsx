@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { Add01Icon, Delete02Icon, Mail01Icon, UserGroupIcon } from "@/components/phosphor-icons";
+import { Add01Icon, Delete02Icon, Mail01Icon, PencilEdit01Icon, UserGroupIcon } from "@/components/phosphor-icons";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,20 +25,24 @@ import {
 } from "@/components/ui/select";
 import {
   deleteWorkspace,
+  getWorkspaceUsage,
   inviteMember,
   listInvitations,
   listWorkspaceMembers,
   removeWorkspaceMember,
+  updateMemberAccess,
   updateMemberRole,
   updateWorkspace,
   type WorkspaceInvitation,
   type WorkspaceMember,
+  type WorkspaceUsage,
 } from "@/lib/api/workspace-api";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Project } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
+import { jsonAuthConfig } from "@/lib/security/csrf";
 import { clearLastProjectSlug, getPostAuthPath } from "@/lib/last-project";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -52,6 +56,10 @@ export default function WorkspaceMembersTab() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [accessMember, setAccessMember] = useState<WorkspaceMember | null>(null);
+  const [accessAllProjects, setAccessAllProjects] = useState(true);
+  const [accessProjectIds, setAccessProjectIds] = useState<string[]>([]);
+  const [usage, setUsage] = useState<WorkspaceUsage | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
   const [allProjects, setAllProjects] = useState(true);
@@ -72,16 +80,17 @@ export default function WorkspaceMembersTab() {
     }
     setLoading(true);
     try {
-      const [memberRows, inviteRows, projectRes] = await Promise.all([
+      const [memberRows, inviteRows, projectRes, usageRow] = await Promise.all([
         listWorkspaceMembers(workspaceId),
         listInvitations(workspaceId).catch(() => [] as WorkspaceInvitation[]),
         fetch(`${url}/api/projects?workspaceId=${workspaceId}`, {
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          ...jsonAuthConfig(),
         }),
+        getWorkspaceUsage(workspaceId).catch(() => null),
       ]);
       setMembers(memberRows);
       setInvites(inviteRows.filter((item) => item.status === "pending"));
+      setUsage(usageRow);
       if (projectRes.ok) {
         setProjects(await projectRes.json());
       }
@@ -137,6 +146,36 @@ export default function WorkspaceMembersTab() {
       await load();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to invite");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openAccess = (member: WorkspaceMember) => {
+    setAccessMember(member);
+    setAccessAllProjects(member.allProjects !== false);
+    setAccessProjectIds(member.projectIds ?? []);
+  };
+
+  const handleAccessSave = async () => {
+    if (!workspaceId || !accessMember) return;
+    if (!accessAllProjects && accessProjectIds.length === 0) {
+      toast.error("Select at least one project, or give access to all projects");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateMemberAccess(
+        workspaceId,
+        accessMember.userId,
+        accessAllProjects,
+        accessProjectIds,
+      );
+      toast.success("Project access updated");
+      setAccessMember(null);
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update access");
     } finally {
       setSaving(false);
     }
@@ -215,6 +254,50 @@ export default function WorkspaceMembersTab() {
         </div>
       ) : null}
 
+      {usage ? (
+        <div className="rounded-lg bg-pg-group p-4">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-pg-text">Plan & usage</p>
+              <p className="text-[11px] text-pg-muted">
+                {usage.plan === "pro" ? "Pro" : "Free"} · resets{" "}
+                {new Date(usage.resetsAt).toLocaleDateString()}
+              </p>
+            </div>
+            {usage.plan !== "pro" ? (
+              <a
+                href="mailto:hello@pulseguard.dev?subject=PulseGuard%20Pro"
+                className="text-[11px] font-medium text-pg-text underline underline-offset-2"
+              >
+                Upgrade
+              </a>
+            ) : null}
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+            <div>
+              <p className="text-pg-muted">Events</p>
+              <p className="mt-0.5 text-pg-text">
+                {usage.eventsUsed.toLocaleString()} / {usage.monthlyEvents.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-pg-muted">Projects</p>
+              <p className="mt-0.5 text-pg-text">
+                {usage.projectCount} / {usage.maxProjects}
+              </p>
+            </div>
+            <div>
+              <p className="text-pg-muted">Retention</p>
+              <p className="mt-0.5 text-pg-text">{usage.retentionDays} days</p>
+            </div>
+            <div>
+              <p className="text-pg-muted">Source maps</p>
+              <p className="mt-0.5 text-pg-text">{usage.maxSourceMaps} / project</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-medium text-pg-text">Members</h2>
@@ -259,6 +342,14 @@ export default function WorkspaceMembersTab() {
               </div>
               {canAdmin && member.role !== "owner" && member.userId !== user?.id ? (
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="rounded-lg bg-transparent p-1.5 text-pg-muted hover:bg-pg-group hover:text-pg-text"
+                    onClick={() => openAccess(member)}
+                    aria-label="Edit project access"
+                  >
+                    <HugeiconsIcon icon={PencilEdit01Icon} className="h-3.5 w-3.5" />
+                  </button>
                   <Select
                     value={member.role}
                     onValueChange={async (role) => {
@@ -416,6 +507,67 @@ export default function WorkspaceMembersTab() {
             >
               <HugeiconsIcon icon={UserGroupIcon} className="h-3.5 w-3.5" />
               Send invite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(accessMember)} onOpenChange={(open) => !open && setAccessMember(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">
+              Project access
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {accessMember?.userName || accessMember?.userEmail || "Member"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between rounded-lg bg-pg-group px-3 py-2.5">
+              <div>
+                <p className="text-xs font-medium text-pg-text">All projects</p>
+                <p className="text-[11px] text-pg-muted">
+                  Access every project in this workspace
+                </p>
+              </div>
+              <Switch checked={accessAllProjects} onCheckedChange={setAccessAllProjects} />
+            </div>
+            {!accessAllProjects ? (
+              <div className="max-h-40 space-y-1 overflow-y-auto">
+                {projects.length === 0 ? (
+                  <p className="text-xs text-pg-muted">No projects yet.</p>
+                ) : (
+                  projects.map((project) => (
+                    <label
+                      key={project.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-pg-group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={accessProjectIds.includes(project.id)}
+                        onChange={() =>
+                          setAccessProjectIds((prev) =>
+                            prev.includes(project.id)
+                              ? prev.filter((id) => id !== project.id)
+                              : [...prev, project.id],
+                          )
+                        }
+                      />
+                      <span>{project.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button
+              className="btn-primary h-8 text-xs"
+              onClick={() => void handleAccessSave()}
+              loading={saving}
+              loadingText="Saving..."
+            >
+              Save access
             </Button>
           </DialogFooter>
         </DialogContent>

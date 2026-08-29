@@ -32,6 +32,14 @@ func (s *SessionService) IncrementErrorCount(ctx context.Context, sessionID stri
 	return s.repo.IncrementErrorCount(ctx, sessionID)
 }
 
+func (s *SessionService) IncrementEventCount(ctx context.Context, sessionID string) error {
+	return s.repo.IncrementEventCount(ctx, sessionID)
+}
+
+func (s *SessionService) IncrementPageviewCount(ctx context.Context, sessionID string) error {
+	return s.repo.IncrementPageviewCount(ctx, sessionID)
+}
+
 func (s *SessionService) GetSessions(ctx context.Context, projectID string, start, end time.Time) ([]*models.Session, error) {
 	return s.repo.GetSessions(ctx, projectID, start, end)
 }

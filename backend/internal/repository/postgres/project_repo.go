@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"pulseguard/internal/models"
+	"pulseguard/internal/util"
 	"strings"
+	"time"
 )
 
 type ProjectRepository struct {
@@ -16,11 +18,74 @@ func NewProjectRepository(db *sql.DB) *ProjectRepository {
 	return &ProjectRepository{db: db}
 }
 
-// Create inserts a new project into the database.
+func attachDSN(p *models.Project, firstEvent sql.NullTime) {
+	if firstEvent.Valid {
+		t := firstEvent.Time
+		p.FirstEventAt = &t
+	}
+	p.DSN = util.BuildDSN(p.IngestKey, p.ID)
+}
+
+func scanProjectWithCount(scanner interface{ Scan(...any) error }) (*models.Project, error) {
+	var p models.Project
+	var firstEvent sql.NullTime
+	if err := scanner.Scan(
+		&p.ID,
+		&p.WorkspaceID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.IngestKey,
+		&firstEvent,
+		&p.ErrorCount,
+	); err != nil {
+		return nil, err
+	}
+	attachDSN(&p, firstEvent)
+	return &p, nil
+}
+
+func scanProject(scanner interface{ Scan(...any) error }) (*models.Project, error) {
+	var p models.Project
+	var firstEvent sql.NullTime
+	if err := scanner.Scan(
+		&p.ID,
+		&p.WorkspaceID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.IngestKey,
+		&firstEvent,
+	); err != nil {
+		return nil, err
+	}
+	attachDSN(&p, firstEvent)
+	return &p, nil
+}
+
+func collectProjects(rows *sql.Rows) ([]*models.Project, error) {
+	defer rows.Close()
+	var projects []*models.Project
+	for rows.Next() {
+		p, err := scanProjectWithCount(rows)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, p)
+	}
+	return projects, rows.Err()
+}
+
 func (repo *ProjectRepository) Create(ctx context.Context, project *models.Project) error {
 	query := `
-        INSERT INTO projects (id, workspace_id, name, slug, description, owner_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO projects (id, workspace_id, name, slug, description, owner_id, ingest_key, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     `
 	_, err := repo.db.ExecContext(ctx, query,
 		project.ID,
@@ -29,6 +94,7 @@ func (repo *ProjectRepository) Create(ctx context.Context, project *models.Proje
 		project.Slug,
 		project.Description,
 		project.OwnerID,
+		project.IngestKey,
 		project.CreatedAt,
 		project.UpdatedAt,
 	)
@@ -39,90 +105,104 @@ func (repo *ProjectRepository) Create(ctx context.Context, project *models.Proje
 		}
 		return err
 	}
-
-	return err
+	project.DSN = util.BuildDSN(project.IngestKey, project.ID)
+	return nil
 }
 
-// ListByOwner retrieves all projects owned by the specified owner ID.
 func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
 		FROM projects p
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.owner_id = $1
 		GROUP BY p.id
 		ORDER BY p.created_at DESC;
 	`
-
 	rows, err := repo.db.QueryContext(ctx, query, ownerID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var projects []*models.Project
-	for rows.Next() {
-		var p models.Project
-		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
-			return nil, err
-		}
-		projects = append(projects, &p)
-	}
-
-	return projects, nil
+	return collectProjects(rows)
 }
 
 func (repo *ProjectRepository) GetBySlugForMember(ctx context.Context, slug, userID string) (*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
 		FROM projects p
 		JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.slug = $1 AND wm.user_id = $2 AND wm.status = 'active'
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
 		GROUP BY p.id
 	`
-	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, slug, userID).Scan(
-		&p.ID,
-		&p.WorkspaceID,
-		&p.Name,
-		&p.Slug,
-		&p.Description,
-		&p.OwnerID,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.ErrorCount,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return scanProjectWithCount(repo.db.QueryRowContext(ctx, query, slug, userID))
 }
 
 func (repo *ProjectRepository) GetByID(ctx context.Context, id string) (*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
 		FROM projects p
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.id = $1
 		GROUP BY p.id
 	`
-	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, id).Scan(
-		&p.ID,
-		&p.WorkspaceID,
-		&p.Name,
-		&p.Slug,
-		&p.Description,
-		&p.OwnerID,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.ErrorCount,
-	)
+	return scanProjectWithCount(repo.db.QueryRowContext(ctx, query, id))
+}
+
+func (repo *ProjectRepository) GetByIngestKey(ctx context.Context, ingestKey string) (*models.Project, error) {
+	query := `
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
+		FROM projects p
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.ingest_key = $1
+		GROUP BY p.id
+	`
+	return scanProjectWithCount(repo.db.QueryRowContext(ctx, query, ingestKey))
+}
+
+func (repo *ProjectRepository) RotateIngestKey(ctx context.Context, slug, userID, ingestKey string) (*models.Project, error) {
+	query := `
+		UPDATE projects p
+		SET ingest_key = $1, updated_at = NOW()
+		FROM workspace_members wm
+		WHERE p.slug = $2
+		  AND wm.workspace_id = p.workspace_id
+		  AND wm.user_id = $3
+		  AND wm.status = 'active'
+		  AND wm.role IN ('owner', 'admin')
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
+		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at
+	`
+	return scanProject(repo.db.QueryRowContext(ctx, query, ingestKey, slug, userID))
+}
+
+func (repo *ProjectRepository) MarkFirstEvent(ctx context.Context, projectID string) (bool, error) {
+	query := `
+		UPDATE projects
+		SET first_event_at = NOW()
+		WHERE id = $1 AND first_event_at IS NULL
+	`
+	result, err := repo.db.ExecContext(ctx, query, projectID)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return &p, nil
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
+}
+
+func (repo *ProjectRepository) CountByWorkspace(ctx context.Context, workspaceID string) (int, error) {
+	var count int
+	err := repo.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM projects WHERE workspace_id = $1`, workspaceID).Scan(&count)
+	return count, err
 }
 
 func (repo *ProjectRepository) HasWorkspaceRole(ctx context.Context, workspaceID, userID, minRole string) (bool, error) {
@@ -182,11 +262,15 @@ func (repo *ProjectRepository) HasProjectRole(ctx context.Context, projectID, us
 
 func (repo *ProjectRepository) ListByWorkspaceForMember(ctx context.Context, workspaceID, userID string) ([]*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
 		FROM projects p
 		JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE p.workspace_id = $1 AND wm.user_id = $2 AND wm.status = 'active'
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
 		GROUP BY p.id
 		ORDER BY p.created_at DESC
 	`
@@ -194,17 +278,7 @@ func (repo *ProjectRepository) ListByWorkspaceForMember(ctx context.Context, wor
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var projects []*models.Project
-	for rows.Next() {
-		var p models.Project
-		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
-			return nil, err
-		}
-		projects = append(projects, &p)
-	}
-	return projects, rows.Err()
+	return collectProjects(rows)
 }
 
 func (repo *ProjectRepository) DeleteBySlugForManager(ctx context.Context, slug, userID string) (*models.Project, error) {
@@ -216,23 +290,13 @@ func (repo *ProjectRepository) DeleteBySlugForManager(ctx context.Context, slug,
 		  AND wm.user_id = $2
 		  AND wm.status = 'active'
 		  AND wm.role IN ('owner', 'admin')
-		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
+		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at
 	`
-	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, slug, userID).Scan(
-		&p.ID,
-		&p.WorkspaceID,
-		&p.Name,
-		&p.Slug,
-		&p.Description,
-		&p.OwnerID,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return scanProject(repo.db.QueryRowContext(ctx, query, slug, userID))
 }
 
 func (repo *ProjectRepository) UpdateBySlugForManager(ctx context.Context, oldSlug, userID string, project *models.Project) (*models.Project, error) {
@@ -245,31 +309,20 @@ func (repo *ProjectRepository) UpdateBySlugForManager(ctx context.Context, oldSl
 		  AND wm.user_id = $5
 		  AND wm.status = 'active'
 		  AND wm.role IN ('owner', 'admin')
-		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
+		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at
 	`
-	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug, userID).Scan(
-		&p.ID,
-		&p.WorkspaceID,
-		&p.Name,
-		&p.Slug,
-		&p.Description,
-		&p.OwnerID,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return scanProject(repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug, userID))
 }
 
-// DeleteAllByOwner deletes all projects owned by the specified owner ID.
 func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID string) ([]*models.Project, error) {
 	query := `
 		DELETE FROM projects
 		WHERE owner_id = $1
-		RETURNING id, workspace_id, name, slug, description, owner_id, created_at, updated_at
+		RETURNING id, workspace_id, name, slug, description, owner_id, created_at, updated_at, ingest_key, first_event_at
 	`
 
 	rows, err := repo.db.QueryContext(ctx, query, ownerID)
@@ -280,20 +333,11 @@ func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID str
 
 	var deletedProjects []*models.Project
 	for rows.Next() {
-		var p models.Project
-		if err := rows.Scan(
-			&p.ID,
-			&p.WorkspaceID,
-			&p.Name,
-			&p.Slug,
-			&p.Description,
-			&p.OwnerID,
-			&p.CreatedAt,
-			&p.UpdatedAt,
-		); err != nil {
+		p, err := scanProject(rows)
+		if err != nil {
 			return nil, fmt.Errorf("failed to scan deleted project: %w", err)
 		}
-		deletedProjects = append(deletedProjects, &p)
+		deletedProjects = append(deletedProjects, p)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -307,32 +351,56 @@ func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID str
 	return deletedProjects, nil
 }
 
-// ListByMemberUser retrieves all projects in all workspaces the user belongs to.
 func (repo *ProjectRepository) ListByMemberUser(ctx context.Context, userID string) ([]*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, p.ingest_key, p.first_event_at, COUNT(e.id) AS error_count
 		FROM projects p
 		JOIN workspace_members wm ON p.workspace_id = wm.workspace_id
 		LEFT JOIN errors e ON p.id = e.project_id
 		WHERE wm.user_id = $1 AND wm.status = 'active'
+		  AND (
+			COALESCE(wm.all_projects, true) = true
+			OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+		  )
 		GROUP BY p.id
 		ORDER BY p.created_at DESC;
 	`
-
 	rows, err := repo.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	return collectProjects(rows)
+}
 
-	var projects []*models.Project
-	for rows.Next() {
-		var p models.Project
-		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
-			return nil, err
-		}
-		projects = append(projects, &p)
+func (repo *ProjectRepository) ApplyRetention(ctx context.Context, workspaceID string, olderThan time.Time) error {
+	_, err := repo.db.ExecContext(ctx, `
+		DELETE FROM errors
+		WHERE project_id IN (SELECT id FROM projects WHERE workspace_id = $1)
+		  AND occurred_at < $2
+	`, workspaceID, olderThan)
+	if err != nil {
+		return err
 	}
-
-	return projects, nil
+	_, err = repo.db.ExecContext(ctx, `
+		DELETE FROM telemetry_logs
+		WHERE project_id IN (SELECT id FROM projects WHERE workspace_id = $1)
+		  AND created_at < $2
+	`, workspaceID, olderThan)
+	if err != nil {
+		return err
+	}
+	_, err = repo.db.ExecContext(ctx, `
+		DELETE FROM telemetry_traces
+		WHERE project_id IN (SELECT id FROM projects WHERE workspace_id = $1)
+		  AND start_time < $2
+	`, workspaceID, olderThan)
+	if err != nil {
+		return err
+	}
+	_, err = repo.db.ExecContext(ctx, `
+		DELETE FROM sessions
+		WHERE project_id IN (SELECT id FROM projects WHERE workspace_id = $1)
+		  AND start_time < $2
+	`, workspaceID, olderThan)
+	return err
 }

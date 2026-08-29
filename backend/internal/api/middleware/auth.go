@@ -91,7 +91,7 @@ func Auth(logger *logger.Logger, tracer trace.Tracer, metrics *otel.Metrics, tok
 			}
 
 			// Add user_id to context for use in handlers
-			ctx = context.WithValue(ctx, "user_id", userID)
+			ctx = context.WithValue(ctx, util.UserIDContextKey, userID)
 			span.SetAttributes(attribute.String("user_id", userID))
 
 			// Track active sessions

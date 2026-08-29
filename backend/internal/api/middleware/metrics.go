@@ -43,6 +43,9 @@ func Metrics(metrics *otel.Metrics) func(http.Handler) http.Handler {
 				attribute.String("http_method", r.Method),
 				attribute.String("status_code", fmt.Sprintf("%d", rw.statusCode)),
 			}
+			if projectID := r.Header.Get("X-Project-ID"); projectID != "" {
+				attrs = append(attrs, attribute.String("project_id", projectID))
+			}
 
 			metrics.HTTPRequestsTotal.Add(r.Context(), 1, metric.WithAttributes(attrs...))
 			metrics.HTTPRequestDurationMs.Record(r.Context(), durationMs, metric.WithAttributes(attrs...))
