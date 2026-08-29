@@ -2,11 +2,11 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2, ArrowRight } from "@/components/phosphor-icons";
 import { GithubIcon } from "@/components/phosphor-icons";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { useHydrated } from "./user-hydrated";
+import { useAuthMode } from "./user-hydrated";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
 import ForgotPassword from "./forgot-password";
@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
 import { safeInternalRedirect } from "@/lib/security/safe-redirect";
 import { getPostAuthPath } from "@/lib/last-project";
+import type { FormMode } from "@/types/form";
 
 // Beautiful premium concentric brand logo matching Traces brand aesthetics
 export const Logo = () => (
@@ -81,7 +82,7 @@ function AuthScreen({
   onToggleMode,
   handleOAuthLogin,
 }: {
-  onToggleMode: (mode: any) => void;
+  onToggleMode: (mode: FormMode) => void;
   handleOAuthLogin: (provider: string) => void;
 }) {
   const [loadingProvider, setLoadingProvider] = useState<
@@ -197,10 +198,8 @@ function AuthScreen({
 }
 
 function AuthContent() {
-  const { mode, hydrated, toggleMode } = useHydrated();
+  const { mode, toggleMode } = useAuthMode();
   const searchParams = useSearchParams();
-
-  if (!hydrated) return null;
 
   const handleOAuthLogin = async (provider: string) => {
     const requestedRedirect = searchParams.get("redirect");
@@ -219,62 +218,32 @@ function AuthContent() {
       <ThemeToggle />
 
       <div className="w-full z-10 flex flex-col justify-center max-w-lg relative min-h-[480px]">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {mode === "oauth" && (
-            <motion.div
-              key="oauth"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full flex justify-center"
-            >
-              <AuthScreen
-                onToggleMode={toggleMode}
-                handleOAuthLogin={handleOAuthLogin}
-              />
-            </motion.div>
-          )}
+        {mode === "oauth" && (
+          <div className="w-full flex justify-center">
+            <AuthScreen
+              onToggleMode={toggleMode}
+              handleOAuthLogin={handleOAuthLogin}
+            />
+          </div>
+        )}
 
-          {mode === "login" && (
-            <motion.div
-              key="login"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full flex justify-center"
-            >
-              <LoginForm onToggleMode={toggleMode} />
-            </motion.div>
-          )}
+        {mode === "login" && (
+          <div className="w-full flex justify-center">
+            <LoginForm onToggleMode={toggleMode} />
+          </div>
+        )}
 
-          {mode === "signup" && (
-            <motion.div
-              key="signup"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full flex justify-center"
-            >
-              <SignupForm onToggleMode={toggleMode} />
-            </motion.div>
-          )}
+        {mode === "signup" && (
+          <div className="w-full flex justify-center">
+            <SignupForm onToggleMode={toggleMode} />
+          </div>
+        )}
 
-          {mode === "forgot-password" && (
-            <motion.div
-              key="forgot-password"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full flex justify-center"
-            >
-              <ForgotPassword onToggleMode={toggleMode} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {mode === "forgot-password" && (
+          <div className="w-full flex justify-center">
+            <ForgotPassword onToggleMode={toggleMode} />
+          </div>
+        )}
       </div>
 
       {/* Trademark footer */}

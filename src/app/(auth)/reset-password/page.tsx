@@ -103,7 +103,7 @@ export function ResetPassword() {
           reset();
           toast("Password reset successful!");
           setTimeout(() => {
-            router.push("/login");
+            router.push("/signin?mode=login");
           }, 2000);
         }
       } catch (err) {
@@ -175,10 +175,7 @@ export function ResetPassword() {
             <motion.button
               type="button"
               whileTap={{ scale: 0.99 }}
-              onClick={() => {
-                router.push("/signin");
-                localStorage.setItem("auth_mode", "forgot-password");
-              }}
+              onClick={() => router.push("/signin?mode=forgot-password")}
               className="btn-primary w-full"
             >
               <motion.span
@@ -199,10 +196,7 @@ export function ResetPassword() {
             <div className="mb-6 flex justify-start">
               <motion.button
                 type="button"
-                onClick={() => {
-                  router.push("/signin");
-                  localStorage.setItem("auth_mode", "login");
-                }}
+                onClick={() => router.push("/signin?mode=login")}
                 whileHover={{ x: -2 }}
                 className="btn-back"
               >

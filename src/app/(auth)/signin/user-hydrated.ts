@@ -2,31 +2,34 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { FormMode } from "@/types/form";
 
-export function useHydrated() {
+const formModes: FormMode[] = [
+  "oauth",
+  "login",
+  "signup",
+  "forgot-password",
+];
+
+function getFormMode(value: string | null): FormMode {
+  return formModes.includes(value as FormMode) ? (value as FormMode) : "oauth";
+}
+
+export function useAuthMode() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const searchMode = getFormMode(searchParams.get("mode"));
+  const [mode, setMode] = useState<FormMode>(searchMode);
 
-  const [hydrated, setHydrated] = useState(false);
-
-  // Set hydrated to true on client-side after mount
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  const mode = (searchParams.get("mode") as FormMode) || "oauth";
+    setMode(searchMode);
+  }, [searchMode]);
 
   const toggleMode = (newMode: FormMode) => {
+    setMode(newMode);
     const params = new URLSearchParams(searchParams.toString());
     params.set("mode", newMode);
-    if (typeof document !== "undefined" && (document as any).startViewTransition) {
-      (document as any).startViewTransition(() => {
-        router.push(`${pathname}?${params.toString()}`);
-      });
-    } else {
-      router.push(`${pathname}?${params.toString()}`);
-    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  return { mode, toggleMode, hydrated };
+  return { mode, toggleMode };
 }
