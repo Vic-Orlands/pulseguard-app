@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { getLastProjectSlug, setLastProjectSlug } from "@/lib/last-project";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ import { PlusSignIcon } from "@/components/phosphor-icons";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
+import { AppLoader } from "@/components/shared/app-loader";
 import type { Project } from "@/types/dashboard";
 import { normalizePostgresString } from "@/lib/utils";
 
@@ -156,7 +158,7 @@ const CreateProjectDialog = ({
                       </svg>
                     </div>
 
-                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle uppercase mb-1.5">
+                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle mb-1.5">
                       Initializing
                     </p>
                     <motion.h3
@@ -204,7 +206,7 @@ const CreateProjectDialog = ({
                       <Check className="w-5 h-5 text-emerald-500" />
                     </div>
 
-                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle uppercase mb-1">
+                    <p className="text-[10px] font-mono tracking-[0.2em] text-pg-subtle mb-1">
                       Success
                     </p>
                     <h3 className="text-sm font-medium text-pg-text mb-1">
@@ -264,6 +266,16 @@ export default function ProjectSelectionPage() {
   const [isEnteringProject, setIsEnteringProject] = useState(false);
   const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] =
     useState(false);
+  const [checkingLastProject, setCheckingLastProject] = useState(true);
+
+  useEffect(() => {
+    const slug = getLastProjectSlug();
+    if (slug) {
+      router.replace(`/projects/${slug}`);
+      return;
+    }
+    setCheckingLastProject(false);
+  }, [router]);
 
   const getAllProjects = async () => {
     try {
@@ -382,6 +394,7 @@ export default function ProjectSelectionPage() {
       // Auto redirect to new project dashboard after a small delay
       setTimeout(() => {
         setShowCreateDialog(false);
+        setLastProjectSlug(newProject.slug);
         router.push(`/projects/${newProject.slug}`);
       }, 1500);
     } catch (err) {
@@ -400,9 +413,14 @@ export default function ProjectSelectionPage() {
     const selected = projects.find((p) => p.id === selectedProjectId);
     if (selected) {
       setIsEnteringProject(true);
+      setLastProjectSlug(selected.slug);
       router.push(`/projects/${selected.slug}`);
     }
   };
+
+  if (checkingLastProject) {
+    return <AppLoader title="Opening project..." />;
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center text-white relative py-12 px-4 select-none">
@@ -421,7 +439,7 @@ export default function ProjectSelectionPage() {
             className="w-56 bg-[#121212] border border-zinc-800 text-white rounded-lg shadow-sm"
             align="end"
           >
-            <DropdownMenuLabel className="text-[10px] font-mono uppercase text-zinc-500 px-3 py-1.5">
+            <DropdownMenuLabel className="text-[10px] font-mono text-zinc-500 px-3 py-1.5">
               Switch Workspace
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-zinc-800/60" />

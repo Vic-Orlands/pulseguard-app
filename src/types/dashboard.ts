@@ -31,25 +31,36 @@ export type Log = {
   project_id: string;
   message: string;
   timestamp: string;
-  severity: string;
-  spanId: string;
-  traceId: string;
-  time: string;
-  level: number;
-  msg: string;
-  name: string;
-  os: string;
-  pid: string;
+  level: string | number;
   service_name: string;
-  hostname: string;
+  traceId: string;
+  spanId: string;
+  route?: string;
+  source?: string;
+  session_id?: string;
+  user_id?: string;
+  user_email?: string;
+  severity?: string;
+  time?: string;
+  msg?: string;
+  name?: string;
+  os?: string;
+  pid?: string;
+  hostname?: string;
 };
 
 export interface TraceSummary {
   traceId: string;
+  projectId?: string;
   name: string;
   serviceName: string;
   startTime: string;
   duration: number;
+  httpStatus?: number;
+  spanCount?: number;
+  spanId?: string;
+  userId?: string;
+  userEmail?: string;
 }
 
 export interface Trace {
@@ -101,6 +112,7 @@ export interface Session {
   session_id: string;
   project_id: string;
   user_id: string;
+  user_email?: string;
   start_time: string;
   end_time?: string;
   duration_ms?: number;

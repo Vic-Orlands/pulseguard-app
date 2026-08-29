@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Area,
@@ -9,8 +9,6 @@ import {
   BarChart,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -46,7 +44,24 @@ export function PulseChart({
   const palette = colors ?? ["#34d399", "#f87171", "#60a5fa", "#fbbf24"];
   const muted = isDark ? "#a1a1aa" : "#71717a";
   const grid = isDark ? "#3f3f46" : "#e4e4e7";
-  const tooltipBg = isDark ? "#18181b" : "#ffffff";
+  const tooltipBg = isDark ? "#242428" : "#ffffff";
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const measure = () => {
+      const next = { width: el.clientWidth, height: el.clientHeight };
+      setBox((prev) =>
+        prev.width === next.width && prev.height === next.height ? prev : next,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const data = useMemo(
     () =>
@@ -87,66 +102,61 @@ export function PulseChart({
       />
       {series.length > 1 ? (
         <Legend
+          iconSize={8}
+          formatter={(value) => (
+            <span style={{ marginRight: 12, color: muted }}>{value}</span>
+          )}
           wrapperStyle={{
             fontSize: 11,
             fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
             color: muted,
+            paddingTop: 8,
           }}
         />
       ) : null}
     </>
   );
 
+  const ready = box.width > 8 && box.height > 8;
+  const chartType = type === "bar" ? "bar" : "area";
+
   return (
-    <div className="w-full font-sans" style={{ height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        {type === "bar" ? (
-          <BarChart data={data} barCategoryGap="28%">
-            {shared}
-            {series.map((item, index) => (
-              <Bar
-                key={item.name}
-                dataKey={item.name}
-                fill={palette[index % palette.length]}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={28}
-                stackId={stacked ? "stack" : undefined}
-              />
-            ))}
-          </BarChart>
-        ) : type === "line" ? (
-          <LineChart data={data}>
-            {shared}
-            {series.map((item, index) => (
-              <Line
-                key={item.name}
-                type="monotone"
-                dataKey={item.name}
-                stroke={palette[index % palette.length]}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 3 }}
-              />
-            ))}
-          </LineChart>
-        ) : (
-          <AreaChart data={data}>
-            {shared}
-            {series.map((item, index) => (
-              <Area
-                key={item.name}
-                type="monotone"
-                dataKey={item.name}
-                stroke={palette[index % palette.length]}
-                fill={palette[index % palette.length]}
-                fillOpacity={0.16}
-                strokeWidth={2}
-                stackId={stacked ? "stack" : undefined}
-              />
-            ))}
-          </AreaChart>
-        )}
-      </ResponsiveContainer>
+    <div ref={hostRef} className="w-full min-w-0 min-h-[160px]" style={{ height }}>
+      {ready ? (
+        <ResponsiveContainer width={box.width} height={box.height} minWidth={1} minHeight={1}>
+          {chartType === "bar" ? (
+            <BarChart data={data} barCategoryGap="28%">
+              {shared}
+              {series.map((item, index) => (
+                <Bar
+                  key={item.name}
+                  dataKey={item.name}
+                  fill={palette[index % palette.length]}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={28}
+                  stackId={stacked ? "stack" : undefined}
+                />
+              ))}
+            </BarChart>
+          ) : (
+            <AreaChart data={data}>
+              {shared}
+              {series.map((item, index) => (
+                <Area
+                  key={item.name}
+                  type="monotone"
+                  dataKey={item.name}
+                  stroke={palette[index % palette.length]}
+                  fill={palette[index % palette.length]}
+                  fillOpacity={0.18}
+                  strokeWidth={2}
+                  stackId={stacked ? "stack" : undefined}
+                />
+              ))}
+            </AreaChart>
+          )}
+        </ResponsiveContainer>
+      ) : null}
     </div>
   );
 }

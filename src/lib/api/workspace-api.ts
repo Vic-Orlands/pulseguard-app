@@ -19,6 +19,8 @@ export interface WorkspaceMember {
   userId: string;
   role: string; // 'owner', 'admin', 'member'
   status: string; // 'active', 'invited', 'blocked'
+  allProjects?: boolean;
+  projectIds?: string[];
   createdAt: string;
   updatedAt: string;
   userName?: string;
@@ -35,6 +37,8 @@ export interface WorkspaceInvitation {
   token?: string;
   expiresAt: string;
   status: string;
+  allProjects?: boolean;
+  projectIds?: string[];
 }
 
 export interface Team {
@@ -72,12 +76,14 @@ export const listWorkspaces = async (): Promise<Workspace[]> => {
 export const inviteMember = async (
   workspaceId: string,
   email: string,
-  role: string
+  role: string,
+  allProjects = true,
+  projectIds: string[] = [],
 ): Promise<WorkspaceInvitation> => {
   const res = await fetch(`${url}/api/workspaces/${workspaceId}/invite`, {
     method: "POST",
     ...headerConfig,
-    body: JSON.stringify({ email, role }),
+    body: JSON.stringify({ email, role, allProjects, projectIds }),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -173,6 +179,53 @@ export const removeWorkspaceMember = async (
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.error || "Failed to remove member");
+  }
+};
+
+export const updateWorkspace = async (
+  workspaceId: string,
+  name: string,
+): Promise<Workspace> => {
+  const res = await fetch(`${url}/api/workspaces/${workspaceId}`, {
+    method: "PUT",
+    ...headerConfig,
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to update workspace");
+  }
+  return res.json();
+};
+
+export const deleteWorkspace = async (workspaceId: string): Promise<void> => {
+  const res = await fetch(`${url}/api/workspaces/${workspaceId}`, {
+    method: "DELETE",
+    ...headerConfig,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to delete workspace");
+  }
+};
+
+export const updateMemberAccess = async (
+  workspaceId: string,
+  userId: string,
+  allProjects: boolean,
+  projectIds: string[] = [],
+): Promise<void> => {
+  const res = await fetch(
+    `${url}/api/workspaces/${workspaceId}/members/${userId}/access`,
+    {
+      method: "PUT",
+      ...headerConfig,
+      body: JSON.stringify({ allProjects, projectIds }),
+    },
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to update project access");
   }
 };
 

@@ -24,12 +24,12 @@ const ConnectPlatformPage = () => {
   };
 
   const CodeBlock = ({ children, id, language = "bash" }: CodeBlockProps) => (
-    <div className="relative group mb-4">
-      <div className="flex items-center justify-between bg-pg-group text-foreground px-4 py-2 rounded-t-lg">
-        <span className="text-xs font-mono text-pg-muted">{language}</span>
+    <div className="relative group mb-4 overflow-hidden rounded-lg">
+      <div className="pg-code-header flex items-center justify-between px-4 py-2">
+        <span className="text-xs font-mono">{language}</span>
         <button
           onClick={() => copyToClipboard(children, id)}
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-pg-surface hover:bg-pg-overlay rounded-lg text-[10px] text-foreground cursor-pointer transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[10px] text-zinc-300 transition-colors hover:bg-white/10 cursor-pointer"
         >
           {copiedCode === id ? (
             <>
@@ -44,8 +44,8 @@ const ConnectPlatformPage = () => {
           )}
         </button>
       </div>
-      <pre className="bg-pg-group/70 text-foreground p-4 rounded-b-lg overflow-x-auto">
-        <code className="text-xs font-mono">{children}</code>
+      <pre className="pg-code overflow-x-auto p-4">
+        <code className="text-xs font-mono text-zinc-200">{children}</code>
       </pre>
     </div>
   );
@@ -59,36 +59,54 @@ const ConnectPlatformPage = () => {
     description: string;
     children: React.ReactNode;
   }) => (
-    <section className="space-y-3">
+    <section className="max-w-3xl space-y-3">
       <div>
         <h2 className="text-sm font-semibold text-pg-text">{title}</h2>
-        <p className="text-xs text-pg-muted mt-0.5">{description}</p>
+        <p className="mt-0.5 max-w-xl text-xs text-pg-muted">{description}</p>
       </div>
       {children}
     </section>
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10 pb-10">
-      <Section title="Installation" description="Get started with PulseGuard in seconds">
+    <div className="mr-auto max-w-3xl space-y-10 pb-10">
+      <Section
+        title="How this project is connected"
+        description="Telemetry is scoped by project ID, not by Google OAuth or a vendor integration"
+      >
+        <div className="max-w-xl space-y-2 text-xs leading-relaxed text-pg-muted">
+          <p>
+            Sessions, errors, logs, and traces for this dashboard belong to the
+            project you have open.
+          </p>
+          <p>
+            This PulseGuard app sends those events when its SDK{" "}
+            <span className="font-mono text-pg-text">projectId</span> matches
+            this project&apos;s ID — the same value shown in the sidebar.
+          </p>
+          <p>
+            The Integrations tab is only for outbound alerts (Slack, GitHub, and
+            so on). It does not ingest telemetry.
+          </p>
+        </div>
+      </Section>
+
+      <Section title="Installation" description="Add the SDK to the app you want to observe">
         <CodeBlock id="npm-install">npm install pulseguard</CodeBlock>
       </Section>
 
-      <Section title="Usage" description="Every integration path, in one place">
+      <Section title="Usage" description="Pass this project's ID so data lands in this dashboard">
         <div className="space-y-8">
           <div>
-            <h3 className="text-xs font-semibold text-pg-text mb-2">
+            <h3 className="mb-2 text-xs font-semibold text-pg-text">
               React — wrap your app
             </h3>
             <CodeBlock id="react-provider" language="jsx">{`import { TelemetryProvider } from "pulseguard";
 
-<TelemetryProvider
-    projectId={currentProjectId}
-    issueTrackerUrl={trackerUrl}
->
+<TelemetryProvider projectId={currentProjectId}>
     <Layout />
 </TelemetryProvider>`}</CodeBlock>
-            <h3 className="text-xs font-semibold text-pg-text mb-2 mt-5">
+            <h3 className="mb-2 mt-5 text-xs font-semibold text-pg-text">
               Track page-level interactions
             </h3>
             <CodeBlock id="use-telemetry" language="jsx">{`"use client";
@@ -101,20 +119,19 @@ useTelemetry({
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold text-pg-text mb-2">
+            <h3 className="mb-2 text-xs font-semibold text-pg-text">
               Manual setup
             </h3>
             <CodeBlock id="manual-init" language="javascript">{`import { initPulseguard } from "pulseguard";
 
 initPulseguard({
-    projectId: "pulseguard-prod",
+    projectId: "your-project-uuid",
     userId: "user-123",
-    issueTrackerUrl: "https://tracker.example.com",
 });`}</CodeBlock>
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold text-pg-text mb-2">
+            <h3 className="mb-2 text-xs font-semibold text-pg-text">
               Error Boundary
             </h3>
             <CodeBlock id="error-boundary" language="jsx">{`import { ErrorBoundary } from "pulseguard";
@@ -136,14 +153,13 @@ try {
 }`}</CodeBlock>
       </Section>
 
-      <Section title="How it works" description="What the SDK does after you install it">
+      <Section title="What gets sent" description="The SDK writes into this project over your signed-in session">
         <div className="space-y-2">
           {[
-            "Leverages @opentelemetry/api for span/trace context",
-            "Uses context to suppress duplicate errors",
-            "Sends errors to /api/telemetry/error",
-            "Enriches with user, session, and route data",
-            "Integrates with OpenTelemetry Collector (Tempo, Loki, Prometheus)",
+            "Errors, sessions, logs, and traces POST to /api/telemetry/* and are stored on this project",
+            "Each event includes projectId, route, session, and optional trace/span IDs",
+            "Duplicate errors are suppressed in the browser before they are sent",
+            "Metrics still come from Prometheus when the collector is running; they are not project-filtered",
           ].map((item) => (
             <div key={item} className="rounded-lg bg-pg-group px-4 py-3 text-xs text-pg-text">
               {item}
@@ -165,7 +181,7 @@ try {
             </thead>
             <tbody>
               {[
-                ["projectId", "string", "Yes", "Your PulseGuard project ID"],
+                ["projectId", "string", "Yes", "UUID of the PulseGuard project that should receive data"],
                 ["issueTrackerUrl", "string", "No", "Link to your external issue tracker"],
                 ["children", "ReactNode", "Yes", "Your app layout or page"],
                 ["userId", "string", "No", "Optional user ID for useTelemetry"],
@@ -197,7 +213,7 @@ try {
       <Section title="Security" description="Privacy defaults in the SDK">
         <div className="space-y-2">
           {[
-            "Errors are sent via HTTPS",
+            "Events are sent over HTTPS with your session cookie",
             "Sensitive fields (cookies, tokens) are not collected by default",
             "User info is optional and customizable",
           ].map((item) => (

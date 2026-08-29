@@ -47,4 +47,6 @@ export interface CustomAlertDialogProps {
   title: string;
   description: string;
   onConfirm: () => void | Promise<void>;
+  confirmLabel?: string;
+  variant?: "default" | "danger";
 }

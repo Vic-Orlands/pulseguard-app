@@ -101,9 +101,14 @@ export async function fetchTraces(
 }
 
 // function fetches all traces
-export async function fetchLogToTrace(traceId: string): Promise<Trace> {
+export async function fetchLogToTrace(
+  traceId: string,
+  projectId?: string
+): Promise<Trace> {
   try {
-    const res = await fetch(`${API_URL}/api/traces/${traceId}`, {
+    const url = new URL(`${API_URL}/api/traces/${traceId}`);
+    if (projectId) url.searchParams.set("project_id", projectId);
+    const res = await fetch(url.toString(), {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
     });

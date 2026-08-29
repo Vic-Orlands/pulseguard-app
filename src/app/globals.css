@@ -1,11 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
 /* Register pg-* custom properties as Tailwind color utilities */
@@ -118,7 +117,7 @@
 }
 
 :root {
-  --background: #141414;
+  --background: #1c1c1f;
   --deep: #070707;
   --dot-color: rgba(255, 255, 255, 0.075);
   --bottom-bg: #020202;
@@ -141,8 +140,8 @@
   /* Surfaces */
   --pg-surface: rgba(9, 9, 11, 0.6);   /* inputs, pills */
   --pg-overlay: rgba(9, 9, 11, 0.4);   /* theme toggle bg */
-  --pg-modal:   #0a0a0a;               /* modal/panel bg */
-  --pg-group:   #161618;               /* grouped list / card fill */
+  --pg-modal:   #242428;               /* modal/panel bg — lighter than page so overlays read */
+  --pg-group:   #1a1a1d;               /* grouped list / card fill */
   /* Borders */
   --pg-border:  #3f3f46;   /* dark grey — never white in dark mode */
   /* Error */
@@ -317,6 +316,158 @@ button {
   border: none !important;
   box-shadow: none !important;
   border-radius: 0.5rem !important;
+}
+
+.dashboard-shell [data-slot="card"]:has([data-slot="table"]),
+.dashboard-page [data-slot="card"]:has([data-slot="table"]) {
+  background: transparent !important;
+}
+
+.dashboard-shell .uppercase,
+.dashboard-page .uppercase,
+.docs-shell .uppercase {
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+}
+
+.dark .docs-shell .text-pg-muted {
+  color: #d4d4d8;
+}
+
+.dashboard-shell button,
+.dashboard-page button,
+.docs-shell button {
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.dashboard-shell button:active:not(:disabled),
+.dashboard-page button:active:not(:disabled),
+.docs-shell button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@keyframes animate-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes animate-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes animate-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes animate-content-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+.animate-overlay-in {
+  animation: animate-overlay-in 200ms ease-out forwards;
+}
+
+.animate-overlay-out {
+  animation: animate-overlay-out 200ms ease-out forwards;
+}
+
+.animate-content-in {
+  animation: animate-content-in 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-content-out {
+  animation: animate-content-out 150ms ease-out forwards;
+}
+
+.motion-sheet {
+  will-change: transform;
+}
+
+.motion-sheet[data-state="open"][data-side="right"] {
+  animation: motion-sheet-in-right 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-sheet[data-state="closed"][data-side="right"] {
+  animation: motion-sheet-out-right 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.motion-sheet[data-state="open"][data-side="left"] {
+  animation: motion-sheet-in-left 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-sheet[data-state="closed"][data-side="left"] {
+  animation: motion-sheet-out-left 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.motion-sheet[data-state="open"][data-side="bottom"] {
+  animation: motion-sheet-in-bottom 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-sheet[data-state="closed"][data-side="bottom"] {
+  animation: motion-sheet-out-bottom 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.motion-sheet[data-state="open"][data-side="top"] {
+  animation: motion-sheet-in-top 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-sheet[data-state="closed"][data-side="top"] {
+  animation: motion-sheet-out-top 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes motion-sheet-in-right {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes motion-sheet-out-right {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(100%, 0, 0); }
+}
+
+@keyframes motion-sheet-in-left {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes motion-sheet-out-left {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes motion-sheet-in-bottom {
+  from { transform: translate3d(0, 100%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes motion-sheet-out-bottom {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 100%, 0); }
+}
+
+@keyframes motion-sheet-in-top {
+  from { transform: translate3d(0, -100%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes motion-sheet-out-top {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -100%, 0); }
 }
 
 .dashboard-shell [data-slot="card-header"],
@@ -815,4 +966,14 @@ html:not(.dark) .sticky.top-20 {
 
 .dark .btn-primary {
   color: #09090b;
+}
+
+.pg-code {
+  background: #0c0c0e;
+  color: #e4e4e7;
+}
+
+.pg-code-header {
+  background: #141416;
+  color: #a1a1aa;
 }

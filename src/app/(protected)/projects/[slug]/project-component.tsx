@@ -3,7 +3,7 @@
 import { HugeiconsIcon } from "@/components/phosphor-icons";
 import { Add01Icon } from "@/components/phosphor-icons";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import HelpButton from "@/components/dashboard/shared/help-button";
 import { AnimatePresence } from "framer-motion";
@@ -18,7 +18,6 @@ import TracesTab from "@/components/dashboard/tabs/traces/page";
 import SettingsTab from "@/components/dashboard/tabs/settings/page";
 import OverviewTab from "@/components/dashboard/tabs/overview/page";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
-import TeamsTab from "@/components/dashboard/tabs/teams";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 import { PageMotion } from "@/components/dashboard/shared/page-motion";
 import {
@@ -28,13 +27,13 @@ import {
 
 import { fetchErrors } from "@/lib/api/error-api";
 import { listAlerts } from "@/lib/api/alerts-api";
+import { setLastProjectSlug } from "@/lib/last-project";
 
 import type { ErrorListResponse, Error } from "@/types/error";
 import type { Alert, NavItem, Project } from "@/types/dashboard";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const defaultTab = (searchParams.get("tab") as NavItem) || "overview";
 
   const [total, setTotal] = useState<number>(0);
@@ -50,11 +49,16 @@ export default function DashboardComponent({ project }: { project: Project }) {
   });
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    setLastProjectSlug(project.slug);
+  }, [project.slug]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
     if (params.get("tab") === activeTab) return;
     params.set("tab", activeTab);
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [activeTab, router, searchParams]);
+    const next = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(window.history.state, "", next);
+  }, [activeTab]);
 
   const fetchErrorData = async () => {
     try {
@@ -94,10 +98,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
     logs: "Logs",
     traces: "Traces",
     alerts: "Alerts",
-    teams: "Teams",
+    teams: "Workspace",
     integrations: "Integrations",
     settings: "Settings",
-    "connect-platform": "Connect Platform",
+    "connect-platform": "Connect platform",
   };
 
   const renderActiveTab = () => {
@@ -124,12 +128,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
         return <MetricsTab project={project} />;
       case "alerts":
         return <AlertsTab project={project} />;
-      case "teams":
-        return <TeamsTab />;
       case "integrations":
         return <IntegrationsTab project={project} />;
       case "settings":
-        return <SettingsTab project={project} />;
+        return <SettingsTab project={project} setActiveTab={setActiveTab} />;
       case "connect-platform":
         return <ConnectPlatformPage />;
       default:
@@ -148,9 +150,9 @@ export default function DashboardComponent({ project }: { project: Project }) {
             project={project}
           />
 
-          <div className="min-w-0 flex-1 overflow-y-auto">
-            <main className="min-h-full">
-              <div className="flex items-center justify-between gap-3 px-6 py-5">
+          <div className="min-w-0 flex-1 overflow-y-auto bg-[var(--background)]">
+            <main className="mx-auto min-h-full w-[90%] max-w-[90%]">
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <h1 className="text-lg font-semibold tracking-tight text-pg-text">
                   {titles[activeTab]}
                 </h1>
@@ -168,12 +170,12 @@ export default function DashboardComponent({ project }: { project: Project }) {
                       icon={Add01Icon}
                       className="mr-1.5 h-3.5 w-3.5"
                     />
-                    Connect Platform
+                    Connect platform
                   </Button>
                 ) : null}
               </div>
 
-              <div className="px-6 pb-16">
+              <div className="px-4 pb-10">
                 <AnimatePresence mode="wait">
                   <PageMotion id={activeTab}>{renderActiveTab()}</PageMotion>
                 </AnimatePresence>

@@ -7,6 +7,7 @@ import { Add01Icon, Delete02Icon, Mail01Icon, UserGroupIcon } from "@/components
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -23,33 +24,45 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  addTeamMember,
-  createTeam,
+  deleteWorkspace,
   inviteMember,
-  listTeamMembers,
-  listTeams,
+  listInvitations,
   listWorkspaceMembers,
-  removeTeamMember,
-  type Team,
+  removeWorkspaceMember,
+  updateMemberRole,
+  updateWorkspace,
+  type WorkspaceInvitation,
   type WorkspaceMember,
 } from "@/lib/api/workspace-api";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Project } from "@/types/dashboard";
+import { useRouter } from "next/navigation";
+import { clearLastProjectSlug, getPostAuthPath } from "@/lib/last-project";
 
-export default function TeamsTab() {
-  const { user, activeWorkspace } = useAuth();
+const url = process.env.NEXT_PUBLIC_API_URL;
+
+export default function WorkspaceMembersTab() {
+  const router = useRouter();
+  const { user, activeWorkspace, fetchWorkspaces, setActiveWorkspace, workspaces } =
+    useAuth();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({});
+  const [invites, setInvites] = useState<WorkspaceInvitation[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [teamOpen, setTeamOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
-  const [teamName, setTeamName] = useState("");
+  const [allProjects, setAllProjects] = useState(true);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState(activeWorkspace?.name ?? "");
+  const [renaming, setRenaming] = useState(false);
 
   const workspaceId = activeWorkspace?.id;
+  const currentMember = members.find((member) => member.userId === user?.id);
+  const canAdmin =
+    currentMember?.role === "owner" || currentMember?.role === "admin";
 
   const load = async () => {
     if (!workspaceId) {
@@ -58,50 +71,68 @@ export default function TeamsTab() {
     }
     setLoading(true);
     try {
-      const [memberRows, teamRows] = await Promise.all([
+      const [memberRows, inviteRows, projectRes] = await Promise.all([
         listWorkspaceMembers(workspaceId),
-        listTeams(workspaceId),
+        listInvitations(workspaceId).catch(() => [] as WorkspaceInvitation[]),
+        fetch(`${url}/api/projects?workspaceId=${workspaceId}`, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }),
       ]);
       setMembers(memberRows);
-      setTeams(teamRows);
-      const memberships = await Promise.all(
-        teamRows.map(async (team) => {
-          const ids = await listTeamMembers(workspaceId, team.id);
-          return [team.id, ids] as const;
-        }),
-      );
-      setTeamMembers(Object.fromEntries(memberships));
+      setInvites(inviteRows.filter((item) => item.status === "pending"));
+      if (projectRes.ok) {
+        setProjects(await projectRes.json());
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load teams");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load workspace members",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    setWorkspaceName(activeWorkspace?.name ?? "");
     void load();
   }, [workspaceId]);
 
-  const currentMember = members.find((member) => member.userId === user?.id);
-  const canManage =
-    currentMember?.role === "owner" || currentMember?.role === "admin";
-
-  const memberById = useMemo(
-    () => Object.fromEntries(members.map((member) => [member.userId, member])),
-    [members],
+  const projectNameById = useMemo(
+    () => Object.fromEntries(projects.map((project) => [project.id, project.name])),
+    [projects],
   );
+
+  const toggleProject = (id: string) => {
+    setSelectedProjectIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
 
   const handleInvite = async () => {
     if (!workspaceId || !inviteEmail.trim()) {
-      toast.error("Enter an email address");
+      toast.error("Email is required");
+      return;
+    }
+    if (!allProjects && selectedProjectIds.length === 0) {
+      toast.error("Select at least one project, or give access to all projects");
       return;
     }
     setSaving(true);
     try {
-      await inviteMember(workspaceId, inviteEmail.trim(), inviteRole);
+      await inviteMember(
+        workspaceId,
+        inviteEmail.trim(),
+        inviteRole,
+        allProjects,
+        selectedProjectIds,
+      );
       toast.success("Invitation sent");
       setInviteOpen(false);
       setInviteEmail("");
+      setInviteRole("member");
+      setAllProjects(true);
+      setSelectedProjectIds([]);
       await load();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to invite");
@@ -110,292 +141,283 @@ export default function TeamsTab() {
     }
   };
 
-  const handleCreateTeam = async () => {
-    if (!workspaceId || !teamName.trim()) {
-      toast.error("Enter a team name");
-      return;
-    }
-    setSaving(true);
+  const handleRename = async () => {
+    if (!workspaceId || !workspaceName.trim()) return;
+    setRenaming(true);
     try {
-      await createTeam(workspaceId, teamName.trim());
-      toast.success("Team created");
-      setTeamOpen(false);
-      setTeamName("");
-      await load();
+      const updated = await updateWorkspace(workspaceId, workspaceName.trim());
+      setActiveWorkspace(updated);
+      await fetchWorkspaces();
+      toast.success("Workspace renamed");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create team");
+      toast.error(error instanceof Error ? error.message : "Failed to rename");
     } finally {
-      setSaving(false);
+      setRenaming(false);
     }
   };
 
-  const handleAddToTeam = async (teamId: string, userId: string) => {
+  const handleDeleteWorkspace = async () => {
     if (!workspaceId) return;
     try {
-      await addTeamMember(workspaceId, teamId, userId);
-      toast.success("Member added");
-      await load();
+      await deleteWorkspace(workspaceId);
+      toast.success("Workspace deleted");
+      await fetchWorkspaces();
+      const next = workspaces.find((item) => item.id !== workspaceId);
+      if (next) {
+        setActiveWorkspace(next);
+      }
+      clearLastProjectSlug();
+      router.push(getPostAuthPath());
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add member");
+      toast.error(error instanceof Error ? error.message : "Failed to delete workspace");
     }
   };
 
-  const handleRemoveFromTeam = async (teamId: string, userId: string) => {
-    if (!workspaceId) return;
-    try {
-      await removeTeamMember(workspaceId, teamId, userId);
-      toast.success("Member removed");
-      await load();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove member");
-    }
+  const accessLabel = (member: WorkspaceMember) => {
+    if (member.allProjects !== false) return "All projects";
+    const names = (member.projectIds ?? [])
+      .map((id) => projectNameById[id] ?? "Project")
+      .slice(0, 3);
+    if (!names.length) return "No projects";
+    const extra = (member.projectIds?.length ?? 0) - names.length;
+    return extra > 0 ? `${names.join(", ")} +${extra}` : names.join(", ");
   };
 
   if (!workspaceId) {
     return (
-      <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-sm text-pg-muted">
-        Select a workspace to manage teams.
-      </div>
+      <p className="text-xs text-pg-muted">Select a workspace to manage members.</p>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-pg-text">{activeWorkspace?.name}</p>
-          <p className="text-xs text-pg-muted">
-            Invite people and group them into teams for this workspace.
-          </p>
-        </div>
-        {canManage ? (
+      {canAdmin ? (
+        <div className="rounded-lg bg-pg-group p-4">
+          <p className="mb-2 text-xs font-medium text-pg-text">Workspace</p>
           <div className="flex gap-2">
+            <Input
+              value={workspaceName}
+              onChange={(event) => setWorkspaceName(event.target.value)}
+              className="h-9 text-sm"
+              disabled={!canAdmin}
+            />
             <Button
-              variant="ghost"
-              className="h-8 rounded-lg px-3 text-xs shadow-none"
-              onClick={() => setInviteOpen(true)}
+              className="btn-primary h-9 text-xs"
+              onClick={() => void handleRename()}
+              loading={renaming}
+              loadingText="Saving..."
+              disabled={workspaceName.trim() === activeWorkspace?.name}
             >
-              <HugeiconsIcon icon={Mail01Icon} className="mr-1.5 h-3.5 w-3.5" />
-              Invite
-            </Button>
-            <Button
-              className="btn-primary h-8 rounded-lg px-3 text-xs font-semibold"
-              onClick={() => setTeamOpen(true)}
-            >
-              <HugeiconsIcon icon={Add01Icon} className="mr-1.5 h-3.5 w-3.5" />
-              New team
+              Rename
             </Button>
           </div>
+        </div>
+      ) : null}
+
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-medium text-pg-text">Members</h2>
+          <p className="text-xs text-pg-muted">
+            People in {activeWorkspace?.name}. Admins can invite, remove, and
+            assign project access.
+          </p>
+        </div>
+        {canAdmin ? (
+          <Button
+            className="btn-primary h-8 text-xs"
+            onClick={() => setInviteOpen(true)}
+          >
+            <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5" />
+            Invite
+          </Button>
         ) : null}
       </div>
 
       {loading ? (
-        <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-xs text-pg-muted">
-          Loading workspace members...
-        </div>
+        <p className="py-10 text-center text-xs text-pg-muted">Loading members...</p>
       ) : (
-        <>
-          <section>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pg-muted">
-              Members
-            </h2>
-            <div className="overflow-hidden rounded-lg bg-pg-group divide-y divide-black/[0.06] dark:divide-white/[0.06]">
-              {members.length === 0 ? (
-                <p className="px-4 py-8 text-center text-xs text-pg-muted">
-                  No members yet.
+        <div className="space-y-2">
+          {members.map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center gap-3 rounded-lg px-2 py-2"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={member.userAvatar} />
+                <AvatarFallback className="bg-pg-group text-[11px]">
+                  {(member.userName || member.userEmail || "U")[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-pg-text">
+                  {member.userName || member.userEmail}
                 </p>
-              ) : (
-                members.map((member) => {
-                  return (
-                    <div key={member.id} className="flex items-center gap-3 px-4 py-3">
-                      <Avatar className="h-8 w-8">
-                        {member.userAvatar ? <AvatarImage src={member.userAvatar} /> : null}
-                        <AvatarFallback className="bg-pg-surface text-xs">
-                          {(member.userName || member.userEmail || "U")[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-medium text-pg-text">
-                          {member.userName || member.userEmail}
-                        </p>
-                        <p className="truncate text-[11px] text-pg-muted">
-                          {member.userEmail}
-                        </p>
-                      </div>
-                      <span className="text-[11px] capitalize text-pg-muted">
-                        {member.role} · {member.status}
-                      </span>
-                    </div>
-                  );
-                })
-              )}
+                <p className="truncate text-[11px] text-pg-muted">
+                  {member.role} · {accessLabel(member)}
+                </p>
+              </div>
+              {canAdmin && member.role !== "owner" && member.userId !== user?.id ? (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={member.role}
+                    onValueChange={async (role) => {
+                      try {
+                        await updateMemberRole(workspaceId, member.userId, role);
+                        await load();
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error ? error.message : "Failed to update role",
+                        );
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-24 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <CustomAlertDialog
+                    trigger={
+                      <button
+                        type="button"
+                        className="rounded-lg bg-transparent p-1.5 text-red-400 hover:bg-red-500/10"
+                      >
+                        <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5" />
+                      </button>
+                    }
+                    title="Remove member"
+                    description="They will lose access to this workspace and its projects."
+                    confirmLabel="Remove"
+                    variant="danger"
+                    onConfirm={async () => {
+                      await removeWorkspaceMember(workspaceId, member.userId);
+                      await load();
+                    }}
+                  />
+                </div>
+              ) : null}
             </div>
-          </section>
-
-          <section>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pg-muted">
-              Teams
-            </h2>
-            {teams.length === 0 ? (
-              <div className="flex flex-col items-center rounded-lg bg-pg-group px-4 py-16 text-center">
-                <HugeiconsIcon icon={UserGroupIcon} className="mb-3 h-8 w-8 text-pg-muted" />
-                <p className="text-sm font-medium text-pg-text">No teams yet</p>
-                <p className="mt-1 text-xs text-pg-muted">
-                  Create a team to group members around a product or on-call rotation.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {teams.map((team) => {
-                  const ids = teamMembers[team.id] || [];
-                  const available = members.filter(
-                    (member) =>
-                      member.status === "active" && !ids.includes(member.userId),
-                  );
-                  return (
-                    <div key={team.id} className="rounded-lg bg-pg-group p-4">
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-medium text-pg-text">{team.name}</p>
-                          <p className="text-[11px] text-pg-muted">
-                            {ids.length} member{ids.length === 1 ? "" : "s"}
-                          </p>
-                        </div>
-                        {canManage && available.length > 0 ? (
-                          <Select
-                            onValueChange={(userId) => handleAddToTeam(team.id, userId)}
-                          >
-                            <SelectTrigger className="h-8 w-44 text-xs shadow-none">
-                              <SelectValue placeholder="Add member" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {available.map((member) => (
-                                <SelectItem
-                                  key={member.userId}
-                                  value={member.userId}
-                                  className="text-xs"
-                                >
-                                  {member.userName || member.userEmail}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : null}
-                      </div>
-                      <div className="space-y-1">
-                        {ids.length === 0 ? (
-                          <p className="text-xs text-pg-muted">No members in this team.</p>
-                        ) : (
-                          ids.map((userId) => {
-                            const member = memberById[userId];
-                            return (
-                              <div
-                                key={userId}
-                                className="flex items-center justify-between rounded-lg bg-pg-surface px-3 py-2"
-                              >
-                                <span className="text-xs text-pg-text">
-                                  {member?.userName || member?.userEmail || userId}
-                                </span>
-                                {canManage ? (
-                                  <CustomAlertDialog
-                                    trigger={
-                                      <button
-                                        type="button"
-                                        className="bg-transparent p-0 text-pg-muted hover:text-red-500"
-                                      >
-                                        <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5" />
-                                      </button>
-                                    }
-                                    title="Remove from team"
-                                    description="Remove this person from the team?"
-                                    onConfirm={() => handleRemoveFromTeam(team.id, userId)}
-                                  />
-                                ) : null}
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </>
+          ))}
+        </div>
       )}
+
+      {invites.length > 0 ? (
+        <div>
+          <h2 className="mb-2 text-sm font-medium text-pg-text">Pending invites</h2>
+          <div className="space-y-2">
+            {invites.map((invite) => (
+              <div
+                key={invite.id}
+                className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-pg-muted"
+              >
+                <HugeiconsIcon icon={Mail01Icon} className="h-3.5 w-3.5" />
+                <span className="min-w-0 flex-1 truncate">{invite.email}</span>
+                <span>{invite.role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {canAdmin ? (
+        <div className="pt-4">
+          <CustomAlertDialog
+            trigger={
+              <Button
+                variant="destructive"
+                className="h-8 bg-red-700 text-xs text-white hover:bg-red-600"
+              >
+                Delete workspace
+              </Button>
+            }
+            title="Delete workspace"
+            description="This permanently deletes the workspace, its members, and all projects inside it."
+            confirmLabel="Delete workspace"
+            variant="danger"
+            onConfirm={handleDeleteWorkspace}
+          />
+        </div>
+      ) : null}
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">Invite teammate</DialogTitle>
+            <DialogTitle className="text-sm font-semibold">
+              Invite to workspace
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              They’ll receive an email to join {activeWorkspace?.name}.
+              Choose a role and which projects they can open.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <label className="mb-1.5 block text-xs text-pg-muted">Email</label>
               <Input
-                type="email"
                 value={inviteEmail}
                 onChange={(event) => setInviteEmail(event.target.value)}
+                placeholder="name@company.com"
                 className="h-9 text-sm"
-                placeholder="alex@company.com"
               />
             </div>
             <div>
               <label className="mb-1.5 block text-xs text-pg-muted">Role</label>
               <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger className="h-9 text-xs shadow-none">
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="member" className="text-xs">
-                    Member
-                  </SelectItem>
-                  <SelectItem value="admin" className="text-xs">
-                    Admin
-                  </SelectItem>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="mt-1 text-[11px] text-pg-muted">
+                Admins can invite or remove members, rename the workspace, and
+                delete it.
+              </p>
             </div>
+            <div className="flex items-center justify-between rounded-lg bg-pg-group px-3 py-2.5">
+              <div>
+                <p className="text-xs font-medium text-pg-text">All projects</p>
+                <p className="text-[11px] text-pg-muted">
+                  Access every project in this workspace
+                </p>
+              </div>
+              <Switch checked={allProjects} onCheckedChange={setAllProjects} />
+            </div>
+            {!allProjects ? (
+              <div className="max-h-40 space-y-1 overflow-y-auto">
+                {projects.length === 0 ? (
+                  <p className="text-xs text-pg-muted">No projects yet.</p>
+                ) : (
+                  projects.map((project) => (
+                    <label
+                      key={project.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-pg-group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedProjectIds.includes(project.id)}
+                        onChange={() => toggleProject(project.id)}
+                      />
+                      <span>{project.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            ) : null}
           </div>
           <DialogFooter>
             <Button
               className="btn-primary h-8 text-xs"
-              onClick={handleInvite}
+              onClick={() => void handleInvite()}
               loading={saving}
               loadingText="Sending..."
             >
+              <HugeiconsIcon icon={UserGroupIcon} className="h-3.5 w-3.5" />
               Send invite
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={teamOpen} onOpenChange={setTeamOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">Create team</DialogTitle>
-            <DialogDescription className="text-xs">
-              Teams group workspace members for alerts and ownership.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={teamName}
-            onChange={(event) => setTeamName(event.target.value)}
-            placeholder="On-call"
-            className="h-9 text-sm"
-          />
-          <DialogFooter>
-            <Button
-              className="btn-primary h-8 text-xs"
-              onClick={handleCreateTeam}
-              loading={saving}
-              loadingText="Creating..."
-            >
-              Create team
             </Button>
           </DialogFooter>
         </DialogContent>

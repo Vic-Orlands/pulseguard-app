@@ -1108,7 +1108,7 @@ export default function UserSettingsNew() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-semibold text-foreground">{member.userName}</p>
-                          <Badge className={`text-[8px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded-full ${
+                          <Badge className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full ${
                             member.role === "owner"
                               ? "bg-red-500/10 text-red-600 border border-red-500/20"
                               : member.role === "admin"
@@ -1186,7 +1186,7 @@ export default function UserSettingsNew() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-semibold text-foreground">{invite.email}</p>
-                        <Badge className="text-[8px] uppercase tracking-wide font-semibold bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
+                        <Badge className="text-[8px] font-semibold bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
                           {invite.role}
                         </Badge>
                       </div>
@@ -1319,7 +1319,7 @@ export default function UserSettingsNew() {
                     >
                       {/* List Team Members */}
                       <div className="space-y-1.5">
-                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wide">
+                        <p className="text-[9px] font-semibold text-muted-foreground">
                           Team Members
                         </p>
                         {teamUserIds.length === 0 ? (

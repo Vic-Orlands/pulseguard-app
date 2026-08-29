@@ -1,20 +1,13 @@
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, Bookmark01Icon, Bug01Icon, Calendar01Icon, CalendarAdd01Icon, Clock01Icon, MoreHorizontalIcon, Search01Icon, UserGroupIcon, UserIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, Alert01Icon, AlertCircleIcon, Bookmark01Icon, Bug01Icon, Calendar01Icon, CalendarAdd01Icon, Clock01Icon, Search01Icon, UserGroupIcon, UserIcon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import useSWR from "swr";
 import {
   Card,
-  CardHeader,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -40,10 +33,13 @@ import {
 import {
   BarChart2
 } from "@/components/phosphor-icons";
-import { format, subHours, subDays } from "date-fns";
-import { PulseChart } from "@/components/dashboard/shared/apex-chart";
+import { subHours, subDays } from "date-fns";
+import { SessionHeatmap } from "@/components/dashboard/shared/session-heatmap";
 import { fetchSessions } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../shared/error-message";
+import { Badge } from "@/components/ui/badge";
+import { formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
+import { StatCard } from "@/components/dashboard/shared/stat-card";
 
 import type { Project, Session, TimeProp } from "@/types/dashboard";
 
@@ -89,6 +85,20 @@ const SessionsTab = ({ project }: { project: Project }) => {
       revalidateOnFocus: false,
       dedupingInterval: 3000,
     }
+  );
+
+  const heatmapRange = useMemo(() => {
+    const year = new Date().getFullYear();
+    return {
+      start: new Date(year, 0, 1).toISOString(),
+      end: new Date(year, 11, 31, 23, 59, 59, 999).toISOString(),
+    };
+  }, []);
+
+  const { data: heatmapSessions = [] } = useSWR(
+    ["session-heatmap", project.id, heatmapRange.start],
+    () => fetchSessions(project.id, heatmapRange.start, heatmapRange.end),
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
   // Filter and search sessions
@@ -147,29 +157,13 @@ const SessionsTab = ({ project }: { project: Project }) => {
     return stats;
   }, [filteredSessions]);
 
-  // Prepare chart data
-  const chartData = useMemo(() => {
-    const timeBuckets: { [key: string]: number } = {};
-    filteredSessions.forEach((session: Session) => {
-      const time = format(new Date(session.start_time), "yyyy-MM-dd HH:mm");
-      timeBuckets[time] = (timeBuckets[time] || 0) + 1;
-    });
-
-    return Object.entries(timeBuckets)
-      .map(([time, count]) => ({
-        time,
-        sessions: count,
-      }))
-      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
-  }, [filteredSessions]);
-
   const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
 
   return (
     <>
       {error && <CustomErrorMessage error={error.message} />}
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2.5">
@@ -201,118 +195,53 @@ const SessionsTab = ({ project }: { project: Project }) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          <Card className="bg-card border border-border shadow-none rounded-lg">
-            <CardContent className="flex items-center justify-between p-4 h-full">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-                  Total Sessions
-                </p>
-                <p className="text-lg font-semibold text-foreground mt-1">
-                  {summaryStats.totalSessions}
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-pg-surface">
-                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border border-border shadow-none rounded-lg">
-            <CardContent className="flex items-center justify-between p-4 h-full">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-                  Active Sessions
-                </p>
-                <p className="text-lg font-semibold text-foreground mt-1">
-                  {summaryStats.activeSessions}
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-pg-surface">
-                <BarChart2 className="w-4 h-4 text-pg-muted" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border border-border shadow-none rounded-lg">
-            <CardContent className="flex items-center justify-between p-4 h-full">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-                  Avg. Session Duration
-                </p>
-                <p className="text-lg font-semibold text-foreground mt-1">
-                  {(summaryStats.avgDuration / 1000).toFixed(2)} s
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-pg-surface">
-                <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border border-border shadow-none rounded-lg">
-            <CardContent className="flex items-center justify-between p-4 h-full">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-                  Session Errors
-                </p>
-                <p className="text-lg font-semibold text-foreground mt-1">
-                  {summaryStats.totalErrors}
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-pg-surface">
-                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Total Sessions"
+            value={summaryStats.totalSessions}
+            icon={<HugeiconsIcon icon={UserGroupIcon} className="h-4 w-4" />}
+          />
+          <StatCard
+            label="Active Sessions"
+            value={summaryStats.activeSessions}
+            icon={<BarChart2 className="h-4 w-4" />}
+          />
+          <StatCard
+            label="Avg. Session Duration"
+            value={`${(summaryStats.avgDuration / 1000).toFixed(2)} s`}
+            icon={<HugeiconsIcon icon={Clock01Icon} className="h-4 w-4" />}
+          />
+          <StatCard
+            label="Session Errors"
+            value={summaryStats.totalErrors}
+            icon={<HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />}
+          />
         </div>
 
-        {/* Chart */}
-        <Card className="bg-card border border-border mt-5 rounded-lg shadow-none">
-          <CardHeader className="py-3 px-4 border-b border-border/50">
-            <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              Session Activity Over Time
-            </h3>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="h-80">
-              {chartData.length > 0 ? (
-                <PulseChart
-                  type="area"
-                  height={320}
-                  categories={chartData.map((point) => point.time)}
-                  series={[{ name: "sessions", data: chartData.map((point) => point.sessions) }]}
-                  colors={["#34d399"]}
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                  No session activity data available
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <SessionHeatmap
+          timestamps={heatmapSessions.map((session: Session) => session.start_time)}
+        />
 
         {/* Table */}
-        <Card className="bg-card border border-border shadow-none rounded-lg mt-5">
-          <CardContent className="p-0">
+        <Card className="rounded-lg border border-border bg-card shadow-none">
+          <CardContent className="overflow-x-auto p-0">
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Session ID</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">User ID</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Start Time</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Duration</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Page Views</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Errors</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Actions</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Session</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">User ID</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Email</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Status</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Duration</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Page views</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Errors</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Time</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSessions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-16">
+                    <TableCell colSpan={8} className="text-center py-16">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                       <p className="text-muted-foreground text-xs font-semibold">
                         No sessions match your filters
@@ -329,42 +258,39 @@ const SessionsTab = ({ project }: { project: Project }) => {
                       className="cursor-pointer"
                       onClick={() => setSelectedSession(session)}
                     >
-                      <TableCell className="text-foreground text-xs py-2 px-4">
-                        {session.session_id || "none"}
+                      <TableCell className="px-4 py-2">
+                        <div className="font-mono text-xs">{shortId(session.session_id, 12)}</div>
                       </TableCell>
-                      <TableCell className="text-foreground text-xs">
+                      <TableCell className="text-xs">
                         {session.user_id || "anonymous"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-xs">
-                        {format(new Date(session.start_time), "PP, h:mmaaa")}
+                      <TableCell className="text-xs">
+                        {session.user_email || "—"}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs">
+                      <TableCell className="px-4 py-2">
+                        <Badge
+                          className={`border-none py-0.5 text-[10px] shadow-none ${
+                            session.end_time
+                              ? "bg-pg-group text-pg-muted"
+                              : "bg-emerald-500/10 text-emerald-600"
+                          }`}
+                        >
+                          {session.end_time ? "Ended" : "Active"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">
                         {session.duration_ms
-                          ? `${(session.duration_ms / 1000).toFixed(2)} s`
-                          : "Active Session"}
+                          ? formatDurationMs(session.duration_ms)
+                          : "—"}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs">
+                      <TableCell className="text-xs">
                         {session.pageview_count}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs font-semibold">
+                      <TableCell className="text-xs font-medium">
                         {session.error_count}
                       </TableCell>
-                      <TableCell onClick={(event) => event.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 shadow-none">
-                              <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
-                            <DropdownMenuItem
-                              className="text-xs cursor-pointer"
-                              onClick={() => setSelectedSession(session)}
-                            >
-                              Open details
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell className="whitespace-nowrap px-4 py-2 text-[11px] text-muted-foreground">
+                        {formatTableTime(session.start_time)}
                       </TableCell>
                     </TableRow>
                   ))
@@ -423,7 +349,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 {!selectedSession.duration_ms ? "Active Session" : "Session Ended"}
               </div>
               <div className="bg-pg-group rounded-lg p-3 mb-4">
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-pg-muted mb-1">
+                <div className="text-[10px] tracking-wide font-semibold text-pg-muted mb-1">
                   Session ID
                 </div>
                 <div className="font-mono text-xs text-pg-text break-all">
@@ -464,13 +390,27 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
-                <HugeiconsIcon icon={UserIcon} className="w-5 h-5 shrink-0" />
-                <div>
+              <div className="flex items-center gap-2.5 rounded-lg bg-pg-group p-3">
+                <HugeiconsIcon icon={UserIcon} className="h-5 w-5 shrink-0" />
+                <div className="min-w-0">
                   <div className="text-[10px] text-pg-muted">User ID</div>
-                  <div className="font-mono text-xs truncate">
+                  <div className="truncate font-mono text-xs">
                     {selectedSession.user_id || "anonymous"}
                   </div>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2.5 rounded-lg bg-pg-group p-3">
+                <HugeiconsIcon icon={UserIcon} className="h-5 w-5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] text-pg-muted">User email</div>
+                  <div className="truncate text-xs">{selectedSession.user_email || "—"}</div>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2.5 rounded-lg bg-pg-group p-3">
+                <HugeiconsIcon icon={Calendar01Icon} className="h-5 w-5 shrink-0" />
+                <div>
+                  <div className="text-[10px] text-pg-muted">Time</div>
+                  <div className="text-xs">{formatTableTime(selectedSession.start_time)}</div>
                 </div>
               </div>
             </>

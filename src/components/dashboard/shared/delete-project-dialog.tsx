@@ -8,6 +8,7 @@ import { deleteProject } from "@/lib/api/projects-api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+import { clearLastProjectSlug } from "@/lib/last-project";
 import type { DeleteProjectDialogProps } from "@/types/project";
 
 export const DeleteProjectDialog = ({
@@ -32,7 +33,7 @@ export const DeleteProjectDialog = ({
   }, [isOpen]);
 
   const handleDelete = async () => {
-    if (confirmText !== "DELETE") return;
+    if (confirmText !== "delete") return;
 
     setStep("deleting");
 
@@ -47,6 +48,7 @@ export const DeleteProjectDialog = ({
       setTimeout(() => {
         onClose();
         toast.success("Project deleted successfully!");
+        clearLastProjectSlug(project.slug);
         router.push("/projects");
       }, 5000);
     } catch (error) {
@@ -95,7 +97,7 @@ export const DeleteProjectDialog = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="pg-modal shadow-none overflow-hidden"
+              className="overflow-hidden rounded-lg border-0 bg-[#3b1111] text-white shadow-[0_32px_90px_rgba(80,0,0,0.45)]"
               onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">
@@ -115,10 +117,10 @@ export const DeleteProjectDialog = ({
                           <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-destructive" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-pg-text">
-                            Delete Project
+                          <h3 className="text-sm font-semibold text-white">
+                            Delete project
                           </h3>
-                          <p className="text-xs text-pg-muted mt-0.5">
+                          <p className="mt-0.5 text-xs text-red-100/70">
                             This action cannot be undone
                           </p>
                         </div>
@@ -133,22 +135,22 @@ export const DeleteProjectDialog = ({
 
                     {/* Content */}
                     <div className="flex-1 mb-5 space-y-3.5">
-                      <p className="text-xs text-pg-muted leading-relaxed">
+                      <p className="text-xs leading-relaxed text-red-50/80">
                         Are you sure you want to delete{" "}
-                        <span className="font-semibold text-pg-text">
+                        <span className="font-semibold text-white">
                           &quot;{project.name}&quot;
                         </span>
                         ? All associated data will be permanently removed.
                       </p>
-                      <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3.5">
-                        <p className="text-xs text-destructive mb-2">
-                          Type <strong>DELETE</strong> to confirm:
+                      <div className="rounded-lg bg-black/25 p-3.5">
+                        <p className="mb-2 text-xs text-red-100">
+                          Type <strong>delete</strong> to confirm:
                         </p>
                         <Input
                           value={confirmText}
                           onChange={(e) => setConfirmText(e.target.value)}
-                          className="bg-pg-surface text-pg-text border-pg-err-bd focus-visible:ring-1 focus-visible:ring-pg-err-txt text-xs h-8 shadow-none"
-                          placeholder="Type DELETE to confirm"
+                          className="h-8 border-0 bg-black/40 text-xs text-white shadow-none placeholder:text-red-200/40"
+                          placeholder="Type delete to confirm"
                           autoFocus
                         />
                       </div>
@@ -167,7 +169,7 @@ export const DeleteProjectDialog = ({
                         variant="destructive"
                         className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 shadow-none font-semibold cursor-pointer flex items-center justify-center space-x-2"
                         onClick={handleDelete}
-                        disabled={confirmText !== "DELETE"}
+                        disabled={confirmText !== "delete"}
                       >
                         <HugeiconsIcon icon={Delete02Icon} className="w-3.5 h-3.5" />
                         <span>Delete</span>
@@ -321,13 +323,13 @@ export const DeleteProjectDialog = ({
                       </p>
                       <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3.5">
                         <p className="text-xs text-destructive mb-2">
-                          Type <strong>DELETE</strong> to try again:
+                          Type <strong>delete</strong> to try again:
                         </p>
                         <Input
                           value={confirmText}
                           onChange={(e) => setConfirmText(e.target.value)}
                           className="bg-pg-surface text-pg-text border-pg-err-bd focus-visible:ring-1 focus-visible:ring-pg-err-txt text-xs h-8 shadow-none"
-                          placeholder="Type DELETE to confirm"
+                          placeholder="Type delete to confirm"
                           autoFocus
                         />
                       </div>
@@ -346,7 +348,7 @@ export const DeleteProjectDialog = ({
                         variant="destructive"
                         className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs h-8 shadow-none font-semibold cursor-pointer flex items-center justify-center space-x-2"
                         onClick={handleRetry}
-                        disabled={confirmText !== "DELETE"}
+                        disabled={confirmText !== "delete"}
                       >
                         <HugeiconsIcon icon={Refresh01Icon} className="w-3.5 h-3.5" />
                         <span>Retry</span>

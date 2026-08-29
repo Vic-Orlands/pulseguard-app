@@ -14,6 +14,7 @@ export interface Error {
   componentStack: string;
   browserInfo: string;
   userId: string;
+  userEmail?: string;
   sessionId: string;
   status: string;
   occurrences: ErrorOccurrence[];

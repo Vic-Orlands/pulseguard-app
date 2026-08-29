@@ -30,7 +30,7 @@ import {
   ViewOffIcon,
   Copy01Icon,
   Tick01Icon,
-  MoreHorizontalIcon,
+  MoreVerticalIcon,
   Alert01Icon,
 } from "@/components/phosphor-icons";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
@@ -60,7 +60,7 @@ import {
 import { availableAvatars } from "@/components/avatars";
 import { normalizePostgresString, wrapAsPostgresString, HttpError } from "@/lib/utils";
 import { UserFormSchema, type UserFormType } from "@/types/settings";
-import type { Project } from "@/types/dashboard";
+import type { NavItem, Project } from "@/types/dashboard";
 import {
   Sheet,
   SheetContent,
@@ -72,7 +72,13 @@ import TeamsTab from "@/components/dashboard/tabs/teams";
 
 type DialogId = "account" | "project" | "notifications" | null;
 
-export default function SettingsTab({ project }: { project: Project }) {
+export default function SettingsTab({
+  project,
+  setActiveTab,
+}: {
+  project: Project;
+  setActiveTab: (tab: NavItem) => void;
+}) {
   const router = useRouter();
   const { user, setUser, logout, activeWorkspace } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -231,7 +237,7 @@ export default function SettingsTab({ project }: { project: Project }) {
             </AvatarFallback>
           </Avatar>
           <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-pg-surface">
-            <HugeiconsIcon icon={MoreHorizontalIcon} className="h-3.5 w-3.5" />
+            <HugeiconsIcon icon={MoreVerticalIcon} className="h-3.5 w-3.5" />
           </span>
         </button>
         <h2 className="mt-3 text-base font-semibold text-pg-text">
@@ -284,11 +290,11 @@ export default function SettingsTab({ project }: { project: Project }) {
             icon={Alert01Icon}
             label="Alert rules"
             value="Manage thresholds"
-            onClick={() => router.replace(`/projects/${project.slug}?tab=alerts`)}
+            onClick={() => setActiveTab("alerts")}
           />
           <SettingsRow
             icon={UserGroupIcon}
-            label="Teams"
+            label="Workspace members"
             value={activeWorkspace?.name}
             onClick={() => setTeamsOpen(true)}
           />
@@ -582,9 +588,9 @@ export default function SettingsTab({ project }: { project: Project }) {
       <Sheet open={teamsOpen} onOpenChange={setTeamsOpen}>
         <SheetContent className="overflow-y-auto p-6">
           <SheetHeader className="mb-4 p-0">
-            <SheetTitle className="text-base">Teams</SheetTitle>
+            <SheetTitle className="text-base">Workspace members</SheetTitle>
             <SheetDescription className="text-xs">
-              Members, invites, and team groups for this workspace.
+              Invite people, assign admin or member, and choose which projects they can open.
             </SheetDescription>
           </SheetHeader>
           <TeamsTab />

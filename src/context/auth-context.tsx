@@ -14,6 +14,7 @@ import { listWorkspaces, type Workspace } from "@/lib/api/workspace-api";
 import type { UserProps } from "@/types/user";
 import { AppLoader } from "@/components/shared/app-loader";
 import { safeInternalRedirect } from "@/lib/security/safe-redirect";
+import { getPostAuthPath } from "@/lib/last-project";
 
 interface AuthContextType {
   user: UserProps | null;
@@ -138,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       ) {
         router.push("/onboarding");
       } else if (workspaces.length > 0 && pathname === "/onboarding") {
-        router.push("/projects");
+        router.push(getPostAuthPath());
       }
     }
   }, [user, workspaces, pathname, loading, router]);
@@ -160,7 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
       }}
     >
-      {loading && !hasRouteLoader ? (
+      {loading && shouldFetchUser && !hasRouteLoader ? (
         <AppLoader title="Loading PulseGuard..." />
       ) : (
         children

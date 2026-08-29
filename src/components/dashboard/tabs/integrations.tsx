@@ -21,6 +21,7 @@ import {
   upsertIntegration,
   type ProjectIntegration,
 } from "@/lib/api/integrations-api";
+import { ProviderLogo } from "@/components/dashboard/shared/provider-logos";
 import type { Project } from "@/types/dashboard";
 
 type ProviderId =
@@ -41,7 +42,12 @@ const providers: {
   id: ProviderId;
   name: string;
   description: string;
-  fields: { key: string; label: string; placeholder: string; secret?: boolean }[];
+  fields: {
+    key: string;
+    label: string;
+    placeholder: string;
+    secret?: boolean;
+  }[];
 }[] = [
   {
     id: "slack",
@@ -145,7 +151,11 @@ const providers: {
     name: "Notion",
     description: "Create a page in a Notion database.",
     fields: [
-      { key: "database_id", label: "Database ID", placeholder: "Notion database UUID" },
+      {
+        key: "database_id",
+        label: "Database ID",
+        placeholder: "Notion database UUID",
+      },
       {
         key: "token",
         label: "Integration token",
@@ -172,8 +182,18 @@ const providers: {
     name: "Datadog",
     description: "Emit a Datadog event for each alert.",
     fields: [
-      { key: "api_key", label: "API key", placeholder: "Datadog API key", secret: true },
-      { key: "app_key", label: "Application key", placeholder: "Optional", secret: true },
+      {
+        key: "api_key",
+        label: "API key",
+        placeholder: "Datadog API key",
+        secret: true,
+      },
+      {
+        key: "app_key",
+        label: "Application key",
+        placeholder: "Optional",
+        secret: true,
+      },
     ],
   },
   {
@@ -222,7 +242,9 @@ export default function IntegrationsTab({ project }: { project: Project }) {
     try {
       setItems(await listIntegrations(project.id));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load integrations");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load integrations",
+      );
     } finally {
       setLoading(false);
     }
@@ -274,7 +296,9 @@ export default function IntegrationsTab({ project }: { project: Project }) {
       toast.success("Disconnected");
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to disconnect");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to disconnect",
+      );
     }
   };
 
@@ -282,29 +306,79 @@ export default function IntegrationsTab({ project }: { project: Project }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-pg-muted">
-        Connect tools with a webhook or API key. These destinations are more reliable than OAuth for alert delivery and do not require registering a PulseGuard app with each vendor.
+      <p className="max-w-xl text-xs leading-relaxed text-pg-muted">
+        Connect outbound webhooks and API keys for Slack, GitHub, PagerDuty, and
+        similar tools.
       </p>
       {loading ? (
         <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-xs text-pg-muted">
           Loading integrations...
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {providers.map((provider) => {
             const connected = byProvider[provider.id];
             return (
-              <div key={provider.id} className="rounded-lg bg-pg-group p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-pg-text">{provider.name}</p>
-                    <p className="mt-1 text-xs text-pg-muted">{provider.description}</p>
+              <div
+                key={provider.id}
+                className="flex items-center gap-3 rounded-lg bg-pg-group px-3 py-2.5"
+              >
+                <ProviderLogo provider={provider.id} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium text-pg-text">
+                      {provider.name}
+                    </p>
+                    <span className="text-[10px] text-pg-subtle">
+                      {connected
+                        ? connected.enabled
+                          ? "On"
+                          : "Paused"
+                        : "Off"}
+                    </span>
                   </div>
-                  <span className="text-[11px] text-pg-muted">
-                    {connected ? (connected.enabled ? "On" : "Paused") : "Off"}
-                  </span>
+                  <p className="mt-0.5 truncate text-[11px] text-pg-muted">
+                    {provider.description}
+                  </p>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {connected ? (
+                    <>
+                      <Switch
+                        checked={connected.enabled}
+                        onCheckedChange={async (enabled) => {
+                          try {
+                            await setIntegrationEnabled(
+                              project.id,
+                              connected.id,
+                              enabled,
+                            );
+                            await load();
+                          } catch (error) {
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : "Failed to update",
+                            );
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        className="h-8 px-2 text-xs shadow-none"
+                        onClick={() => handleTest(connected)}
+                      >
+                        Test
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-8 px-2 text-xs text-red-500 shadow-none"
+                        onClick={() => handleDisconnect(connected)}
+                      >
+                        Disconnect
+                      </Button>
+                    </>
+                  ) : null}
                   <Button
                     className="h-8 rounded-lg px-3 text-xs shadow-none"
                     variant={connected ? "ghost" : "default"}
@@ -312,37 +386,6 @@ export default function IntegrationsTab({ project }: { project: Project }) {
                   >
                     {connected ? "Configure" : "Connect"}
                   </Button>
-                  {connected ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        className="h-8 px-3 text-xs shadow-none"
-                        onClick={() => handleTest(connected)}
-                      >
-                        Test
-                      </Button>
-                      <Switch
-                        checked={connected.enabled}
-                        onCheckedChange={async (enabled) => {
-                          try {
-                            await setIntegrationEnabled(project.id, connected.id, enabled);
-                            await load();
-                          } catch (error) {
-                            toast.error(
-                              error instanceof Error ? error.message : "Failed to update",
-                            );
-                          }
-                        }}
-                      />
-                      <Button
-                        variant="ghost"
-                        className="h-8 px-3 text-xs text-red-500 shadow-none"
-                        onClick={() => handleDisconnect(connected)}
-                      >
-                        Disconnect
-                      </Button>
-                    </>
-                  ) : null}
                 </div>
               </div>
             );
@@ -363,7 +406,9 @@ export default function IntegrationsTab({ project }: { project: Project }) {
           <div className="space-y-3">
             {providerMeta?.fields.map((field) => (
               <div key={field.key}>
-                <label className="mb-1.5 block text-xs text-pg-muted">{field.label}</label>
+                <label className="mb-1.5 block text-xs text-pg-muted">
+                  {field.label}
+                </label>
                 <Input
                   type={field.secret ? "password" : "text"}
                   value={values[field.key] || ""}
@@ -373,7 +418,10 @@ export default function IntegrationsTab({ project }: { project: Project }) {
                       : field.placeholder
                   }
                   onChange={(event) =>
-                    setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
+                    setValues((prev) => ({
+                      ...prev,
+                      [field.key]: event.target.value,
+                    }))
                   }
                   className="h-9 text-sm"
                 />

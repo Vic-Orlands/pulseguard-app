@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   Add01Icon,
@@ -246,9 +246,7 @@ export default function AlertsTab({ project }: { project: Project }) {
                 </TableCell>
                 <TableCell className="text-xs text-pg-muted">
                   {alert.last_triggered_at
-                    ? formatDistanceToNow(new Date(alert.last_triggered_at), {
-                        addSuffix: true,
-                      })
+                    ? format(new Date(alert.last_triggered_at), "MMM d, yyyy, h:mma")
                     : "Never"}
                 </TableCell>
                 <TableCell onClick={(event) => event.stopPropagation()}>

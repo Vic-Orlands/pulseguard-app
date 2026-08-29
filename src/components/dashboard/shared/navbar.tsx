@@ -10,7 +10,6 @@ import {
   Logout01Icon,
   Menu01Icon,
   Settings01Icon,
-  UserIcon,
   CheckIcon,
   Home,
   Users,
@@ -24,12 +23,9 @@ import {
   Moon,
   Building,
   Key,
-  Eye,
-  EyeOff,
   Copy,
-  RefreshCw,
   Loader2,
-  ChevronRight,
+  UserIcon,
 } from "@/components/phosphor-icons";
 import type { PulseIconProps } from "@/components/phosphor-icons";
 import { toast } from "sonner";
@@ -39,6 +35,10 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,6 +61,7 @@ import {
 import { Logo } from "@/app/(auth)/signin/page";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 import { createProject } from "@/lib/api/projects-api";
+import { setLastProjectSlug } from "@/lib/last-project";
 import {
   Dialog,
   DialogContent,
@@ -105,12 +106,7 @@ export default function Header({
 
   const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false);
   const [isCliModalOpen, setIsCliModalOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(
-    `pg_live_7a398be8e244f0b2a991c0e3a98dbcc21e${project.id.slice(-4)}`,
-  );
-  const [showModalApiKey, setShowModalApiKey] = useState(false);
   const [isApiKeyCopied, setIsApiKeyCopied] = useState(false);
-  const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
   const [modalCodeTab, setModalCodeTab] = useState<"curl" | "node" | "python">(
     "curl",
   );
@@ -169,32 +165,10 @@ export default function Header({
   }, [project.workspaceId, project.id, workspaces, activeWorkspace?.id, setActiveWorkspace]);
 
   const handleBackToProjects = () => {
-    router.push("/projects");
+    setActiveTab("overview");
   };
 
   const currentUser = user && normalizePostgresString(user.avatar);
-  const previewProjects = (() => {
-    const loaded = previewWorkspaceId
-      ? (workspaceProjects[previewWorkspaceId] ?? [])
-      : [];
-    if (loaded.some((item) => item.id === project.id)) {
-      return loaded;
-    }
-    if (
-      !previewWorkspaceId ||
-      !project.workspaceId ||
-      previewWorkspaceId === project.workspaceId
-    ) {
-      return [project, ...loaded];
-    }
-    return loaded;
-  })();
-  const previewProjectsLoading = previewWorkspaceId
-    ? workspaceProjectLoading[previewWorkspaceId]
-    : false;
-  const previewProjectsError = previewWorkspaceId
-    ? workspaceProjectErrors[previewWorkspaceId]
-    : "";
 
   const fetchWorkspaceProjects = async (workspaceId: string) => {
     if (!workspaceId || workspaceProjectLoading[workspaceId]) {
@@ -247,16 +221,10 @@ export default function Header({
     }
 
     setActiveWorkspace(workspace);
+    setLastProjectSlug(slug);
     setIsOrgSwitcherOpen(false);
     setIsProjectNavigationPending(true);
     router.push(`/projects/${slug}`);
-  };
-
-  const handleWorkspaceSwitch = (workspaceId: string) => {
-    const workspace = workspaces.find((item) => item.id === workspaceId);
-    if (!workspace) return;
-    setActiveWorkspace(workspace);
-    router.push("/projects");
   };
 
   const handleCreateProject = async () => {
@@ -265,7 +233,7 @@ export default function Header({
       toast.error("Project name is required");
       return;
     }
-    const workspaceId = activeWorkspace?.id;
+    const workspaceId = previewWorkspaceId || activeWorkspace?.id;
     if (!workspaceId) {
       toast.error("Select a workspace first");
       return;
@@ -286,6 +254,7 @@ export default function Header({
       setIsCreateProjectOpen(false);
       setIsOrgSwitcherOpen(false);
       setNewProjectName("");
+      setLastProjectSlug(created.slug);
       setIsProjectNavigationPending(true);
       router.push(`/projects/${created.slug}`);
     } catch (error) {
@@ -298,11 +267,11 @@ export default function Header({
   const getCodeSnippet = () => {
     switch (modalCodeTab) {
       case "node":
-        return `const PulseGuard = require('@pulseguard/node');\nconst client = new PulseGuard({\n  apiKey: '${apiKey}',\n  projectId: '${project.id}'\n});\n\nclient.captureMessage('Server started');`;
+        return `const res = await fetch("/api/telemetry/log", {\n  method: "POST",\n  credentials: "include",\n  headers: {\n    "Content-Type": "application/json",\n    "x-project-id": "${project.id}",\n    "X-CSRF-Token": "pulseguard-web"\n  },\n  body: JSON.stringify({\n    message: "Server started",\n    level: "info"\n  })\n});`;
       case "python":
-        return `import pulseguard\n\npulseguard.init(\n    api_key="${apiKey}",\n    project_id="${project.id}"\n)\n\npulseguard.capture_message("Server started")`;
+        return `import requests\n\nrequests.post(\n    "https://your-app/api/telemetry/log",\n    headers={"x-project-id": "${project.id}"},\n    json={"message": "Server started", "level": "info"},\n)`;
       default:
-        return `curl -X POST https://api.pulseguard.dev/v1/telemetry \\\n  -H "Authorization: Bearer ${apiKey}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"project_id": "${project.id}", "level": "info", "message": "Ping check"}'`;
+        return `curl -X POST /api/telemetry/log \\\n  -H "x-project-id: ${project.id}" \\\n  -H "Content-Type: application/json" \\\n  -H "X-CSRF-Token: pulseguard-web" \\\n  -d '{"message": "Ping check", "level": "info"}'`;
     }
   };
 
@@ -351,81 +320,123 @@ export default function Header({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="h-fit w-72 bg-pg-modal text-pg-text rounded-lg p-0 z-50 text-left overflow-hidden"
+            className="w-max min-w-[12rem] bg-pg-modal text-pg-text rounded-lg p-1 z-50 text-left overflow-visible"
             align="start"
             side="right"
             sideOffset={10}
           >
-            <div className="px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
-                Projects
-              </p>
-              <p className="mt-0.5 truncate text-[11px] text-pg-muted">
-                {activeWorkspace?.name || "Workspace"}
-              </p>
-            </div>
-            <div className="max-h-72 overflow-y-auto p-1">
-              {previewProjectsLoading ? (
-                <div className="flex items-center justify-center gap-2 py-8 text-xs text-pg-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading projects...</span>
-                </div>
-              ) : previewProjectsError ? (
-                <div className="px-2 py-3">
-                  <div className="banner-error">{previewProjectsError}</div>
-                </div>
-              ) : previewProjects.length > 0 ? (
-                previewProjects.map((workspaceProject) => {
-                  const isCurrentProject = workspaceProject.id === project.id;
-                  return (
+            <p className="px-2.5 py-2 text-[11px] font-medium text-pg-subtle">
+              Workspaces
+            </p>
+            {workspaces.map((workspace) => {
+              const projects = workspaceProjects[workspace.id] ?? [];
+              const loading = workspaceProjectLoading[workspace.id];
+              const errorMsg = workspaceProjectErrors[workspace.id];
+              const list =
+                workspace.id === project.workspaceId &&
+                !projects.some((item) => item.id === project.id)
+                  ? [project, ...projects]
+                  : projects;
+
+              return (
+                <DropdownMenuSub key={workspace.id}>
+                  <DropdownMenuSubTrigger
+                    className={`w-full gap-2 rounded-lg px-2.5 py-2 text-xs ${
+                      previewWorkspaceId === workspace.id
+                        ? "bg-pg-group text-pg-text"
+                        : "text-pg-muted"
+                    }`}
+                    onPointerEnter={() => handleWorkspacePreview(workspace.id)}
+                    onFocus={() => handleWorkspacePreview(workspace.id)}
+                  >
+                    <Building className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {workspace.name}
+                    </span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent
+                    className="w-56 p-1"
+                    sideOffset={8}
+                  >
+                    <p className="px-2.5 py-2 text-[11px] font-medium text-pg-subtle">
+                      Projects
+                    </p>
+                    {loading ? (
+                      <div className="flex items-center gap-2 px-2.5 py-3 text-[11px] text-pg-muted">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Loading projects...
+                      </div>
+                    ) : errorMsg ? (
+                      <p className="px-2.5 py-2 text-[11px] text-red-400">
+                        {errorMsg}
+                      </p>
+                    ) : list.length > 0 ? (
+                      list.map((workspaceProject) => {
+                        const isCurrentProject =
+                          workspaceProject.id === project.id;
+                        return (
+                          <button
+                            key={workspaceProject.id}
+                            type="button"
+                            onClick={() =>
+                              handleProjectSelect(
+                                workspace.id,
+                                workspaceProject.slug,
+                              )
+                            }
+                            disabled={isProjectNavigationPending}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs ${
+                              isCurrentProject
+                                ? "bg-pg-surface text-pg-text"
+                                : "bg-transparent text-pg-muted hover:bg-pg-group hover:text-pg-text"
+                            }`}
+                          >
+                            <span className="min-w-0 flex-1 truncate">
+                              {workspaceProject.name}
+                            </span>
+                            {isCurrentProject ? (
+                              <HugeiconsIcon
+                                icon={CheckIcon}
+                                className="h-3.5 w-3.5"
+                              />
+                            ) : null}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <p className="px-2.5 py-2 text-[11px] text-pg-muted">
+                        No projects in this workspace yet.
+                      </p>
+                    )}
+                    <DropdownMenuSeparator className="bg-pg-border" />
                     <button
-                      key={workspaceProject.id}
-                      onClick={() =>
-                        handleProjectSelect(
-                          previewWorkspaceId!,
-                          workspaceProject.slug,
-                        )
-                      }
-                      disabled={isProjectNavigationPending}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                        isCurrentProject
-                          ? "bg-pg-group text-pg-text"
-                          : "bg-transparent text-pg-muted hover:bg-pg-group hover:text-pg-text"
-                      }`}
+                      type="button"
+                      onClick={() => {
+                        setPreviewWorkspaceId(workspace.id);
+                        setIsOrgSwitcherOpen(false);
+                        setIsCreateProjectOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg bg-transparent px-2.5 py-2 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-group"
                     >
-                      <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                        {workspaceProject.name}
-                      </span>
-                      {isCurrentProject ? (
-                        <HugeiconsIcon
-                          icon={CheckIcon}
-                          className="h-3.5 w-3.5 shrink-0"
-                        />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                      )}
+                      <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
+                      Create project
                     </button>
-                  );
-                })
-              ) : (
-                <p className="px-3 py-6 text-center text-xs text-pg-muted">
-                  No projects in this workspace yet.
-                </p>
-              )}
-            </div>
-            <div className="p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOrgSwitcherOpen(false);
-                  setIsCreateProjectOpen(true);
-                }}
-                className="flex w-full items-center gap-2 rounded-lg bg-transparent px-2.5 py-2 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-group"
-              >
-                <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
-                Create new project
-              </button>
-            </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              );
+            })}
+            <DropdownMenuSeparator className="bg-pg-border" />
+            <button
+              type="button"
+              onClick={() => {
+                setIsOrgSwitcherOpen(false);
+                setIsCreateWorkspaceModalOpen(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg bg-transparent px-2.5 py-2 text-left text-xs text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
+              Create workspace
+            </button>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -474,7 +485,7 @@ export default function Header({
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
         >
           <Key className="h-4 w-4 text-pg-muted" />
-          Integration key
+          Project ID
         </button>
 
         <DropdownMenu>
@@ -583,63 +594,26 @@ export default function Header({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-64 bg-pg-modal rounded-lg p-1 z-50 text-left text-pg-text"
+            className="w-52 bg-pg-modal rounded-lg p-1 z-50 text-left text-pg-text"
             align="start"
             side="top"
             forceMount
           >
-            <div className="p-2">
-              <p className="text-xs font-semibold text-pg-text truncate">
-                {user?.name || "User"}
-              </p>
-              <p className="text-[10px] text-pg-subtle truncate mt-0.5">
-                {user?.email || ""}
-              </p>
-            </div>
-            <div className="px-2 pb-1">
-              <p className="px-1 pb-1 text-[10px] font-medium uppercase tracking-[0.16em] text-pg-subtle">
-                Workspaces
-              </p>
-              <div className="max-h-36 space-y-0.5 overflow-y-auto">
-                {workspaces.map((ws) => {
-                  const isActive = activeWorkspace?.id === ws.id;
-                  return (
-                    <button
-                      key={ws.id}
-                      type="button"
-                      onClick={() => handleWorkspaceSwitch(ws.id)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors bg-transparent border-0 ${
-                        isActive
-                          ? "bg-pg-group text-pg-text"
-                          : "text-pg-muted hover:bg-pg-group hover:text-pg-text"
-                      }`}
-                    >
-                      <Building className="h-3.5 w-3.5 shrink-0" />
-                      <span className="min-w-0 flex-1 truncate">{ws.name}</span>
-                      {isActive ? (
-                        <HugeiconsIcon icon={CheckIcon} className="h-3.5 w-3.5" />
-                      ) : null}
-                    </button>
-                  );
-                })}
+            <div className="flex items-center gap-2 p-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pg-group text-pg-muted">
+                <HugeiconsIcon icon={UserIcon} className="h-4 w-4" />
               </div>
-              <button
-                type="button"
-                onClick={() => setIsCreateWorkspaceModalOpen(true)}
-                className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent border-0"
-              >
-                <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
-                Create workspace
-              </button>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-pg-text">
+                  {user?.name || "User"}
+                </p>
+                <p className="mt-0.5 truncate text-[10px] text-pg-subtle">
+                  {user?.email || ""}
+                </p>
+              </div>
             </div>
+            <DropdownMenuSeparator className="bg-pg-border" />
             <div className="p-1 space-y-0.5">
-              <button
-                onClick={() => setActiveTab("settings")}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-pg-muted hover:text-pg-text hover:bg-pg-group transition-colors text-left cursor-pointer bg-transparent border-0"
-              >
-                <HugeiconsIcon icon={UserIcon} className="w-3.5 h-3.5" />
-                <span>Account</span>
-              </button>
               <button
                 onClick={() => setActiveTab("settings")}
                 className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-pg-muted hover:text-pg-text hover:bg-pg-group transition-colors text-left cursor-pointer bg-transparent border-0"
@@ -742,7 +716,11 @@ export default function Header({
               Create project
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Adds a project to {activeWorkspace?.name || "this workspace"}.
+              Adds a project to{" "}
+              {workspaces.find((item) => item.id === previewWorkspaceId)?.name ||
+                activeWorkspace?.name ||
+                "this workspace"}
+              .
             </DialogDescription>
           </DialogHeader>
           <Input
@@ -767,94 +745,58 @@ export default function Header({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isCliModalOpen} onOpenChange={setIsCliModalOpen}>
-        <DialogContent className="max-h-[85vh] overflow-hidden p-0 shadow-none sm:max-w-lg">
+      <Dialog
+        open={isCliModalOpen}
+        onOpenChange={setIsCliModalOpen}
+      >
+        <DialogContent
+          className="max-h-[85vh] overflow-hidden p-0 shadow-none sm:max-w-lg"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
           <div className="max-h-[85vh] space-y-5 overflow-y-auto p-6">
             <DialogHeader className="space-y-1 text-left">
               <DialogTitle className="text-base font-semibold text-pg-text">
-                Workspace Integration Key
+                Project ID
               </DialogTitle>
               <DialogDescription className="max-w-xl text-xs leading-relaxed text-pg-muted">
-                Use this private API key to connect external projects, export
-                traces, or configure custom SDKs to stream live telemetry into
-                PulseGuard.
+                Pass this ID to the SDK so errors, sessions, logs, and traces
+                land in this project. This dashboard is already connected when
+                the app&apos;s projectId matches this value. It is not a Slack
+                or Google OAuth key — those are outbound alert destinations.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-2">
-              <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
-                Active Integration Key
+              <span className="block text-[11px] font-medium text-pg-subtle">
+                Project ID
               </span>
-              <div className="flex flex-col gap-2 md:flex-row">
-                <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg bg-pg-group px-3 py-2">
-                  <input
-                    type={showModalApiKey ? "text" : "password"}
-                    value={apiKey}
-                    readOnly
-                    className="w-full min-w-0 truncate bg-transparent pr-16 font-mono text-xs text-pg-text outline-none"
-                  />
-                  <div className="absolute right-2 top-1.5 flex items-center gap-1.5 bg-pg-group pl-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowModalApiKey(!showModalApiKey)}
-                      className="rounded-md p-1 text-pg-muted transition-colors hover:text-pg-text"
-                    >
-                      {showModalApiKey ? (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Eye className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(apiKey);
-                        setIsApiKeyCopied(true);
-                        setTimeout(() => setIsApiKeyCopied(false), 2000);
-                      }}
-                      className="rounded-md p-1 text-pg-muted transition-colors hover:text-pg-text"
-                    >
-                      {isApiKeyCopied ? (
-                        <HugeiconsIcon
-                          icon={CheckIcon}
-                          className="h-3.5 w-3.5"
-                        />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <Button
+              <div className="flex items-center gap-1 rounded-lg bg-pg-group px-3 py-2">
+                <span className="min-w-0 flex-1 truncate font-mono text-xs text-pg-text">
+                  {project.id}
+                </span>
+                <button
                   type="button"
-                  variant="outline"
-                  className="h-10 bg-pg-group px-3 text-xs font-sans text-pg-muted shadow-none hover:bg-pg-overlay hover:text-pg-text"
-                  loading={isRegeneratingKey}
-                  loadingText="Regenerating..."
                   onClick={() => {
-                    setIsRegeneratingKey(true);
-                    setTimeout(() => {
-                      const chars = "0123456789abcdef";
-                      let randomSuffix = "";
-                      for (let i = 0; i < 32; i++) {
-                        randomSuffix += chars[Math.floor(Math.random() * 16)];
-                      }
-                      setApiKey(`pg_live_${randomSuffix}`);
-                      setIsRegeneratingKey(false);
-                    }, 1000);
+                    void navigator.clipboard.writeText(project.id);
+                    setIsApiKeyCopied(true);
+                    setTimeout(() => setIsApiKeyCopied(false), 2000);
                   }}
+                  className="rounded-md bg-transparent p-1 text-pg-muted transition-colors hover:text-pg-text"
+                  aria-label="Copy project ID"
                 >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span>Regenerate</span>
-                </Button>
+                  {isApiKeyCopied ? (
+                    <HugeiconsIcon icon={CheckIcon} className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </button>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
-                  How to integrate in your project
+                <span className="block text-[11px] font-medium text-pg-subtle">
+                  Send a log from your app
                 </span>
                 <div className="flex w-fit rounded-lg bg-pg-group p-0.5 text-[9px] font-medium text-pg-muted">
                   {[
@@ -879,7 +821,7 @@ export default function Header({
                   ))}
                 </div>
               </div>
-              <pre className="max-h-48 overflow-auto rounded-lg bg-pg-group p-3 font-mono text-[11px] leading-relaxed text-pg-text whitespace-pre-wrap break-all">
+              <pre className="pg-code max-h-48 overflow-auto rounded-lg p-3 font-mono text-[11px] leading-relaxed text-zinc-200 whitespace-pre-wrap break-all">
                 {getCodeSnippet()}
               </pre>
             </div>

@@ -63,6 +63,7 @@ import {
   MapPin,
   Moon as MoonBase,
   DotsThree,
+  DotsThreeVertical,
   Palette,
   Phone,
   Plugs,
@@ -209,6 +210,7 @@ export const Menu01Icon = outlined(List);
 export const Message01Icon = outlined(ChatCircle);
 export const Moon = outlined(MoonBase);
 export const MoreHorizontalIcon = outlined(DotsThree);
+export const MoreVerticalIcon = outlined(DotsThreeVertical);
 export const Notification01Icon = outlined(Bell);
 export const PaletteIcon = outlined(Palette);
 export const PencilEdit01Icon = outlined(PencilSimple);

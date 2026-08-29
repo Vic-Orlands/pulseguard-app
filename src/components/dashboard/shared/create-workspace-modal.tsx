@@ -5,7 +5,6 @@ import { Briefcase } from "@/components/phosphor-icons";
 import { useAuth } from "@/context/auth-context";
 import { createWorkspace } from "@/lib/api/workspace-api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +24,6 @@ export function CreateWorkspaceModal({
   onClose,
 }: CreateWorkspaceModalProps) {
   const { fetchWorkspaces, setActiveWorkspace } = useAuth();
-  const router = useRouter();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -55,7 +53,6 @@ export function CreateWorkspaceModal({
       setActiveWorkspace(newWs);
       setName("");
       onClose();
-      router.push("/projects");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create workspace",

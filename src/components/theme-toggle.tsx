@@ -5,10 +5,16 @@ import { useTheme } from "next-themes";
 import { Sun, Moon } from "@/components/phosphor-icons";
 
 /**
- * Floating theme toggle button — top-right corner on all full-page auth screens.
- * Uses the `.pg-theme-toggle` design system utility.
+ * Theme toggle. Auth screens use the floating `.pg-theme-toggle` utility.
+ * Pass `className` to place it inline (for example in the documentation header).
  */
-export function ThemeToggle({ id }: { id?: string }) {
+export function ThemeToggle({
+  id,
+  className,
+}: {
+  id?: string;
+  className?: string;
+}) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -22,7 +28,7 @@ export function ThemeToggle({ id }: { id?: string }) {
     <button
       id={id ?? "pg-theme-toggle"}
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="pg-theme-toggle"
+      className={className ?? "pg-theme-toggle"}
       title="Switch theme"
     >
       {theme === "dark" ? (

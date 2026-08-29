@@ -13,6 +13,7 @@ import { loginUser } from "@/lib/api/user-api";
 import { useAuth } from "@/context/auth-context";
 import { loginSchema, type FormProps, type LoginFormData } from "@/types/form";
 import { safeInternalRedirect } from "@/lib/security/safe-redirect";
+import { getPostAuthPath } from "@/lib/last-project";
 
 export const LoginForm = ({ onToggleMode }: FormProps) => {
   const { fetchUser } = useAuth();
@@ -44,7 +45,10 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         if (message) {
           await fetchUser();
 
-          const redirectUrl = safeInternalRedirect(searchParams.get("redirect"));
+          const redirectUrl = safeInternalRedirect(
+            searchParams.get("redirect"),
+            getPostAuthPath(),
+          );
           setTimeout(() => {
             router.push(redirectUrl);
             toast("Login successful!");
@@ -58,7 +62,10 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
 
   // prefetch projects page
   useEffect(() => {
-    const redirectUrl = safeInternalRedirect(searchParams.get("redirect"));
+    const redirectUrl = safeInternalRedirect(
+      searchParams.get("redirect"),
+      getPostAuthPath(),
+    );
     router.prefetch(redirectUrl);
 
     if (error !== "") {

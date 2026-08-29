@@ -30,7 +30,7 @@ export function FallbackComponent({
           </div>
 
           <div className="w-full banner-error mb-6">
-            <span className="text-[10px] uppercase tracking-wider font-semibold block mb-1 opacity-70">
+            <span className="text-[10px] tracking-wide font-semibold block mb-1 opacity-70">
               Error Reference
             </span>
             <span className="font-mono break-all select-all block">
@@ -87,7 +87,7 @@ export function ArchivedFallbackComponent({
           </div>
 
           <div className="w-full p-3 rounded-lg bg-orange-950/40 border border-orange-900/50 text-orange-400 text-xs text-left mb-6">
-            <span className="text-[10px] uppercase tracking-wider font-semibold block mb-1 opacity-70">
+            <span className="text-[10px] tracking-wide font-semibold block mb-1 opacity-70">
               Error Reference
             </span>
             <span className="font-mono break-all select-all block">

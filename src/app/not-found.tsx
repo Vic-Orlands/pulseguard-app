@@ -30,7 +30,7 @@ function AnimatedGrid() {
 
   return (
     <div className="inline-block text-left">
-      <p className="text-[10px] font-mono tracking-[0.25em] text-pg-subtle mb-2 uppercase">
+      <p className="text-[10px] font-mono tracking-[0.25em] text-pg-subtle mb-2">
         Error
       </p>
       <div className="border border-pg-border divide-y divide-pg-border">
@@ -47,7 +47,7 @@ function AnimatedGrid() {
               >
                 {cell && (
                   <span
-                    className={`text-[8px] font-mono tracking-wider uppercase transition-colors ${
+                    className={`text-[8px] font-mono tracking-wider transition-colors ${
                       active?.r === rIdx && active?.c === cIdx
                         ? "text-pg-err-txt"
                         : "text-pg-subtle"

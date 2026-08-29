@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/workspace-api";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { getPostAuthPath } from "@/lib/last-project";
 import { ArrowRight, LogOut, Loader2 } from "@/components/phosphor-icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
@@ -82,7 +83,7 @@ export default function AcceptInvitePage() {
         await acceptInvitation(token);
         toast.success("Joined workspace successfully!");
         await fetchWorkspaces();
-        router.push("/projects");
+        router.push(getPostAuthPath());
       } catch (err) {
         toast.error(
           err instanceof Error ? err.message : "Failed to accept invitation",
@@ -140,7 +141,7 @@ export default function AcceptInvitePage() {
                     </motion.span>
                   </motion.button>
                   <button
-                    onClick={() => router.push("/projects")}
+                    onClick={() => router.push(getPostAuthPath())}
                     className="text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer bg-transparent border-0 text-center py-1"
                   >
                     Go to Projects
@@ -197,7 +198,7 @@ export default function AcceptInvitePage() {
               </div>
 
               <div className="p-3.5 mb-6 bg-zinc-900/60 border border-zinc-800 rounded-lg">
-                <span className="text-[10px] font-semibold text-zinc-500 block uppercase tracking-wide mb-1">
+                <span className="text-[10px] font-semibold text-zinc-500 block mb-1">
                   Logged In As
                 </span>
                 <span className="text-xs text-white font-medium block truncate">
@@ -235,7 +236,7 @@ export default function AcceptInvitePage() {
                 </motion.button>
 
                 <button
-                  onClick={() => router.push("/projects")}
+                  onClick={() => router.push(getPostAuthPath())}
                   disabled={isAccepting}
                   className="group inline-flex items-center justify-center gap-1.5 text-zinc-400 hover:text-white font-medium text-[13px] transition-colors duration-200 cursor-pointer focus:outline-none bg-transparent py-2"
                 >

@@ -17,21 +17,44 @@ export function CustomAlertDialog({
   title,
   description,
   onConfirm,
+  confirmLabel = "Continue",
+  variant = "default",
 }: CustomAlertDialogProps) {
+  const isDanger = variant === "danger";
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent className="pg-modal !max-w-sm p-6">
-        <AlertDialogHeader className="mb-5 text-left flex flex-col gap-1.5">
-          <AlertDialogTitle className="text-xl font-normal tracking-[-0.058em] text-pg-text font-sans">
+      <AlertDialogContent
+        className={
+          isDanger
+            ? "max-w-sm border-0 bg-[#3b1111] p-6 text-white shadow-[0_32px_90px_rgba(80,0,0,0.45)]"
+            : "pg-modal !max-w-sm p-6"
+        }
+      >
+        <AlertDialogHeader className="mb-5 flex flex-col gap-1.5 text-left">
+          <AlertDialogTitle
+            className={`text-xl font-normal tracking-[-0.058em] font-sans ${
+              isDanger ? "text-white" : "text-pg-text"
+            }`}
+          >
             {title}
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-xs text-pg-muted font-sans leading-relaxed">
+          <AlertDialogDescription
+            className={`text-xs font-sans leading-relaxed ${
+              isDanger ? "text-red-100/80" : "text-pg-muted"
+            }`}
+          >
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex space-x-2.5 mt-2">
-          <AlertDialogCancel className="flex-1 border border-pg-border/60 bg-transparent hover:bg-pg-surface text-pg-subtle hover:text-pg-text text-xs h-9 px-4 rounded-[5px] shadow-none font-semibold cursor-pointer transition-all duration-200">
+        <AlertDialogFooter className="mt-2 flex space-x-2.5">
+          <AlertDialogCancel
+            className={
+              isDanger
+                ? "flex-1 h-9 rounded-[5px] border-0 bg-white/10 text-xs font-semibold text-white shadow-none hover:bg-white/15"
+                : "flex-1 border border-pg-border/60 bg-transparent hover:bg-pg-surface text-pg-subtle hover:text-pg-text text-xs h-9 px-4 rounded-[5px] shadow-none font-semibold cursor-pointer transition-all duration-200"
+            }
+          >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
@@ -39,9 +62,13 @@ export function CustomAlertDialog({
             onClick={() => {
               void onConfirm();
             }}
-            className="flex-1 btn-primary"
+            className={
+              isDanger
+                ? "flex-1 h-9 rounded-[5px] border-0 bg-white text-xs font-semibold text-red-800 shadow-none hover:bg-red-50"
+                : "flex-1 btn-primary"
+            }
           >
-            Continue
+            {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

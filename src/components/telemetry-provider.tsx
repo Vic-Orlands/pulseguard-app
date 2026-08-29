@@ -94,6 +94,12 @@ export function TelemetryProvider({
       }),
     }).catch(console.error);
 
+    import("@/lib/telemetry/ingest-client")
+      .then(({ initClientTelemetry }) => {
+        initClientTelemetry({ projectId, userId });
+      })
+      .catch(() => undefined);
+
     return () => {
       reporter?.cleanup?.();
     };

@@ -13,6 +13,7 @@ import ForgotPassword from "./forgot-password";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
 import { safeInternalRedirect } from "@/lib/security/safe-redirect";
+import { getPostAuthPath } from "@/lib/last-project";
 
 // Beautiful premium concentric brand logo matching Traces brand aesthetics
 export const Logo = () => (
@@ -203,13 +204,12 @@ function AuthContent() {
 
   const handleOAuthLogin = async (provider: string) => {
     const requestedRedirect = searchParams.get("redirect");
-    const redirectUrl = safeInternalRedirect(requestedRedirect);
-    if (requestedRedirect) {
-      localStorage.setItem("pulseguard_post_auth_redirect", redirectUrl);
-    }
-    const callbackUrl = requestedRedirect
-      ? `/api/auth/${provider}?redirect=${encodeURIComponent(redirectUrl)}`
-      : `/api/auth/${provider}`;
+    const redirectUrl = safeInternalRedirect(
+      requestedRedirect,
+      getPostAuthPath(),
+    );
+    localStorage.setItem("pulseguard_post_auth_redirect", redirectUrl);
+    const callbackUrl = `/api/auth/${provider}?redirect=${encodeURIComponent(redirectUrl)}`;
     window.location.href = callbackUrl;
   };
 

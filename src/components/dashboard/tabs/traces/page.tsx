@@ -1,19 +1,12 @@
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { AlertCircleIcon, Copy01Icon, Loading02Icon, MoreHorizontalIcon, Search01Icon, Tick01Icon } from "@/components/phosphor-icons";
+import { AlertCircleIcon, Loading02Icon, Search01Icon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Card,
-  CardHeader,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -37,17 +30,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
-import { fetchTraces } from "@/lib/api/otlp-api";
 import { format, subHours, subDays } from "date-fns";
+import { fetchTraces } from "@/lib/api/otlp-api";
 import type { Project, TimeProp, TraceSummary } from "@/types/dashboard";
 import CustomErrorMessage from "../../shared/error-message";
 import TraceToLogsComponent from "./trace-to-logs";
+import { Badge } from "@/components/ui/badge";
+import { displayValue, formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 
 const TracesTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
 
-  const [copied, setCopied] = useState<string>("");
   const [error, setError] = useState<Error | null>(null);
   const [traces, setTraces] = useState<TraceSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -73,7 +66,7 @@ const TracesTab = ({ project }: { project: Project }) => {
         return subHours(new Date(), 24).toISOString();
     }
   }, [timeRange]);
-  const end = new Date().toISOString();
+  const end = useMemo(() => new Date().toISOString(), [timeRange]);
 
   // Fetch traces with SWR
   useEffect(() => {
@@ -121,43 +114,13 @@ const TracesTab = ({ project }: { project: Project }) => {
     setCurrentPage(1);
   }, [filteredTraces]);
 
-  const copyToClipboard = async (text: string, name: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(text);
-      toast.success(`${name} copied`);
-      setTimeout(() => setCopied(""), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      toast.error("Failed to copy");
-    }
-  };
-
-  const copyText = (text: string) =>
-    copied === text ? (
-      <HugeiconsIcon icon={Tick01Icon} className="w-3.5 h-3.5 text-emerald-500" />
-    ) : (
-      <HugeiconsIcon icon={Copy01Icon} className="w-3.5 h-3.5" />
-    );
-
   const totalPages = Math.ceil(filteredTraces.length / itemsPerPage);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-32">
-        <div className="text-center space-y-3">
-          <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground text-xs">Loading traces...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
       {error && <CustomErrorMessage error={error.message} />}
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 w-full">
@@ -198,23 +161,33 @@ const TracesTab = ({ project }: { project: Project }) => {
           </div>
         </div>
 
-        <Card className="bg-card border border-border shadow-none rounded-lg mt-5">
-          <CardContent className="p-0">
+        <Card className="rounded-lg border border-border bg-card shadow-none">
+          <CardContent className="overflow-x-auto p-0">
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Service</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Trace ID</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Start Time</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Name</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4">Duration</TableHead>
-                  <TableHead className="text-xs text-muted-foreground h-9 px-4 text-right">Actions</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Operation</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Trace ID</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Span ID</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Service</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Status</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Duration</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Spans</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">User ID</TableHead>
+                  <TableHead className="h-9 px-4 text-xs text-muted-foreground">Time</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTraces.length === 0 ? (
+                {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-16">
+                    <TableCell colSpan={9} className="py-16 text-center">
+                      <HugeiconsIcon icon={Loading02Icon} className="mx-auto mb-2 h-5 w-5 animate-spin text-pg-muted" />
+                      <p className="text-xs text-pg-muted">Loading traces...</p>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredTraces.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-16">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                       <p className="text-muted-foreground text-xs font-semibold">
                         No traces from this project
@@ -231,42 +204,48 @@ const TracesTab = ({ project }: { project: Project }) => {
                       className="cursor-pointer"
                       onClick={() => setSelectedTrace(trace)}
                     >
-                      <TableCell className="text-foreground text-xs py-2 px-4">
-                        {trace.serviceName || "unknown"}
+                      <TableCell className="max-w-xs px-4 py-2">
+                        <div className="truncate text-xs font-medium">{trace.name || "unnamed"}</div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-[10px] py-2 px-4">
-                        {trace.traceId || "none"}
+                      <TableCell className="px-4 py-2 font-mono text-[11px] text-pg-muted">
+                        {shortId(trace.traceId, 12)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-xs py-2 px-4 whitespace-nowrap">
-                        {format(new Date(trace.startTime), "PP, h:mmaaa")}
+                      <TableCell className="px-4 py-2 font-mono text-[11px] text-pg-muted">
+                        {displayValue(trace.spanId)}
                       </TableCell>
-                      <TableCell className="max-w-xs py-2 px-4">
-                        <div className="truncate text-foreground text-xs">
-                          {trace.name || "unnamed"}
+                      <TableCell className="px-4 py-2 text-xs">{trace.serviceName || "web"}</TableCell>
+                      <TableCell className="px-4 py-2">
+                        <Badge
+                          className={`border-none py-0.5 text-[10px] shadow-none ${
+                            (trace.httpStatus ?? 0) >= 400
+                              ? "bg-red-500/10 text-red-600"
+                              : "bg-emerald-500/10 text-emerald-600"
+                          }`}
+                        >
+                          {(trace.httpStatus ?? 0) >= 400 ? trace.httpStatus : "OK"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-pg-surface">
+                            <span
+                              className="block h-full rounded-full bg-primary"
+                              style={{
+                                width: `${Math.min(((trace.duration ?? 0) / Math.max(...filteredTraces.map((item) => item.duration || 1), 1)) * 100, 100)}%`,
+                              }}
+                            />
+                          </span>
+                          <span className="font-mono text-[11px]">
+                            {formatDurationMs(trace.duration)}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4">
-                        {(trace.duration ?? 0).toFixed(2)} ms
+                      <TableCell className="px-4 py-2 text-xs">{trace.spanCount || "—"}</TableCell>
+                      <TableCell className="px-4 py-2 font-mono text-[11px]">
+                        {displayValue(trace.userId)}
                       </TableCell>
-                      <TableCell onClick={(event) => event.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="w-8 h-8 p-0 shadow-none">
-                              <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
-                            <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => setSelectedTrace(trace)}>
-                              Open details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-xs cursor-pointer"
-                              onClick={() => copyToClipboard(trace.traceId, "Trace ID")}
-                            >
-                              Copy trace ID
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell className="whitespace-nowrap px-4 py-2 text-[11px] text-muted-foreground">
+                        {formatTableTime(trace.startTime)}
                       </TableCell>
                     </TableRow>
                   ))
@@ -321,7 +300,7 @@ const TracesTab = ({ project }: { project: Project }) => {
                 : ""}
             </SheetDescription>
           </SheetHeader>
-          {selectedTrace ? <TraceToLogsComponent traceId={selectedTrace.traceId} /> : null}
+          {selectedTrace ? <TraceToLogsComponent traceId={selectedTrace.traceId} projectId={project.id} /> : null}
         </SheetContent>
       </Sheet>
     </>

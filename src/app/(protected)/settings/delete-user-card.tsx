@@ -109,7 +109,7 @@ export const RenderDeleteAccountDialogComp = ({
                 stiffness: 300,
                 layout: { duration: 0.4, ease: "easeInOut" },
               }}
-              className="pg-modal shadow-none overflow-hidden text-pg-text"
+              className="overflow-hidden rounded-lg border-0 bg-[#3b1111] text-white shadow-[0_32px_90px_rgba(80,0,0,0.45)]"
               onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">

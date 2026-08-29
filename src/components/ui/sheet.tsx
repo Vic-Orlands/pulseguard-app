@@ -74,7 +74,7 @@ function SheetOverlay({
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/40 duration-300",
+        "data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out fixed inset-0 z-50 bg-black/55",
         className
       )}
       {...props}
@@ -96,18 +96,15 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "bg-pg-modal text-pg-text data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] transition ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:duration-300 data-[state=open]:duration-500",
-          side === "right" &&
-            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-[min(96vw,48rem)]",
-          side === "left" &&
-            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
-          side === "top" &&
-            "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto",
-          side === "bottom" &&
-            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto",
+          "bg-pg-modal text-pg-text motion-sheet fixed z-50 flex flex-col gap-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)]",
+          side === "right" && "inset-y-0 right-0 h-full w-[min(96vw,48rem)]",
+          side === "left" && "inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
+          side === "top" && "inset-x-0 top-0 h-auto",
+          side === "bottom" && "inset-x-0 bottom-0 h-auto",
           className
         )}
         {...props}
+        data-side={side}
       >
         {children}
         <SheetPrimitive.Close className="text-pg-muted absolute top-4 right-4 rounded-lg p-1 opacity-70 transition-opacity hover:bg-pg-group hover:text-pg-text hover:opacity-100 focus:outline-hidden disabled:pointer-events-none">
