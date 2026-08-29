@@ -29,7 +29,13 @@ type ProviderId =
   | "github"
   | "linear"
   | "clickup"
-  | "datadog";
+  | "datadog"
+  | "pagerduty"
+  | "jira"
+  | "microsoft_teams"
+  | "telegram"
+  | "notion"
+  | "webhook";
 
 const providers: {
   id: ProviderId;
@@ -64,6 +70,19 @@ const providers: {
     ],
   },
   {
+    id: "microsoft_teams",
+    name: "Microsoft Teams",
+    description: "Post alerts to a Teams incoming webhook.",
+    fields: [
+      {
+        key: "webhook_url",
+        label: "Incoming webhook URL",
+        placeholder: "https://outlook.office.com/webhook/...",
+        secret: true,
+      },
+    ],
+  },
+  {
     id: "github",
     name: "GitHub",
     description: "Open an issue when an alert fires.",
@@ -92,6 +111,22 @@ const providers: {
     ],
   },
   {
+    id: "jira",
+    name: "Jira",
+    description: "Create a Jira task when an alert fires.",
+    fields: [
+      { key: "site", label: "Site", placeholder: "acme.atlassian.net" },
+      { key: "email", label: "Account email", placeholder: "you@acme.com" },
+      { key: "project_key", label: "Project key", placeholder: "OPS" },
+      {
+        key: "api_token",
+        label: "API token",
+        placeholder: "Atlassian API token",
+        secret: true,
+      },
+    ],
+  },
+  {
     id: "clickup",
     name: "ClickUp",
     description: "Create a task in a ClickUp list.",
@@ -106,12 +141,66 @@ const providers: {
     ],
   },
   {
+    id: "notion",
+    name: "Notion",
+    description: "Create a page in a Notion database.",
+    fields: [
+      { key: "database_id", label: "Database ID", placeholder: "Notion database UUID" },
+      {
+        key: "token",
+        label: "Integration token",
+        placeholder: "ntn_...",
+        secret: true,
+      },
+    ],
+  },
+  {
+    id: "pagerduty",
+    name: "PagerDuty",
+    description: "Trigger an incident via Events API v2.",
+    fields: [
+      {
+        key: "routing_key",
+        label: "Integration key",
+        placeholder: "PagerDuty routing key",
+        secret: true,
+      },
+    ],
+  },
+  {
     id: "datadog",
     name: "Datadog",
     description: "Emit a Datadog event for each alert.",
     fields: [
       { key: "api_key", label: "API key", placeholder: "Datadog API key", secret: true },
       { key: "app_key", label: "Application key", placeholder: "Optional", secret: true },
+    ],
+  },
+  {
+    id: "telegram",
+    name: "Telegram",
+    description: "Send alerts to a Telegram chat.",
+    fields: [
+      { key: "chat_id", label: "Chat ID", placeholder: "-100..." },
+      {
+        key: "bot_token",
+        label: "Bot token",
+        placeholder: "123456:ABC...",
+        secret: true,
+      },
+    ],
+  },
+  {
+    id: "webhook",
+    name: "Generic webhook",
+    description: "POST JSON to any HTTPS endpoint.",
+    fields: [
+      {
+        key: "webhook_url",
+        label: "HTTPS URL",
+        placeholder: "https://example.com/hooks/pulseguard",
+        secret: true,
+      },
     ],
   },
 ];
@@ -194,14 +283,14 @@ export default function IntegrationsTab({ project }: { project: Project }) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-pg-muted">
-        Connect tools with a webhook or API key. Secrets are stored on the server and masked after save.
+        Connect tools with a webhook or API key. These destinations are more reliable than OAuth for alert delivery and do not require registering a PulseGuard app with each vendor.
       </p>
       {loading ? (
         <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-xs text-pg-muted">
           Loading integrations...
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {providers.map((provider) => {
             const connected = byProvider[provider.id];
             return (
