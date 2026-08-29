@@ -122,7 +122,15 @@ export interface Session {
   event_count: number;
   created_at: string;
   updated_at: string;
-  pageview_count: string;
+  pageview_count: number;
+}
+
+export interface SessionTimelineItem {
+  id: string;
+  type: "event" | "pageview" | "log";
+  name: string;
+  data: Record<string, unknown>;
+  timestamp: string;
 }
 
 export type Alert = {

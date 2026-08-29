@@ -179,6 +179,7 @@ func NewRouter(
 		r.With(projectMember).Post("/api/sessions/start", sessionHandler.StartSession)
 		r.With(projectMember).Post("/api/sessions/end", sessionHandler.EndSession)
 		r.With(projectMember).Get("/api/sessions", sessionHandler.GetSessions)
+		r.With(projectMember).Get("/api/sessions/{session_id}/timeline", sessionHandler.GetTimeline)
 		r.With(projectMember).Get("/api/metrics", metricsHandler.GetMetrics)
 		r.With(projectMember).Post("/api/logs", logsHandler.Ingest)
 		r.With(projectMember).Get("/api/logs", logsHandler.GetLogsByProjectID)

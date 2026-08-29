@@ -112,6 +112,7 @@ export default function DocumentationPage() {
               <li>Open PulseGuard and create an account.</li>
               <li>Name the workspace. This is the company or product group.</li>
               <li>Create the first project. You land on Overview.</li>
+              <li>Copy the project DSN and send a test event to verify the connection.</li>
             </ol>
           </Section>
 
@@ -179,7 +180,7 @@ export default function DocumentationPage() {
               </li>
               <li>
                 Access can be every project, or a selected set, chosen at
-                invite time.
+                invite time and changed later by an admin or owner.
               </li>
             </ul>
           </Section>
@@ -196,9 +197,10 @@ export default function DocumentationPage() {
           <div className="mt-14 rounded-lg bg-pg-group p-6">
             <p className="text-sm font-medium text-pg-text">Need the SDK next?</p>
             <p className="mt-2 text-[13px] leading-6 text-pg-muted">
-              Open Project ID in the sidebar and pass that UUID to the SDK.
-              This PulseGuard app is already sending errors, sessions, logs,
-              and traces when that ID matches the project you have open.
+              Open a project&apos;s Connect tab, install <code>pulseguard</code>,
+              and pass the project DSN to the SDK. Add a release to de-minify
+              stack traces with uploaded source maps, and include the deployed
+              commit SHA to link an error to its likely suspect change.
             </p>
           </div>
         </article>

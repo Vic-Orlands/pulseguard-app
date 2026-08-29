@@ -7,6 +7,7 @@ export interface Error {
   occurredAt: string;
   lastSeen: string;
   environment: string;
+  release?: string;
   count: number;
   source: string;
   type: string;

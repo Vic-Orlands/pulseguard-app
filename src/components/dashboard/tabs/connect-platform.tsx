@@ -161,7 +161,10 @@ initPulseguard({
     dsn: "${dsnValue}",
     userId: "user-123",
     release: "1.0.0",
+    commitSha: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
+    repositoryUrl: "https://github.com/your-org/your-app",
     environment: "production",
+    captureClicks: true,
 });`}</CodeBlock>
           </div>
         </div>
@@ -174,7 +177,8 @@ initPulseguard({
             "Each event is scoped to this project. Rotate the DSN if the key leaks",
             "Duplicate errors are suppressed in the browser before they are sent",
             "Metrics are labeled with this project id when the collector is running",
-            "Optional: upload source maps with a release so minified stacks can be stored against that release",
+            "Upload source maps with a matching release to de-minify JavaScript stack traces",
+            "Add commitSha and repositoryUrl to link each error to its likely suspect deploy commit",
           ].map((item) => (
             <div key={item} className="rounded-lg bg-pg-group px-4 py-3 text-xs text-pg-text">
               {item}
@@ -214,7 +218,7 @@ function SourceMapsSection({ projectId }: { projectId: string }) {
         <h2 className="text-sm font-semibold text-pg-text">Source maps</h2>
         <p className="mt-0.5 max-w-xl text-xs text-pg-muted">
           Store a map per release (about 1.5 MB each). Match the SDK{" "}
-          <code>release</code> so minified stacks stay attached to that version.
+          <code>release</code> so incoming minified stack frames are de-minified.
         </p>
       </div>
       <div className="flex flex-wrap items-end gap-2">

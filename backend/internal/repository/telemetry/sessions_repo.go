@@ -3,10 +3,13 @@ package telemetry
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"pulseguard/internal/models"
+
+	"github.com/google/uuid"
 )
 
 type SessionRepository struct {
@@ -104,6 +107,61 @@ func (r *SessionRepository) IncrementPageviewCount(ctx context.Context, sessionI
 		return fmt.Errorf("increment pageview count: %w", err)
 	}
 	return nil
+}
+
+func (r *SessionRepository) TrackEvent(ctx context.Context, projectID, sessionID, eventType, eventName string, data map[string]interface{}) error {
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("encode session event: %w", err)
+	}
+	result, err := r.db.ExecContext(ctx, `
+		INSERT INTO session_events (id, project_id, session_id, event_type, event_name, data, created_at)
+		SELECT $1, $2, $3, $4, $5, $6, NOW()
+		WHERE EXISTS (
+			SELECT 1 FROM sessions WHERE session_id = $3 AND project_id = $2
+		)
+	`, uuid.NewString(), projectID, sessionID, eventType, eventName, raw)
+	if err != nil {
+		return fmt.Errorf("track session event: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("track session event: %w", err)
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func (r *SessionRepository) GetTimeline(ctx context.Context, projectID, sessionID string) ([]*models.SessionTimelineItem, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id::text, event_type, event_name, data, created_at
+		FROM session_events
+		WHERE project_id = $1 AND session_id = $2
+		UNION ALL
+		SELECT id::text, 'log', level,
+			jsonb_build_object('message', message, 'service', service_name, 'route', COALESCE(route, '')),
+			created_at
+		FROM telemetry_logs
+		WHERE project_id = $1 AND session_id = $2
+		ORDER BY created_at ASC
+		LIMIT 300
+	`, projectID, sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("get session timeline: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]*models.SessionTimelineItem, 0)
+	for rows.Next() {
+		item := &models.SessionTimelineItem{}
+		if err := rows.Scan(&item.ID, &item.Type, &item.Name, &item.Data, &item.Timestamp); err != nil {
+			return nil, fmt.Errorf("scan session timeline: %w", err)
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
 }
 
 func (r *SessionRepository) GetSessions(ctx context.Context, projectID string, start, end time.Time) ([]*models.Session, error) {

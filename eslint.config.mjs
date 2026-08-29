@@ -6,6 +6,10 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
   {
+    plugins: {
+      react: nextVitals[0].plugins.react,
+      "react-hooks": nextVitals[0].plugins["react-hooks"],
+    },
     rules: {
       "@typescript-eslint/no-empty-object-type": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
@@ -17,5 +21,12 @@ export default defineConfig([
       "react-hooks/static-components": "warn",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "backend/**"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "backend/**",
+    "packages/sdk/dist/**",
+  ]),
 ]);

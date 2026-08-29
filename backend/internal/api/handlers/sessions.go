@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -268,10 +270,12 @@ func (h *SessionHandler) TrackEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		SessionID string `json:"sessionId"`
-		UserID    string `json:"userId"`
-		EventName string `json:"eventName"`
+		SessionID string                 `json:"sessionId"`
+		UserID    string                 `json:"userId"`
+		EventName string                 `json:"eventName"`
+		EventData map[string]interface{} `json:"eventData"`
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, 16_384)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -285,6 +289,11 @@ func (h *SessionHandler) TrackEvent(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: time.Now(),
 		})
 		_ = h.sessionService.IncrementEventCount(ctx, req.SessionID)
+		name := strings.TrimSpace(req.EventName)
+		if name == "" {
+			name = "custom"
+		}
+		_ = h.sessionService.TrackEvent(ctx, projectID, req.SessionID, "event", name, req.EventData)
 	}
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "event"),
@@ -305,7 +314,9 @@ func (h *SessionHandler) TrackPageview(w http.ResponseWriter, r *http.Request) {
 		SessionID string `json:"sessionId"`
 		UserID    string `json:"userId"`
 		Page      string `json:"page"`
+		Referrer  string `json:"referrer"`
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, 16_384)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -319,10 +330,33 @@ func (h *SessionHandler) TrackPageview(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: time.Now(),
 		})
 		_ = h.sessionService.IncrementPageviewCount(ctx, req.SessionID)
+		_ = h.sessionService.TrackEvent(ctx, projectID, req.SessionID, "pageview", req.Page, map[string]interface{}{
+			"page":     req.Page,
+			"referrer": req.Referrer,
+		})
 	}
 	h.metrics.PageViewsTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("project_id", projectID),
 		attribute.String("page", req.Page),
 	))
 	util.WriteJSON(w, http.StatusAccepted, map[string]bool{"ok": true})
+}
+
+func (h *SessionHandler) GetTimeline(w http.ResponseWriter, r *http.Request) {
+	projectID, ok := apiMiddleware.AuthorizedProjectID(r.Context())
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Missing project ID")
+		return
+	}
+	sessionID := strings.TrimSpace(chi.URLParam(r, "session_id"))
+	if sessionID == "" {
+		util.WriteError(w, http.StatusBadRequest, "Missing session ID")
+		return
+	}
+	items, err := h.sessionService.GetTimeline(r.Context(), projectID, sessionID)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch session timeline")
+		return
+	}
+	util.WriteJSON(w, http.StatusOK, items)
 }

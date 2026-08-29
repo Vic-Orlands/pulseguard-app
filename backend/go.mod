@@ -55,6 +55,7 @@ require (
 require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/jwtauth/v5 v5.3.3
+	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/gorilla/sessions v1.4.0
 	github.com/lestrrat-go/jwx/v2 v2.1.3

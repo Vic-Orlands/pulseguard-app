@@ -40,6 +40,14 @@ func (s *SessionService) IncrementPageviewCount(ctx context.Context, sessionID s
 	return s.repo.IncrementPageviewCount(ctx, sessionID)
 }
 
+func (s *SessionService) TrackEvent(ctx context.Context, projectID, sessionID, eventType, eventName string, data map[string]interface{}) error {
+	return s.repo.TrackEvent(ctx, projectID, sessionID, eventType, eventName, data)
+}
+
+func (s *SessionService) GetTimeline(ctx context.Context, projectID, sessionID string) ([]*models.SessionTimelineItem, error) {
+	return s.repo.GetTimeline(ctx, projectID, sessionID)
+}
+
 func (s *SessionService) GetSessions(ctx context.Context, projectID string, start, end time.Time) ([]*models.Session, error) {
 	return s.repo.GetSessions(ctx, projectID, start, end)
 }

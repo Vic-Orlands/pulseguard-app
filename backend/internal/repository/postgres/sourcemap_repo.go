@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"pulseguard/internal/models"
@@ -68,19 +67,10 @@ func (r *SourceMapRepository) List(ctx context.Context, projectID string) ([]*mo
 
 func (r *SourceMapRepository) GetJSON(ctx context.Context, projectID, release, fileName string) (string, error) {
 	var raw string
-	err := r.db.QueryRowContext(ctx, `
+	return raw, r.db.QueryRowContext(ctx, `
 		SELECT map_json FROM source_maps
 		WHERE project_id = $1 AND release = $2 AND file_name = $3
 	`, projectID, release, fileName).Scan(&raw)
-	if errors.Is(err, sql.ErrNoRows) {
-		err = r.db.QueryRowContext(ctx, `
-			SELECT map_json FROM source_maps
-			WHERE project_id = $1 AND release = $2
-			ORDER BY created_at DESC
-			LIMIT 1
-		`, projectID, release).Scan(&raw)
-	}
-	return raw, err
 }
 
 func (r *SourceMapRepository) Delete(ctx context.Context, projectID, id string) error {
