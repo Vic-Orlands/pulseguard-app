@@ -48,4 +48,6 @@ dist_linux/mint
 
 # demo video source frames (encoded mp4s are committed)
 /docs/videos/frames/
+/docs/videos/record/
 /docs/videos/*.txt
+/docs/videos/*.webp
