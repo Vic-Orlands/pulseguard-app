@@ -129,6 +129,8 @@ func main() {
 	workspaceRepo := postgres.NewWorkspaceRepository(conn)
 	errorRepo := postgres.NewErrorRepository(conn)
 	alertRepo := postgres.NewAlertRepository(conn)
+	notificationRepo := postgres.NewNotificationRepository(conn)
+	integrationRepo := postgres.NewIntegrationRepository(conn)
 	lokiRepo := telemetry.NewLokiRepository(lokiURL)
 	projectRepo := postgres.NewProjectRepository(conn)
 	tempoRepo := telemetry.NewTempoRepository(tempoURL)
@@ -141,7 +143,9 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	workspaceService := service.NewWorkspaceService(workspaceRepo, userRepo)
 	errorService := service.NewErrorService(errorRepo)
-	alertService := service.NewAlertService(alertRepo)
+	integrationService := service.NewIntegrationService(integrationRepo)
+	notificationService := service.NewNotificationService(notificationRepo)
+	alertService := service.NewAlertService(alertRepo, errorRepo, notificationRepo, projectRepo, workspaceRepo, integrationService)
 	tracesService := service.NewTracesService(tempoRepo)
 	projectService := service.NewProjectService(projectRepo)
 	sessionService := service.NewSessionService(sessionRepo)
@@ -155,6 +159,8 @@ func main() {
 		projectService,
 		errorService,
 		alertService,
+		notificationService,
+		integrationService,
 		metricsService,
 		logsService,
 		tracesService,

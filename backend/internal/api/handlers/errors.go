@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -28,16 +29,18 @@ type ErrorHandler struct {
 	errorService   *service.ErrorService
 	sessionService *service.SessionService
 	projectService *service.ProjectService
+	alertService   *service.AlertService
 	logger         *logger.Logger
 	tracer         trace.Tracer
 }
 
-func NewErrorHandler(errorService *service.ErrorService, sessionService *service.SessionService, projectService *service.ProjectService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
+func NewErrorHandler(errorService *service.ErrorService, sessionService *service.SessionService, projectService *service.ProjectService, alertService *service.AlertService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
 	return &ErrorHandler{
 		metrics:        metrics,
 		errorService:   errorService,
 		sessionService: sessionService,
 		projectService: projectService,
+		alertService:   alertService,
 		logger:         logger,
 		tracer:         tracer,
 	}
@@ -182,6 +185,14 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		attribute.String("user_id", userID),
 		attribute.String("project_id", projectUUID.String()),
 	))
+
+	if h.alertService != nil {
+		go func(projectID, message string) {
+			evalCtx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+			defer cancel()
+			h.alertService.EvaluateOnError(evalCtx, projectID, message)
+		}(projectUUID.String(), req.Message)
+	}
 
 	span.SetStatus(codes.Ok, "Error tracked successfully")
 	span.SetAttributes(

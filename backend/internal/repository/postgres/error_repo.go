@@ -345,6 +345,34 @@ func (r *ErrorRepository) CountByProject(ctx context.Context, projectID string) 
     return count, err
 }
 
+func (r *ErrorRepository) CountOccurrencesSince(ctx context.Context, projectID string, since time.Time) (int64, error) {
+	var count int64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*)
+		FROM error_occurrences eo
+		JOIN errors e ON e.id = eo.error_id
+		WHERE e.project_id = $1 AND eo.timestamp >= $2
+	`, projectID, since).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	if count > 0 {
+		return count, nil
+	}
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM errors WHERE project_id = $1 AND last_seen >= $2
+	`, projectID, since).Scan(&count)
+	return count, err
+}
+
+func (r *ErrorRepository) CountNewGroupsSince(ctx context.Context, projectID string, since time.Time) (int64, error) {
+	var count int64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM errors WHERE project_id = $1 AND occurred_at >= $2
+	`, projectID, since).Scan(&count)
+	return count, err
+}
+
 // <-
 //  @utilities
 //  ->

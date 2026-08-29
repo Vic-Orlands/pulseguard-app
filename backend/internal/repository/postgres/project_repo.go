@@ -99,6 +99,32 @@ func (repo *ProjectRepository) GetBySlugForMember(ctx context.Context, slug, use
 	return &p, nil
 }
 
+func (repo *ProjectRepository) GetByID(ctx context.Context, id string) (*models.Project, error) {
+	query := `
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		FROM projects p
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.id = $1
+		GROUP BY p.id
+	`
+	var p models.Project
+	err := repo.db.QueryRowContext(ctx, query, id).Scan(
+		&p.ID,
+		&p.WorkspaceID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.ErrorCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
 func (repo *ProjectRepository) HasWorkspaceRole(ctx context.Context, workspaceID, userID, minRole string) (bool, error) {
 	query := `
 		SELECT EXISTS (

@@ -97,6 +97,10 @@ func (s *ProjectService) GetBySlugForMember(ctx context.Context, slug, userID st
 	return s.projectRepo.GetBySlugForMember(ctx, slug, userID)
 }
 
+func (s *ProjectService) GetByID(ctx context.Context, id string) (*models.Project, error) {
+	return s.projectRepo.GetByID(ctx, id)
+}
+
 func (s *ProjectService) DeleteBySlugForManager(ctx context.Context, slug, userID string) (*models.Project, error) {
 	return s.projectRepo.DeleteBySlugForManager(ctx, slug, userID)
 }

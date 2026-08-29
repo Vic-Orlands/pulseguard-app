@@ -1,14 +1,15 @@
 package telemetry
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"pulseguard/internal/models"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,21 +27,31 @@ func NewTempoRepository(baseURL string) *TempoClient {
 	}
 }
 
-// SearchTraces fetches all traces within a time range for a project
+var internalTraceServices = map[string]bool{
+	"pulseguard":          true,
+	"pulseguard-web":      true,
+	"pulseguard-backend":  true,
+	"pulseguard-api":      true,
+	"pulseguard-frontend": true,
+}
+
+func isInternalTraceService(name string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	if internalTraceServices[normalized] {
+		return true
+	}
+	return strings.HasPrefix(normalized, "pulseguard")
+}
+
+// SearchTraces fetches traces for a connected project, excluding PulseGuard internals.
 func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, end time.Time) ([]*models.TraceSummary, error) {
-	url := fmt.Sprintf("%s/api/search", c.baseURL)
-	payload := map[string]any{
-		"start": start.UnixNano(),
-		"end":   end.UnixNano(),
-		"query": fmt.Sprintf(`project_id = "%s" and service.name = "pulseguard"`, projectID),
-	}
+	params := url.Values{}
+	params.Set("q", fmt.Sprintf(`{ .project_id = "%s" }`, projectID))
+	params.Set("start", strconv.FormatInt(start.Unix(), 10))
+	params.Set("end", strconv.FormatInt(end.Unix(), 10))
+	params.Set("limit", "100")
 
-	bodyBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal search payload: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/api/search?%s", c.baseURL, params.Encode()), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -51,7 +62,7 @@ func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, en
 	}
 	defer res.Body.Close()
 
-	bodyBytes, err = io.ReadAll(io.LimitReader(res.Body, maxTempoResponseBytes+1))
+	bodyBytes, err := io.ReadAll(io.LimitReader(res.Body, maxTempoResponseBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
@@ -60,7 +71,24 @@ func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, en
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("tempo search failed: %d - %s", res.StatusCode, string(bodyBytes))
+		tagParams := url.Values{}
+		tagParams.Set("tags", fmt.Sprintf("project_id=%s", projectID))
+		tagParams.Set("start", strconv.FormatInt(start.Unix(), 10))
+		tagParams.Set("end", strconv.FormatInt(end.Unix(), 10))
+		tagParams.Set("limit", "100")
+		fallbackReq, fallbackErr := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/api/search?%s", c.baseURL, tagParams.Encode()), nil)
+		if fallbackErr != nil {
+			return nil, fmt.Errorf("tempo search failed: %d - %s", res.StatusCode, string(bodyBytes))
+		}
+		fallbackRes, fallbackErr := c.httpClient.Do(fallbackReq)
+		if fallbackErr != nil {
+			return nil, fmt.Errorf("tempo search failed: %d - %s", res.StatusCode, string(bodyBytes))
+		}
+		defer fallbackRes.Body.Close()
+		bodyBytes, err = io.ReadAll(io.LimitReader(fallbackRes.Body, maxTempoResponseBytes+1))
+		if err != nil || fallbackRes.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("tempo search failed: %d - %s", res.StatusCode, string(bodyBytes))
+		}
 	}
 
 	// Response parsing
@@ -78,12 +106,13 @@ func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, en
 		return nil, fmt.Errorf("failed to decode search response: %w", err)
 	}
 
-	var summaries []*models.TraceSummary
+	summaries := make([]*models.TraceSummary, 0)
 	for _, t := range searchResult.Traces {
-		// Parse startTime from string -> int64 -> time.Time
+		if isInternalTraceService(t.RootServiceName) {
+			continue
+		}
 		startNano, err := strconv.ParseInt(t.StartTimeUnixNano, 10, 64)
 		if err != nil {
-			fmt.Printf("invalid startTimeUnixNano: %s", err)
 			continue
 		}
 

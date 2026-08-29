@@ -25,6 +25,8 @@ func NewRouter(
 	tracesSvc *service.TracesService,
 	dashboardSvc *service.DashboardService,
 	alertSvc *service.AlertService,
+	notificationSvc *service.NotificationService,
+	integrationSvc *service.IntegrationService,
 	projectSvc *service.ProjectService,
 	errorSvc *service.ErrorService,
 	sessionSvc *service.SessionService,
@@ -56,13 +58,15 @@ func NewRouter(
 	workspaceHandler := handlers.NewWorkspaceHandler(wsSvc, metrics, logger, tracer)
 
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, logger, tracer)
-	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, projectSvc, metrics, logger, tracer)
+	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, projectSvc, alertSvc, metrics, logger, tracer)
 	tracesHandler := handlers.NewTracesHandler(tracesSvc, projectSvc, logger, metrics, tracer)
 	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics, tracer)
 	sessionHandler := handlers.NewSessionHandler(sessionSvc, metrics, logger, tracer)
 
 	metricsHandler := handlers.NewMetricsHandler(metricsSvc, metrics)
 	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
+	notificationHandler := handlers.NewNotificationHandler(notificationSvc)
+	integrationHandler := handlers.NewIntegrationHandler(integrationSvc)
 
 	// user routes
 	r.With(middleware.RateLimit(5, time.Hour)).Post("/api/users/register", userHandler.Register)
@@ -131,7 +135,23 @@ func NewRouter(
 
 		// alert routes
 		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/alerts", alertHandler.Create)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Put("/api/alerts/{alert_id}", alertHandler.Update)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Delete("/api/alerts/{alert_id}", alertHandler.Delete)
 		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Get("/api/alerts/{project_id}", alertHandler.ListByProject)
+
+		// notifications
+		r.Get("/api/notifications", notificationHandler.List)
+		r.Post("/api/notifications/read-all", notificationHandler.MarkAllRead)
+		r.Post("/api/notifications/{notification_id}/read", notificationHandler.MarkRead)
+		r.Get("/api/notifications/prefs", notificationHandler.GetPrefs)
+		r.Put("/api/notifications/prefs", notificationHandler.SavePrefs)
+
+		// integrations
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Get("/api/integrations", integrationHandler.List)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/integrations", integrationHandler.Upsert)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Delete("/api/integrations/{integration_id}", integrationHandler.Delete)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Put("/api/integrations/{integration_id}/enabled", integrationHandler.SetEnabled)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/integrations/{integration_id}/test", integrationHandler.Test)
 
 		// otlp
 		projectMember := middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)
