@@ -33,6 +33,7 @@ import { fetchMetrics } from "@/lib/api/otlp-api";
 import type { Project, Metric, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
 import { formatTableTime } from "@/lib/utils";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 const MetricsTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 15;
@@ -42,6 +43,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [chartType, setChartType] = useState<"bar" | "area">("bar");
+  const [loading, setLoading] = useState(true);
 
   // Calculate start time
   const start = useMemo(() => {
@@ -75,6 +77,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
         console.log("error fetching metrics:", error);
         setError("Error fetching metrics");
         setMetrics([]);
+      } finally {
+        setLoading(false);
       }
     }
     getAllMetrics();
@@ -220,7 +224,6 @@ const MetricsTab = ({ project }: { project: Project }) => {
   const handlePrevious = () => {
     setCurrentPage((prev) => {
       const newPage = Math.max(prev - 1, 1);
-      console.log("Previous clicked, newPage:", newPage);
       return newPage;
     });
   };
@@ -228,10 +231,13 @@ const MetricsTab = ({ project }: { project: Project }) => {
   const handleNext = () => {
     setCurrentPage((prev) => {
       const newPage = Math.min(prev + 1, totalPages);
-      console.log("Next clicked, newPage:", newPage);
       return newPage;
     });
   };
+
+  if (loading) {
+    return <PageSkeleton variant="stats-table" />;
+  }
 
   return (
     <>

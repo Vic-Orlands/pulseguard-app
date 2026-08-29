@@ -40,6 +40,7 @@ import CustomErrorMessage from "../shared/error-message";
 import { Badge } from "@/components/ui/badge";
 import { formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 import type { Project, Session, TimeProp } from "@/types/dashboard";
 
@@ -78,7 +79,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
   }, [timeRange]);
 
   // Fetch sessions with SWR
-  const { data: sessions = [], error } = useSWR(
+  const { data: sessions = [], error, isLoading } = useSWR(
     [project.id, { start, end }],
     () => fetchSessions(project.id, start.toISOString(), end.toISOString()),
     {
@@ -158,6 +159,10 @@ const SessionsTab = ({ project }: { project: Project }) => {
   }, [filteredSessions]);
 
   const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
+
+  if (isLoading) {
+    return <PageSkeleton variant="stats-table" />;
+  }
 
   return (
     <>

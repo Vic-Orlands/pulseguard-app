@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { AlertCircleIcon, Loading02Icon, Search01Icon } from "@/components/phosphor-icons";
+import { AlertCircleIcon, Search01Icon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Card,
@@ -37,13 +37,14 @@ import CustomErrorMessage from "../../shared/error-message";
 import TraceToLogsComponent from "./trace-to-logs";
 import { Badge } from "@/components/ui/badge";
 import { displayValue, formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 const TracesTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
 
   const [error, setError] = useState<Error | null>(null);
   const [traces, setTraces] = useState<TraceSummary[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
@@ -116,6 +117,10 @@ const TracesTab = ({ project }: { project: Project }) => {
 
   const totalPages = Math.ceil(filteredTraces.length / itemsPerPage);
 
+  if (isLoading) {
+    return <PageSkeleton variant="table" />;
+  }
+
   return (
     <>
       {error && <CustomErrorMessage error={error.message} />}
@@ -178,14 +183,7 @@ const TracesTab = ({ project }: { project: Project }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="py-16 text-center">
-                      <HugeiconsIcon icon={Loading02Icon} className="mx-auto mb-2 h-5 w-5 animate-spin text-pg-muted" />
-                      <p className="text-xs text-pg-muted">Loading traces...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredTraces.length === 0 ? (
+                {filteredTraces.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-16">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />

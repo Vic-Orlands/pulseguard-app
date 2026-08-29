@@ -4,12 +4,12 @@ import {
   ArrowRight01Icon,
   HierarchyFilesIcon,
   InformationCircleIcon,
-  Loading02Icon,
   Tag01Icon,
   UngroupItemsIcon,
 } from "@/components/phosphor-icons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 import {
   Sheet,
   SheetContent,
@@ -204,11 +204,7 @@ const TraceToLogsComponent = ({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton variant="table" />;
   }
 
   if (error) return <CustomErrorMessage error="Failed to fetch trace data." />;

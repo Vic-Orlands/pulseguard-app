@@ -14,6 +14,7 @@ import { fetchDashboardData, fetchLogs, fetchTraces } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../../shared/error-message";
 import { formatTableTime, getUptime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 import type { Dispatch, SetStateAction, ReactNode } from "react";
 import type {
@@ -84,6 +85,7 @@ export default function OverviewTab({
   });
   const [logs, setLogs] = useState<Log[]>([]);
   const [traces, setTraces] = useState<TraceSummary[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function getDashboardData() {
@@ -99,6 +101,8 @@ export default function OverviewTab({
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load overview data");
+      } finally {
+        setLoading(false);
       }
     }
     getDashboardData();
@@ -109,6 +113,10 @@ export default function OverviewTab({
   const recentLogs = logs.slice(0, 5);
   const recentTraces = traces.slice(0, 5);
   const healthy = data.error_rate < 5 && data.total_errors < 10;
+
+  if (loading) {
+    return <PageSkeleton variant="overview" />;
+  }
 
   return (
     <>

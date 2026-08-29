@@ -22,6 +22,7 @@ import {
   type ProjectIntegration,
 } from "@/lib/api/integrations-api";
 import { ProviderLogo } from "@/components/dashboard/shared/provider-logos";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 import type { Project } from "@/types/dashboard";
 
 type ProviderId =
@@ -311,9 +312,7 @@ export default function IntegrationsTab({ project }: { project: Project }) {
         similar tools.
       </p>
       {loading ? (
-        <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-xs text-pg-muted">
-          Loading integrations...
-        </div>
+        <PageSkeleton variant="cards" />
       ) : (
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {providers.map((provider) => {

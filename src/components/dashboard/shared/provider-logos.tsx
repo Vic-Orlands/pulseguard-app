@@ -1,19 +1,15 @@
-const LOBE_CDN = "https://unpkg.com/@lobehub/icons-static-svg@latest/icons";
-const SIMPLE_CDN = "https://cdn.simpleicons.org";
-
-const slugs: Record<string, { src: string; invert?: boolean }> = {
-  slack: { src: `${SIMPLE_CDN}/slack/E01E5A` },
-  discord: { src: `${SIMPLE_CDN}/discord/5865F2` },
-  github: { src: `${LOBE_CDN}/github.svg`, invert: true },
-  linear: { src: `${SIMPLE_CDN}/linear/5E6AD2` },
-  clickup: { src: `${SIMPLE_CDN}/clickup/7B68EE` },
-  datadog: { src: `${SIMPLE_CDN}/datadog/632CA6` },
-  pagerduty: { src: `${SIMPLE_CDN}/pagerduty/06AC38` },
-  jira: { src: `${SIMPLE_CDN}/jira/1868DB` },
-  microsoft_teams: { src: `${SIMPLE_CDN}/microsoftteams/6264A7` },
-  telegram: { src: `${SIMPLE_CDN}/telegram/26A5E4` },
-  notion: { src: `${LOBE_CDN}/notion.svg`, invert: true },
-  webhook: { src: "" },
+const files: Record<string, string> = {
+  slack: "/integrations/slack.svg",
+  discord: "/integrations/discord.svg",
+  github: "/integrations/github.svg",
+  linear: "/integrations/linear.svg",
+  clickup: "/integrations/clickup.svg",
+  datadog: "/integrations/datadog.svg",
+  pagerduty: "/integrations/pagerduty.svg",
+  jira: "/integrations/jira.svg",
+  microsoft_teams: "/integrations/microsoftteams.svg",
+  telegram: "/integrations/telegram.svg",
+  notion: "/integrations/notion.svg",
 };
 
 export function ProviderLogo({ provider }: { provider: string }) {
@@ -30,8 +26,8 @@ export function ProviderLogo({ provider }: { provider: string }) {
     );
   }
 
-  const logo = slugs[provider];
-  if (!logo) {
+  const src = files[provider];
+  if (!src) {
     return (
       <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-pg-surface text-[10px] font-semibold text-pg-muted">
         {provider.slice(0, 2).toUpperCase()}
@@ -40,12 +36,8 @@ export function ProviderLogo({ provider }: { provider: string }) {
   }
 
   return (
-    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 dark:bg-zinc-100">
-      <img
-        src={logo.src}
-        alt=""
-        className={`h-5 w-5 object-contain ${logo.invert ? "dark:invert" : ""}`}
-      />
+    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/10 dark:bg-zinc-100">
+      <img src={src} alt="" className="h-4 w-4 object-contain" />
     </span>
   );
 }

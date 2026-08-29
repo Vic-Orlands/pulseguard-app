@@ -968,6 +968,18 @@ html:not(.dark) .sticky.top-20 {
   color: #09090b;
 }
 
+.btn-danger {
+  border: 0 !important;
+  background: #b91c1c;
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  color: #ffffff !important;
+}
+
 .pg-code {
   background: #0c0c0e;
   color: #e4e4e7;

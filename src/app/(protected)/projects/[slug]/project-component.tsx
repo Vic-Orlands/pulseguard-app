@@ -38,6 +38,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
 
   const [total, setTotal] = useState<number>(0);
   const [errors, setErrors] = useState<Error[]>([]);
+  const [errorsLoading, setErrorsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<NavItem>(defaultTab);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isConnectPlatformPending, setIsConnectPlatformPending] =
@@ -67,6 +68,8 @@ export default function DashboardComponent({ project }: { project: Project }) {
       setTotal(response.total);
     } catch (err) {
       console.log("Error fetching all errors:", err);
+    } finally {
+      setErrorsLoading(false);
     }
   };
 
@@ -115,6 +118,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
           <ErrorsTab
             total={total}
             errors={errors}
+            loading={errorsLoading}
             config={errorsConfig}
             handleConfig={handleConfig}
             onErrorUpdate={fetchErrorData}

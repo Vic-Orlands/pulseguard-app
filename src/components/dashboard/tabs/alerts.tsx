@@ -11,6 +11,7 @@ import {
   Notification01Icon,
 } from "@/components/phosphor-icons";
 import { Button } from "@/components/ui/button";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -202,9 +203,7 @@ export default function AlertsTab({ project }: { project: Project }) {
       </div>
 
       {loading ? (
-        <div className="rounded-lg bg-pg-group px-4 py-16 text-center text-xs text-pg-muted">
-          Loading alerts...
-        </div>
+        <PageSkeleton variant="table" />
       ) : alerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg bg-pg-group px-4 py-20 text-center">
           <HugeiconsIcon icon={Notification01Icon} className="mb-3 h-8 w-8 text-pg-muted" />

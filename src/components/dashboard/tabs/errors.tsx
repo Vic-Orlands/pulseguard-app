@@ -41,6 +41,7 @@ import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { displayValue, formatTableTime, tagValue } from "@/lib/utils";
 import { toast } from "sonner";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 import type { Error, ErrorMetaRowProps, ErrorsTabProps } from "@/types/error";
 
@@ -459,6 +460,7 @@ export function ErrorDetailsSheet({
 export default function ErrorsTab({
   total,
   errors,
+  loading = false,
   config,
   handleConfig,
   onErrorUpdate,
@@ -562,6 +564,10 @@ export default function ErrorsTab({
     }, 500);
   };
 
+  if (loading) {
+    return <PageSkeleton variant="table" />;
+  }
+
   return (
     <div>
       <Card className="bg-card border border-border shadow-none rounded-lg">
@@ -662,8 +668,8 @@ export default function ErrorsTab({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Type</TableHead>
                 <TableHead>Error</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Count</TableHead>
@@ -685,6 +691,14 @@ export default function ErrorsTab({
                     </TableCell>
                   ) : (
                     <>
+                      <TableCell className="max-w-[240px] overflow-hidden px-4 py-2">
+                        <p
+                          className="truncate text-xs font-medium"
+                          title={error.message}
+                        >
+                          {error.message}
+                        </p>
+                      </TableCell>
                       <TableCell className="px-4 py-2">
                         <Badge
                           variant="outline"
@@ -692,9 +706,6 @@ export default function ErrorsTab({
                         >
                           {error.type || "Error"}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-xs px-4 py-2">
-                        <p className="truncate text-xs font-medium">{error.message}</p>
                       </TableCell>
                       <TableCell className="max-w-[180px] px-4 py-2">
                         <span className="block truncate font-mono text-[11px] text-pg-muted">

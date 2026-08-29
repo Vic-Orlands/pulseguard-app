@@ -35,6 +35,7 @@ import {
   type WorkspaceMember,
 } from "@/lib/api/workspace-api";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Project } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
@@ -234,7 +235,7 @@ export default function WorkspaceMembersTab() {
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-xs text-pg-muted">Loading members...</p>
+        <PageSkeleton variant="cards" />
       ) : (
         <div className="space-y-2">
           {members.map((member) => (
@@ -326,10 +327,7 @@ export default function WorkspaceMembersTab() {
         <div className="pt-4">
           <CustomAlertDialog
             trigger={
-              <Button
-                variant="destructive"
-                className="h-8 bg-red-700 text-xs text-white hover:bg-red-600"
-              >
+              <Button className="btn-danger h-8 rounded-lg px-3 text-xs font-semibold">
                 Delete workspace
               </Button>
             }

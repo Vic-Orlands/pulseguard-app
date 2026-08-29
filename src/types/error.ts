@@ -51,6 +51,7 @@ export interface ErrorFilterProps {
 export interface ErrorsTabProps {
   total: number;
   errors: Error[] | null;
+  loading?: boolean;
   onErrorUpdate?: () => void;
   config: {
     project_id: string;

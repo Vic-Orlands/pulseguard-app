@@ -56,6 +56,7 @@ import {
   shortId,
 } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
+import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 function logTimestamp(log: Log): string {
   return log.timestamp || log.time || "";
@@ -137,6 +138,7 @@ const LogsTab = ({ project }: { project: Project }) => {
   const [filterLevel, setFilterLevel] = useState("all");
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [traceLog, setTraceLog] = useState<Log | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const start = useMemo(() => {
     const hours = timeRange === "1h" ? 1 : timeRange === "6h" ? 6 : timeRange === "7d" ? 168 : 24;
@@ -146,12 +148,15 @@ const LogsTab = ({ project }: { project: Project }) => {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
       try {
         const logsData = await fetchLogs(project.id, { start, end });
         setLogs((logsData || []).map(normalizeFetchedLog));
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load logs");
+      } finally {
+        setLoading(false);
       }
     };
     void loadData();
@@ -199,6 +204,10 @@ const LogsTab = ({ project }: { project: Project }) => {
     logs.filter((log) => normalizeLogLevel(log.level) === name).length;
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
+
+  if (loading) {
+    return <PageSkeleton variant="stats-table" />;
+  }
 
   return (
     <>
