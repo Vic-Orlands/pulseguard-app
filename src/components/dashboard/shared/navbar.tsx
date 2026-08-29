@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, type ComponentType } from "react";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   ArrowDown01Icon,
-  ArrowLeft01Icon,
   Cancel01Icon,
   PlusSignIcon,
+  HelpCircleIcon,
   Logout01Icon,
   Menu01Icon,
   Settings01Icon,
@@ -30,10 +30,11 @@ import {
   RefreshCw,
   Loader2,
   ChevronRight,
-  UserGroupIcon,
 } from "@/components/phosphor-icons";
 import type { PulseIconProps } from "@/components/phosphor-icons";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -59,6 +60,7 @@ import {
 } from "@/lib/api/notifications-api";
 import { Logo } from "@/app/(auth)/signin/page";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
+import { createProject } from "@/lib/api/projects-api";
 import {
   Dialog,
   DialogContent,
@@ -82,9 +84,7 @@ const navItems: { id: NavItem; label: string; icon: ComponentType<PulseIconProps
   { id: "logs", label: "Logs", icon: ListViewIcon },
   { id: "traces", label: "Traces", icon: HierarchyFilesIcon },
   { id: "alerts", label: "Alerts", icon: Notification01Icon },
-  { id: "teams", label: "Teams", icon: UserGroupIcon },
   { id: "integrations", label: "Integrations", icon: PlugsIcon },
-  { id: "settings", label: "Settings", icon: Settings01Icon },
 ];
 
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -116,6 +116,9 @@ export default function Header({
   );
   const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] =
     useState(false);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [creatingProject, setCreatingProject] = useState(false);
   const [previewWorkspaceId, setPreviewWorkspaceId] = useState<string | null>(
     activeWorkspace?.id ?? null,
   );
@@ -156,19 +159,36 @@ export default function Header({
   }, [loadNotifications]);
 
   useEffect(() => {
-    if (activeWorkspace?.id) {
-      setPreviewWorkspaceId(activeWorkspace.id);
+    const workspaceId = project.workspaceId || activeWorkspace?.id;
+    if (!workspaceId) return;
+    setPreviewWorkspaceId(workspaceId);
+    const workspace = workspaces.find((item) => item.id === workspaceId);
+    if (workspace && activeWorkspace?.id !== workspace.id) {
+      setActiveWorkspace(workspace);
     }
-  }, [activeWorkspace?.id]);
+  }, [project.workspaceId, project.id, workspaces, activeWorkspace?.id, setActiveWorkspace]);
 
   const handleBackToProjects = () => {
     router.push("/projects");
   };
 
   const currentUser = user && normalizePostgresString(user.avatar);
-  const previewProjects = previewWorkspaceId
-    ? (workspaceProjects[previewWorkspaceId] ?? [])
-    : [];
+  const previewProjects = (() => {
+    const loaded = previewWorkspaceId
+      ? (workspaceProjects[previewWorkspaceId] ?? [])
+      : [];
+    if (loaded.some((item) => item.id === project.id)) {
+      return loaded;
+    }
+    if (
+      !previewWorkspaceId ||
+      !project.workspaceId ||
+      previewWorkspaceId === project.workspaceId
+    ) {
+      return [project, ...loaded];
+    }
+    return loaded;
+  })();
   const previewProjectsLoading = previewWorkspaceId
     ? workspaceProjectLoading[previewWorkspaceId]
     : false;
@@ -232,6 +252,49 @@ export default function Header({
     router.push(`/projects/${slug}`);
   };
 
+  const handleWorkspaceSwitch = (workspaceId: string) => {
+    const workspace = workspaces.find((item) => item.id === workspaceId);
+    if (!workspace) return;
+    setActiveWorkspace(workspace);
+    router.push("/projects");
+  };
+
+  const handleCreateProject = async () => {
+    const name = newProjectName.trim();
+    if (!name) {
+      toast.error("Project name is required");
+      return;
+    }
+    const workspaceId = activeWorkspace?.id;
+    if (!workspaceId) {
+      toast.error("Select a workspace first");
+      return;
+    }
+    setCreatingProject(true);
+    try {
+      const created = await createProject({
+        name,
+        description: name,
+        platform: "OpenTelemetry Project",
+        workspaceId,
+      });
+      if (created?.error) {
+        toast.error(created.error);
+        return;
+      }
+      toast.success("Project created");
+      setIsCreateProjectOpen(false);
+      setIsOrgSwitcherOpen(false);
+      setNewProjectName("");
+      setIsProjectNavigationPending(true);
+      router.push(`/projects/${created.slug}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create project");
+    } finally {
+      setCreatingProject(false);
+    }
+  };
+
   const getCodeSnippet = () => {
     switch (modalCodeTab) {
       case "node":
@@ -288,124 +351,86 @@ export default function Header({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[min(92vw,42rem)] bg-pg-modal text-pg-text rounded-lg p-0 z-50 text-left overflow-hidden"
+            className="h-fit w-72 bg-pg-modal text-pg-text rounded-lg p-0 z-50 text-left overflow-hidden"
             align="start"
             side="right"
             sideOffset={10}
           >
-            <div className="grid md:grid-cols-[16rem_minmax(0,1fr)]">
-              <div className="bg-pg-group/50">
-                <div className="px-4 py-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
-                    Workspaces
-                  </p>
+            <div className="px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
+                Projects
+              </p>
+              <p className="mt-0.5 truncate text-[11px] text-pg-muted">
+                {activeWorkspace?.name || "Workspace"}
+              </p>
+            </div>
+            <div className="max-h-72 overflow-y-auto p-1">
+              {previewProjectsLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-xs text-pg-muted">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading projects...</span>
                 </div>
-                <div className="max-h-80 space-y-1 overflow-y-auto p-2">
-                  {workspaces.map((ws) => {
-                    const isPreviewWorkspace = previewWorkspaceId === ws.id;
-                    return (
-                      <button
-                        key={ws.id}
-                        onClick={() => handleWorkspacePreview(ws.id)}
-                        className={`w-full rounded-lg px-3 py-2.5 text-left transition-all ${
-                          isPreviewWorkspace
-                            ? "bg-pg-group text-pg-text"
-                            : "text-pg-muted hover:bg-pg-group hover:text-pg-text"
-                        }`}
-                      >
-                        <p className="min-w-0 truncate text-xs font-medium">
-                          {ws.name}
-                        </p>
-                      </button>
-                    );
-                  })}
+              ) : previewProjectsError ? (
+                <div className="px-2 py-3">
+                  <div className="banner-error">{previewProjectsError}</div>
                 </div>
-                <div className="p-2">
-                  <button
-                    onClick={() => {
-                      setIsOrgSwitcherOpen(false);
-                      setIsCreateWorkspaceModalOpen(true);
-                    }}
-                    className="flex w-full items-center gap-1 rounded-lg bg-transparent px-3 py-2.5 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-group"
-                  >
-                    <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
-                    <span>Create Workspace</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex min-h-[22rem] flex-col">
-                <div className="px-4 py-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-pg-subtle">
-                    Projects
-                  </p>
-                </div>
-                <div className="flex-1 p-2">
-                  {previewProjectsLoading ? (
-                    <div className="flex h-full min-h-56 items-center justify-center gap-2 text-xs text-pg-muted">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Loading projects...</span>
-                    </div>
-                  ) : previewProjectsError ? (
-                    <div className="flex h-full min-h-56 items-center justify-center p-3">
-                      <div className="banner-error w-full">
-                        {previewProjectsError}
-                      </div>
-                    </div>
-                  ) : previewProjects.length > 0 ? (
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {previewProjects.map((workspaceProject) => {
-                        const isCurrentProject =
-                          workspaceProject.id === project.id;
-                        return (
-                          <button
-                            key={workspaceProject.id}
-                            onClick={() =>
-                              handleProjectSelect(
-                                previewWorkspaceId!,
-                                workspaceProject.slug,
-                              )
-                            }
-                            disabled={isProjectNavigationPending}
-                            className={`rounded-lg p-3 text-left transition-all ${
-                              isCurrentProject
-                                ? "bg-pg-group"
-                                : "bg-transparent hover:bg-pg-group"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-xs font-medium text-pg-text">
-                                  {workspaceProject.name}
-                                </p>
-                                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-pg-muted">
-                                  {workspaceProject.description ||
-                                    "Open this project dashboard."}
-                                </p>
-                              </div>
-                              {isCurrentProject ? null : (
-                                <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-pg-muted" />
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex h-full min-h-56 flex-col items-center justify-center px-6 text-center">
-                      <p className="text-sm text-pg-text">
-                        No projects in this workspace yet.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              ) : previewProjects.length > 0 ? (
+                previewProjects.map((workspaceProject) => {
+                  const isCurrentProject = workspaceProject.id === project.id;
+                  return (
+                    <button
+                      key={workspaceProject.id}
+                      onClick={() =>
+                        handleProjectSelect(
+                          previewWorkspaceId!,
+                          workspaceProject.slug,
+                        )
+                      }
+                      disabled={isProjectNavigationPending}
+                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                        isCurrentProject
+                          ? "bg-pg-group text-pg-text"
+                          : "bg-transparent text-pg-muted hover:bg-pg-group hover:text-pg-text"
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                        {workspaceProject.name}
+                      </span>
+                      {isCurrentProject ? (
+                        <HugeiconsIcon
+                          icon={CheckIcon}
+                          className="h-3.5 w-3.5 shrink-0"
+                        />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="px-3 py-6 text-center text-xs text-pg-muted">
+                  No projects in this workspace yet.
+                </p>
+              )}
+            </div>
+            <div className="p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOrgSwitcherOpen(false);
+                  setIsCreateProjectOpen(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg bg-transparent px-2.5 py-2 text-left text-xs font-medium text-pg-text transition-colors hover:bg-pg-group"
+              >
+                <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
+                Create new project
+              </button>
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 pb-3">
+      <nav className="flex-1 overflow-hidden px-2 pb-3">
         {navItems.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
@@ -433,15 +458,16 @@ export default function Header({
         })}
       </nav>
 
-      <div className="mt-auto px-3 pb-4 space-y-2">
-        <button
-          type="button"
-          onClick={handleBackToProjects}
-          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
+      <div className="mt-auto px-3 pb-4 space-y-1">
+        <a
+          href="/documentation"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted no-underline transition-colors hover:bg-pg-group hover:text-pg-text"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
-          Projects
-        </button>
+          <HugeiconsIcon icon={HelpCircleIcon} className="h-4 w-4" />
+          Documentation
+        </a>
 
         <button
           onClick={() => setIsCliModalOpen(true)}
@@ -557,7 +583,7 @@ export default function Header({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-52 bg-pg-modal rounded-lg p-1 z-50 text-left text-pg-text"
+            className="w-64 bg-pg-modal rounded-lg p-1 z-50 text-left text-pg-text"
             align="start"
             side="top"
             forceMount
@@ -569,6 +595,42 @@ export default function Header({
               <p className="text-[10px] text-pg-subtle truncate mt-0.5">
                 {user?.email || ""}
               </p>
+            </div>
+            <div className="px-2 pb-1">
+              <p className="px-1 pb-1 text-[10px] font-medium uppercase tracking-[0.16em] text-pg-subtle">
+                Workspaces
+              </p>
+              <div className="max-h-36 space-y-0.5 overflow-y-auto">
+                {workspaces.map((ws) => {
+                  const isActive = activeWorkspace?.id === ws.id;
+                  return (
+                    <button
+                      key={ws.id}
+                      type="button"
+                      onClick={() => handleWorkspaceSwitch(ws.id)}
+                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors bg-transparent border-0 ${
+                        isActive
+                          ? "bg-pg-group text-pg-text"
+                          : "text-pg-muted hover:bg-pg-group hover:text-pg-text"
+                      }`}
+                    >
+                      <Building className="h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{ws.name}</span>
+                      {isActive ? (
+                        <HugeiconsIcon icon={CheckIcon} className="h-3.5 w-3.5" />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateWorkspaceModalOpen(true)}
+                className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent border-0"
+              >
+                <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
+                Create workspace
+              </button>
             </div>
             <div className="p-1 space-y-0.5">
               <button
@@ -619,7 +681,7 @@ export default function Header({
 
   return (
     <>
-      <aside className="hidden md:flex sticky top-0 z-40 h-screen w-[220px] shrink-0 flex-col bg-pg-modal text-pg-text select-none">
+      <aside className="hidden md:flex z-40 h-full w-[220px] shrink-0 flex-col overflow-hidden bg-pg-modal text-pg-text select-none">
         {sidebarInner}
       </aside>
 
@@ -673,9 +735,41 @@ export default function Header({
         )}
       </AnimatePresence>
 
+      <Dialog open={isCreateProjectOpen} onOpenChange={setIsCreateProjectOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">
+              Create project
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Adds a project to {activeWorkspace?.name || "this workspace"}.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newProjectName}
+            onChange={(event) => setNewProjectName(event.target.value)}
+            placeholder="Project name"
+            className="h-9 text-sm"
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void handleCreateProject();
+            }}
+          />
+          <div className="flex justify-end">
+            <Button
+              className="btn-primary h-8 text-xs"
+              onClick={() => void handleCreateProject()}
+              loading={creatingProject}
+              loadingText="Creating..."
+            >
+              Create
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isCliModalOpen} onOpenChange={setIsCliModalOpen}>
-        <DialogContent className="pg-modal max-w-2xl overflow-hidden p-0 shadow-none">
-          <div className="space-y-5 p-6">
+        <DialogContent className="max-h-[85vh] overflow-hidden p-0 shadow-none sm:max-w-lg">
+          <div className="max-h-[85vh] space-y-5 overflow-y-auto p-6">
             <DialogHeader className="space-y-1 text-left">
               <DialogTitle className="text-base font-semibold text-pg-text">
                 Workspace Integration Key
@@ -692,12 +786,12 @@ export default function Header({
                 Active Integration Key
               </span>
               <div className="flex flex-col gap-2 md:flex-row">
-                <div className="relative flex-1 overflow-hidden rounded-lg bg-pg-group px-3 py-2">
+                <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg bg-pg-group px-3 py-2">
                   <input
                     type={showModalApiKey ? "text" : "password"}
                     value={apiKey}
                     readOnly
-                    className="w-full bg-transparent pr-16 font-mono text-xs text-pg-text outline-none"
+                    className="w-full min-w-0 truncate bg-transparent pr-16 font-mono text-xs text-pg-text outline-none"
                   />
                   <div className="absolute right-2 top-1.5 flex items-center gap-1.5 bg-pg-group pl-2">
                     <button
@@ -785,9 +879,9 @@ export default function Header({
                   ))}
                 </div>
               </div>
-              <div className="max-h-44 overflow-x-auto rounded-lg bg-pg-group p-3 font-mono text-[10.5px] text-pg-text whitespace-pre">
+              <pre className="max-h-48 overflow-auto rounded-lg bg-pg-group p-3 font-mono text-[11px] leading-relaxed text-pg-text whitespace-pre-wrap break-all">
                 {getCodeSnippet()}
-              </div>
+              </pre>
             </div>
           </div>
         </DialogContent>

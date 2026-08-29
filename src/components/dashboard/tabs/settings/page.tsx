@@ -61,6 +61,14 @@ import { availableAvatars } from "@/components/avatars";
 import { normalizePostgresString, wrapAsPostgresString, HttpError } from "@/lib/utils";
 import { UserFormSchema, type UserFormType } from "@/types/settings";
 import type { Project } from "@/types/dashboard";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import TeamsTab from "@/components/dashboard/tabs/teams";
 
 type DialogId = "account" | "project" | "notifications" | null;
 
@@ -102,6 +110,7 @@ export default function SettingsTab({ project }: { project: Project }) {
     email_invites: true,
   });
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [teamsOpen, setTeamsOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -281,7 +290,7 @@ export default function SettingsTab({ project }: { project: Project }) {
             icon={UserGroupIcon}
             label="Teams"
             value={activeWorkspace?.name}
-            onClick={() => router.replace(`/projects/${project.slug}?tab=teams`)}
+            onClick={() => setTeamsOpen(true)}
           />
         </SettingsGroup>
 
@@ -569,6 +578,18 @@ export default function SettingsTab({ project }: { project: Project }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Sheet open={teamsOpen} onOpenChange={setTeamsOpen}>
+        <SheetContent className="overflow-y-auto p-6">
+          <SheetHeader className="mb-4 p-0">
+            <SheetTitle className="text-base">Teams</SheetTitle>
+            <SheetDescription className="text-xs">
+              Members, invites, and team groups for this workspace.
+            </SheetDescription>
+          </SheetHeader>
+          <TeamsTab />
+        </SheetContent>
+      </Sheet>
 
       <DeleteProjectDialog
         isOpen={deleteDialogOpen}

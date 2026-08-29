@@ -689,22 +689,22 @@ const LogsTab = ({ project }: { project: Project }) => {
                       className="cursor-pointer"
                       onClick={() => setSelectedLog(log)}
                     >
-                      <TableCell className="text-muted-foreground font-mono text-[10px] py-2 px-4 whitespace-nowrap">
+                      <TableCell className="text-muted-foreground text-[10px] py-2 px-4 whitespace-nowrap">
                         {format(new Date(log.time), "PP, h:mmaaa")}
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4 whitespace-nowrap">
                         {log.service_name ?? "N/A"}
                       </TableCell>
                       <TableCell className="py-2 px-4">
-                        <Badge className={`${getSeverityColor(log.level)} text-[10px] font-mono shadow-none border-none py-0.5`}>
+                        <Badge className={`${getSeverityColor(log.level)} text-[10px] font-sans shadow-none border-none py-0.5`}>
                           {getSeverityIcon(log.level)}
                           <span className="ml-1">{log.level}</span>
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-[10px] text-primary py-2 px-4">
+                      <TableCell className="text-[10px] text-primary py-2 px-4">
                         {log.traceId ?? "none"}
                       </TableCell>
-                      <TableCell className="font-mono text-[10px] text-muted-foreground py-2 px-4">
+                      <TableCell className="text-[10px] text-muted-foreground py-2 px-4">
                         {log.spanId ?? "none"}
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4 max-w-xs truncate">
@@ -782,7 +782,7 @@ const LogsTab = ({ project }: { project: Project }) => {
         </Card>
 
         <Sheet open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-          <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+          <SheetContent side="right" className="overflow-y-auto p-6">
             <SheetHeader className="p-0 pb-4 mb-4">
               <SheetTitle className="text-sm font-semibold">Log Details</SheetTitle>
             </SheetHeader>
@@ -791,7 +791,7 @@ const LogsTab = ({ project }: { project: Project }) => {
         </Sheet>
 
         <Sheet open={!!traceLog} onOpenChange={(open) => !open && setTraceLog(null)}>
-          <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+          <SheetContent side="right" className="overflow-y-auto p-6">
             <SheetHeader className="p-0 pb-4 mb-4">
               <SheetTitle className="text-sm font-semibold">Trace Details</SheetTitle>
               <SheetDescription className="text-xs text-pg-muted">
@@ -806,7 +806,7 @@ const LogsTab = ({ project }: { project: Project }) => {
         <Sheet open={showTraceDemo} onOpenChange={setShowTraceDemo}>
           <SheetContent
             side="right"
-            className="sm:max-w-lg bg-card border-l border-border text-foreground overflow-y-auto"
+            className="overflow-y-auto p-6"
           >
             <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
               <SheetTitle className="text-sm font-semibold text-foreground flex items-center gap-1.5">

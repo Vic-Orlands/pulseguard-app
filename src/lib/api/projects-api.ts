@@ -14,6 +14,37 @@ const headerConfig = {
 };
 
 // SETTINGS - PROJECT API FUNCTIONS
+export const createProject = async (data: {
+  name: string;
+  description: string;
+  platform: string;
+  workspaceId: string;
+}) => {
+  const res = await fetch(`${url}/api/projects`, {
+    method: "POST",
+    ...headerConfig,
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const contentType = res.headers.get("content-type") || "";
+    let bodyText = "";
+    try {
+      if (contentType.includes("application/json")) {
+        const e = await res.json();
+        bodyText = e?.error || e?.message || JSON.stringify(e);
+      } else {
+        bodyText = await res.text();
+      }
+    } catch {
+      bodyText = res.statusText;
+    }
+    throw new HttpError(bodyText || `HTTP ${res.status}`, res.status, bodyText);
+  }
+
+  return res.json();
+};
+
 export const updateProject = async (slug: string, data: Project) => {
   const res = await fetch(`${url}/api/projects/${slug}`, {
     method: "PUT",

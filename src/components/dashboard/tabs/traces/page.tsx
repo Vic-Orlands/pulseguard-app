@@ -234,7 +234,7 @@ const TracesTab = ({ project }: { project: Project }) => {
                       <TableCell className="text-foreground text-xs py-2 px-4">
                         {trace.serviceName || "unknown"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-[10px] py-2 px-4">
+                      <TableCell className="text-muted-foreground text-[10px] py-2 px-4">
                         {trace.traceId || "none"}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs py-2 px-4 whitespace-nowrap">
@@ -245,7 +245,7 @@ const TracesTab = ({ project }: { project: Project }) => {
                           {trace.name || "unnamed"}
                         </div>
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4 font-mono">
+                      <TableCell className="text-foreground text-xs py-2 px-4">
                         {(trace.duration ?? 0).toFixed(2)} ms
                       </TableCell>
                       <TableCell onClick={(event) => event.stopPropagation()}>
@@ -312,7 +312,7 @@ const TracesTab = ({ project }: { project: Project }) => {
       </div>
 
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
-        <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+        <SheetContent side="right" className="overflow-y-auto p-6">
           <SheetHeader className="p-0 pb-4 mb-4">
             <SheetTitle className="text-sm font-semibold">Trace Details</SheetTitle>
             <SheetDescription className="text-xs text-pg-muted">

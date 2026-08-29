@@ -64,7 +64,7 @@ function ComponentStackSheet({ componentStack }: { componentStack: string }) {
           View Component Stack
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto">
+      <SheetContent className="overflow-y-auto p-6">
         <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
           <SheetTitle className="text-sm font-semibold text-foreground">Component Stack</SheetTitle>
         </SheetHeader>
@@ -142,7 +142,7 @@ export function ErrorDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={isStatusLoading ? () => {} : onClose}>
-      <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground shadow-none overflow-y-auto">
+      <SheetContent className="overflow-y-auto p-6">
         {selectedError ? (
           <div className="space-y-6 text-foreground">
             {/* Header */}
@@ -699,13 +699,13 @@ export default function ErrorsTab({
                     </TableCell>
                   ) : (
                     <>
-                      <TableCell className="font-mono text-[10px] text-foreground font-medium py-2 px-4">
+                      <TableCell className="text-[10px] text-foreground font-medium py-2 px-4">
                         {error.id}
                       </TableCell>
                       <TableCell className="py-2 px-4">
                         <Badge
                           variant="outline"
-                          className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] font-mono shadow-none border-none py-0.5 flex items-center gap-1"
+                          className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] font-sans shadow-none border-none py-0.5 flex items-center gap-1"
                         >
                           <HugeiconsIcon icon={Bug01Icon} className="h-3 w-3" />
                           {error.type || "unknown"}

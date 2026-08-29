@@ -306,7 +306,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          <Card className="bg-card border border-border shadow-none rounded-lg">
+          <Card className="bg-pg-group border-0 shadow-none rounded-lg">
             <CardContent className="flex items-center justify-between p-4 h-full">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
@@ -322,7 +322,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border border-border shadow-none rounded-lg">
+          <Card className="bg-pg-group border-0 shadow-none rounded-lg">
             <CardContent className="flex items-center justify-between p-4 h-full">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
@@ -338,7 +338,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border border-border shadow-none rounded-lg">
+          <Card className="bg-pg-group border-0 shadow-none rounded-lg">
             <CardContent className="flex items-center justify-between p-4 h-full">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
@@ -354,7 +354,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border border-border shadow-none rounded-lg">
+          <Card className="bg-pg-group border-0 shadow-none rounded-lg">
             <CardContent className="flex items-center justify-between p-4 h-full">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
@@ -417,7 +417,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
         </div>
 
         {/* Table */}
-        <Card className="bg-card border border-border shadow-none rounded-lg mt-5">
+        <Card className="bg-pg-group border-0 shadow-none rounded-lg mt-5">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -449,13 +449,13 @@ const MetricsTab = ({ project }: { project: Project }) => {
                       className="cursor-pointer"
                       onClick={() => setSelectedMetric(metric)}
                     >
-                      <TableCell className="text-foreground font-mono text-[10px] py-2 px-4">
+                      <TableCell className="text-foreground text-xs py-2 px-4">
                         {metric.id || "none"}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs py-2 px-4">
                         {format(new Date(metric.timestamp), "PP, h:mmaaa")}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4 font-mono">
+                      <TableCell className="text-foreground text-xs py-2 px-4">
                         {metric.name || "unknown"}
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4">

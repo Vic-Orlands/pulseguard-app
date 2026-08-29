@@ -613,7 +613,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
 
       {/* Span Details Sheet */}
       <Sheet open={!!selectedSpan} onOpenChange={() => setSelectedSpan(null)}>
-        <SheetContent className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto">
+        <SheetContent className="overflow-y-auto p-6">
           {selectedSpan ? (
             <div className="space-y-6 text-foreground">
               <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">

@@ -51,7 +51,7 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="dashboard-canvas min-h-screen origin-left will-change-transform overflow-hidden"
+      className="dashboard-canvas h-screen origin-left overflow-hidden"
       animate={
         isOpen
           ? { scale: 0.965, x: -22, borderRadius: 16 }

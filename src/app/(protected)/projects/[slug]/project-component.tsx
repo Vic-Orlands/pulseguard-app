@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@/components/phosphor-icons";
-import { Add01Icon, HelpCircleIcon } from "@/components/phosphor-icons";
+import { Add01Icon } from "@/components/phosphor-icons";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -50,16 +50,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
   });
 
   useEffect(() => {
-    const tab = searchParams.get("tab") as NavItem | null;
-    if (tab && tab !== activeTab) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.get("tab") === activeTab) return;
     params.set("tab", activeTab);
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.replace(`?${params.toString()}`, { scroll: false });
   }, [activeTab, router, searchParams]);
 
   const fetchErrorData = async () => {
@@ -146,7 +140,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
   return (
     <SheetScaleProvider>
       <DashboardCanvas>
-        <div className="dashboard-shell min-h-screen md:flex">
+        <div className="dashboard-shell flex h-full overflow-hidden">
           <Navbar
             alerts={alerts}
             activeTab={activeTab}
@@ -154,46 +148,28 @@ export default function DashboardComponent({ project }: { project: Project }) {
             project={project}
           />
 
-          <div className="min-w-0 flex-1">
-            <main className="min-h-screen">
+          <div className="min-w-0 flex-1 overflow-y-auto">
+            <main className="min-h-full">
               <div className="flex items-center justify-between gap-3 px-6 py-5">
                 <h1 className="text-lg font-semibold tracking-tight text-pg-text">
                   {titles[activeTab]}
                 </h1>
                 {activeTab !== "settings" ? (
-                  <div className="flex flex-wrap gap-2">
-                    <a
-                      href="/documentation"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        variant="ghost"
-                        className="h-8 rounded-lg px-3 text-xs font-medium text-pg-muted shadow-none hover:bg-pg-group hover:text-pg-text"
-                      >
-                        <HugeiconsIcon
-                          icon={HelpCircleIcon}
-                          className="mr-1.5 h-3.5 w-3.5"
-                        />
-                        Documentation
-                      </Button>
-                    </a>
-                    <Button
-                      className="btn-primary h-8 rounded-lg px-3 text-xs font-semibold shadow-none"
-                      onClick={() => {
-                        setIsConnectPlatformPending(true);
-                        setActiveTab("connect-platform");
-                      }}
-                      loading={isConnectPlatformPending}
-                      loadingText="Opening..."
-                    >
-                      <HugeiconsIcon
-                        icon={Add01Icon}
-                        className="mr-1.5 h-3.5 w-3.5"
-                      />
-                      Connect Platform
-                    </Button>
-                  </div>
+                  <Button
+                    className="btn-primary h-8 rounded-lg px-3 text-xs font-semibold shadow-none"
+                    onClick={() => {
+                      setIsConnectPlatformPending(true);
+                      setActiveTab("connect-platform");
+                    }}
+                    loading={isConnectPlatformPending}
+                    loadingText="Opening..."
+                  >
+                    <HugeiconsIcon
+                      icon={Add01Icon}
+                      className="mr-1.5 h-3.5 w-3.5"
+                    />
+                    Connect Platform
+                  </Button>
                 ) : null}
               </div>
 

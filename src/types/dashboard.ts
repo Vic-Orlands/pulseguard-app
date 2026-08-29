@@ -19,6 +19,7 @@ export type Project = {
   name: string;
   description: string;
   platform: string;
+  workspaceId?: string;
   createdAt: string;
   updatedAt: string;
   errorCount: number;

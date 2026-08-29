@@ -329,7 +329,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                       className="cursor-pointer"
                       onClick={() => setSelectedSession(session)}
                     >
-                      <TableCell className="text-foreground font-mono text-[10px]">
+                      <TableCell className="text-foreground text-xs py-2 px-4">
                         {session.session_id || "none"}
                       </TableCell>
                       <TableCell className="text-foreground text-xs">
@@ -410,7 +410,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
       </div>
 
       <Sheet open={!!selectedSession} onOpenChange={(open) => !open && setSelectedSession(null)}>
-        <SheetContent side="right" className="sm:max-w-lg bg-pg-modal p-6">
+        <SheetContent side="right" className="overflow-y-auto p-6">
           {selectedSession ? (
             <>
               <SheetHeader className="p-0 pb-4 mb-4">
