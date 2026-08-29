@@ -79,6 +79,11 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
+	allowed, err := h.projectService.CanAccessWorkspace(ctx, req.WorkspaceID, userID, "member")
+	if err != nil || !allowed {
+		util.WriteError(w, http.StatusForbidden, "Forbidden")
+		return
+	}
 	project, err := h.projectService.Create(ctx, req.Name, req.Description, userID, req.WorkspaceID)
 	if err != nil {
 		if errors.Is(err, service.ErrDuplicateSlug) {
@@ -117,7 +122,7 @@ func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
 
 	workspaceID := r.URL.Query().Get("workspaceId")
 	if workspaceID != "" {
-		projects, err := h.projectService.ListByWorkspace(ctx, workspaceID)
+		projects, err := h.projectService.ListByWorkspaceForMember(ctx, workspaceID, userID)
 		if err != nil {
 			h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "list_projects_failed")))
 			util.WriteError(w, http.StatusInternalServerError, "Failed to fetch workspace projects")
@@ -141,8 +146,13 @@ func (h *ProjectHandler) ListByOwner(w http.ResponseWriter, r *http.Request) {
 func (h *ProjectHandler) GetBySlug(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	slug := chi.URLParam(r, "slug")
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
 
-	project, err := h.projectService.GetBySlug(ctx, slug)
+	project, err := h.projectService.GetBySlugForMember(ctx, slug, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			util.WriteError(w, http.StatusNotFound, "Project not found")
@@ -169,8 +179,13 @@ func (h *ProjectHandler) GetBySlug(w http.ResponseWriter, r *http.Request) {
 func (h *ProjectHandler) DeleteBySlug(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	slug := chi.URLParam(r, "slug")
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
 
-	project, err := h.projectService.DeleteBySlug(ctx, slug)
+	project, err := h.projectService.DeleteBySlugForManager(ctx, slug, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			util.WriteError(w, http.StatusNotFound, "Project not found")
@@ -190,6 +205,11 @@ func (h *ProjectHandler) DeleteBySlug(w http.ResponseWriter, r *http.Request) {
 func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	oldSlug := chi.URLParam(r, "slug")
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
 
 	var req updateProjectRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -209,14 +229,14 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.projectService.UpdateProject(ctx, oldSlug, req.Name, req.Description, req.Slug)
+	project, err := h.projectService.UpdateProjectForManager(ctx, oldSlug, userID, req.Name, req.Description, req.Slug)
 	if err != nil {
 		var pqe *pq.Error
 		// if project name already exists for user
-        if errors.As(err, &pqe) && pqe.Code == "23505" {
-            util.WriteError(w, http.StatusConflict, "Name or slug already exists")
-            return
-        }
+		if errors.As(err, &pqe) && pqe.Code == "23505" {
+			util.WriteError(w, http.StatusConflict, "Name or slug already exists")
+			return
+		}
 
 		if errors.Is(err, sql.ErrNoRows) {
 			util.WriteError(w, http.StatusNotFound, "Project not found")

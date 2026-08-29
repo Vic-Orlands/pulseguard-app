@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"pulseguard/internal/models"
@@ -42,23 +44,23 @@ func (repo *UserRepository) Create(ctx context.Context, user *models.User) error
 	query := `
         INSERT INTO users (name, email, image, password)
         VALUES ($1, $2, $3, $4)
-		RETURNING id, created_at, updated_at
+		RETURNING id, token_version, created_at, updated_at
     `
 
 	return repo.db.QueryRowContext(ctx, query,
 		user.Name, user.Email, user.Image, user.Password,
-	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.TokenVersion, &user.CreatedAt, &user.UpdatedAt)
 }
 
 // get user by email
 func (repo *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	query := `SELECT id, email, name, password, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, email, name, password, token_version, created_at, updated_at FROM users WHERE email = $1`
 
 	row := repo.db.QueryRowContext(ctx, query, email)
 
 	var user models.User
 	err := row.Scan(
-		&user.ID, &user.Email, &user.Name, &user.Password,
+		&user.ID, &user.Email, &user.Name, &user.Password, &user.TokenVersion,
 		&user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
@@ -74,8 +76,8 @@ func (repo *UserRepository) GetByEmail(ctx context.Context, email string) (*mode
 // get current user
 func (repo *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
-	row := repo.db.QueryRowContext(ctx, "SELECT id, email, name, image, provider, provider_id, created_at, updated_at FROM users WHERE id=$1", id)
-	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.Image, &user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt)
+	row := repo.db.QueryRowContext(ctx, "SELECT id, email, name, image, provider, provider_id, token_version, created_at, updated_at FROM users WHERE id=$1", id)
+	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.Image, &user.Provider, &user.ProviderID, &user.TokenVersion, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		return nil, err
@@ -112,7 +114,7 @@ func (repo *UserRepository) CreateOAuthUser(ctx context.Context, email, name, pr
 			provider_id = EXCLUDED.provider_id,
 			image = EXCLUDED.image,
 			updated_at  = now()
-		RETURNING id, email, name, provider, provider_id, image, created_at, updated_at
+		RETURNING id, email, name, provider, provider_id, image, token_version, created_at, updated_at
 	`
 
 	user := &models.User{}
@@ -125,6 +127,7 @@ func (repo *UserRepository) CreateOAuthUser(ctx context.Context, email, name, pr
 		&user.Provider,
 		&user.ProviderID,
 		&user.Image,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -150,6 +153,7 @@ func (repo *UserRepository) Update(ctx context.Context, id uuid.UUID, name, avat
 		query += fmt.Sprintf("password = $%d,", argIdx)
 		args = append(args, hashedPassword)
 		argIdx++
+		query += "token_version = token_version + 1,"
 	}
 	if avatar != "" {
 		query += fmt.Sprintf("image = $%d,", argIdx)
@@ -188,25 +192,27 @@ func (repo *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 // SaveResetToken inserts or updates a password reset token for a user.
 func (repo *UserRepository) SaveResetToken(ctx context.Context, email, token string, expiresAt time.Time) error {
+	tokenHash := hashToken(token)
 	query := `
 		INSERT INTO password_resets (email, token, expires_at)
-		VALUES ($1, $2, $3)
+		SELECT email, $2, $3 FROM users WHERE email = $1
 		ON CONFLICT (token) DO UPDATE
 		SET expires_at = EXCLUDED.expires_at
 	`
-	_, err := repo.db.ExecContext(ctx, query, email, token, expiresAt)
+	_, err := repo.db.ExecContext(ctx, query, email, tokenHash, expiresAt)
 	return err
 }
 
 // VerifyResetToken checks if the token is valid and returns the user.
 func (repo *UserRepository) VerifyResetToken(ctx context.Context, token string) (*models.User, error) {
+	tokenHash := hashToken(token)
 	query := `
 		SELECT u.id, u.email, u.name, u.password, u.created_at, u.updated_at
 		FROM password_resets pr
 		JOIN users u ON pr.email = u.email
 		WHERE pr.token = $1 AND pr.expires_at > NOW()
 	`
-	row := repo.db.QueryRowContext(ctx, query, token)
+	row := repo.db.QueryRowContext(ctx, query, tokenHash)
 
 	var user models.User
 	err := row.Scan(&user.ID, &user.Email, &user.Name, &user.Password, &user.CreatedAt, &user.UpdatedAt)
@@ -221,14 +227,30 @@ func (repo *UserRepository) VerifyResetToken(ctx context.Context, token string) 
 
 // UpdatePassword updates a user's password.
 func (repo *UserRepository) UpdatePassword(ctx context.Context, userID uuid.UUID, hashedPassword string) error {
-	query := `UPDATE users SET password = $1, updated_at = $2 WHERE id = $3`
+	query := `UPDATE users SET password = $1, token_version = token_version + 1, updated_at = $2 WHERE id = $3`
 	_, err := repo.db.ExecContext(ctx, query, hashedPassword, time.Now(), userID)
+	return err
+}
+
+func (repo *UserRepository) GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error) {
+	var version int
+	err := repo.db.QueryRowContext(ctx, `SELECT token_version FROM users WHERE id = $1`, userID).Scan(&version)
+	return version, err
+}
+
+func (repo *UserRepository) IncrementTokenVersion(ctx context.Context, userID uuid.UUID) error {
+	_, err := repo.db.ExecContext(ctx, `UPDATE users SET token_version = token_version + 1, updated_at = NOW() WHERE id = $1`, userID)
 	return err
 }
 
 // InvalidateResetToken deletes a used token.
 func (repo *UserRepository) InvalidateResetToken(ctx context.Context, token string) error {
 	query := `DELETE FROM password_resets WHERE token = $1`
-	_, err := repo.db.ExecContext(ctx, query, token)
+	_, err := repo.db.ExecContext(ctx, query, hashToken(token))
 	return err
+}
+
+func hashToken(token string) string {
+	digest := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(digest[:])
 }

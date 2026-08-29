@@ -215,12 +215,26 @@ func (s *WorkspaceService) UpdateMemberRole(ctx context.Context, wsID, userID uu
 	if role != "admin" && role != "member" {
 		return errors.New("invalid role")
 	}
+	member, err := s.workspaceRepo.GetWorkspaceMember(ctx, wsID, userID)
+	if err != nil {
+		return err
+	}
+	if member.Role == "owner" {
+		return errors.New("workspace owner role cannot be changed")
+	}
 	return s.workspaceRepo.UpdateWorkspaceMemberRole(ctx, wsID, userID, role)
 }
 
 func (s *WorkspaceService) UpdateMemberStatus(ctx context.Context, wsID, userID uuid.UUID, status string) error {
 	if status != "active" && status != "blocked" {
 		return errors.New("invalid status")
+	}
+	member, err := s.workspaceRepo.GetWorkspaceMember(ctx, wsID, userID)
+	if err != nil {
+		return err
+	}
+	if member.Role == "owner" {
+		return errors.New("workspace owner cannot be blocked")
 	}
 	return s.workspaceRepo.UpdateWorkspaceMemberStatus(ctx, wsID, userID, status)
 }
@@ -265,14 +279,14 @@ func (s *WorkspaceService) ListTeams(ctx context.Context, wsID uuid.UUID) ([]*mo
 	return s.workspaceRepo.ListTeamsByWorkspace(ctx, wsID)
 }
 
-func (s *WorkspaceService) AddTeamMember(ctx context.Context, teamID, userID uuid.UUID) error {
-	return s.workspaceRepo.AddTeamMember(ctx, teamID, userID)
+func (s *WorkspaceService) AddTeamMember(ctx context.Context, workspaceID, teamID, userID uuid.UUID) error {
+	return s.workspaceRepo.AddTeamMemberInWorkspace(ctx, workspaceID, teamID, userID)
 }
 
-func (s *WorkspaceService) RemoveTeamMember(ctx context.Context, teamID, userID uuid.UUID) error {
-	return s.workspaceRepo.RemoveTeamMember(ctx, teamID, userID)
+func (s *WorkspaceService) RemoveTeamMember(ctx context.Context, workspaceID, teamID, userID uuid.UUID) error {
+	return s.workspaceRepo.RemoveTeamMemberInWorkspace(ctx, workspaceID, teamID, userID)
 }
 
-func (s *WorkspaceService) ListTeamMembers(ctx context.Context, teamID uuid.UUID) ([]uuid.UUID, error) {
-	return s.workspaceRepo.ListTeamMembers(ctx, teamID)
+func (s *WorkspaceService) ListTeamMembers(ctx context.Context, workspaceID, teamID uuid.UUID) ([]uuid.UUID, error) {
+	return s.workspaceRepo.ListTeamMembersInWorkspace(ctx, workspaceID, teamID)
 }

@@ -57,6 +57,26 @@ func (r *SessionRepository) UpdateSessionEnd(ctx context.Context, sessionID stri
 	return nil
 }
 
+func (r *SessionRepository) UpdateSessionEndForProject(ctx context.Context, sessionID, projectID string, endTime time.Time) error {
+	query := `
+		UPDATE sessions
+		SET end_time = $1, duration_ms = EXTRACT(EPOCH FROM ($1 - start_time)) * 1000
+		WHERE session_id = $2 AND project_id = $3
+	`
+	result, err := r.db.ExecContext(ctx, query, endTime, sessionID, projectID)
+	if err != nil {
+		return fmt.Errorf("update session end: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("update session end: %w", err)
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (r *SessionRepository) IncrementErrorCount(ctx context.Context, sessionID string) error {
 	query := `
         UPDATE sessions

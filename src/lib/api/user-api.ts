@@ -5,7 +5,7 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 
 const headerConfig = {
   credentials: "include" as const,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
 };
 
 // SETTINGS - USER API FUNCTIONS
@@ -119,20 +119,21 @@ export const validateResetToken = async (token: string) => {
 
 // logs out user
 export const logoutUser = async () => {
-  try {
-    const res = await fetch(`${url}/api/users/logout`, {
-      method: "POST",
-      ...headerConfig,
-    });
+  const res = await fetch(`${url}/api/users/logout`, {
+    method: "POST",
+    ...headerConfig,
+  });
 
-    if (!res.ok) {
-      throw new Error(`Error logging out: ${res.statusText}`);
-    }
-
-    return await res.json();
-  } catch (error) {
-    throw error;
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`Error logging out: ${res.statusText}`);
   }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    return res.json();
+  }
+
+  return true;
 };
 
 // get current user

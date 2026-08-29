@@ -3,14 +3,12 @@ import { getTraceContext, isDuplicate } from "./telemetry-utils";
 
 export type ErrorTrackingConfig = {
   userId?: string;
-  projectId: string; // UUID
+  projectId?: string;
   issueTrackerUrl?: string;
 };
 
 let sessionId: string = "";
-let config: ErrorTrackingConfig = {
-  projectId: "",
-};
+let config: ErrorTrackingConfig = {};
 
 export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
   config = { ...config, ...userConfig };
@@ -26,11 +24,12 @@ export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-project-id": config.projectId,
+        "x-project-id": config.projectId ?? "",
+        "X-CSRF-Token": "pulseguard-web",
       },
       body: JSON.stringify({
         sessionId,
-        projectId: config.projectId,
+      projectId: config.projectId ?? "",
         userId: userConfig.userId || "anonymous",
         timestamp: Date.now(),
       }),
@@ -46,7 +45,8 @@ export function endSession(): void {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-project-id": config.projectId,
+        "x-project-id": config.projectId ?? "",
+        "X-CSRF-Token": "pulseguard-web",
       },
       body: JSON.stringify({
         sessionId,
@@ -87,7 +87,7 @@ export function setProjectId(id: string): void {
 export function getProjectId(requestProjectId?: string): string {
   return requestProjectId && validateUUID(requestProjectId)
     ? requestProjectId
-    : config.projectId;
+    : config.projectId ?? "";
 }
 
 export interface ClientErrorEvent {
@@ -140,6 +140,7 @@ export function setupClientErrorTracking(
       headers: {
         "Content-Type": "application/json",
         "x-project-id": projectId || "",
+        "X-CSRF-Token": "pulseguard-web",
       },
       body: JSON.stringify({
         ...rest,
@@ -170,7 +171,7 @@ export function setupClientErrorTracking(
       sessionId,
       userId,
       projectId,
-      url: window.location.href,
+      url: window.location.pathname,
       userAgent: navigator.userAgent,
     });
   };
@@ -186,7 +187,7 @@ export function setupClientErrorTracking(
       sessionId,
       userId,
       projectId,
-      url: window.location.href,
+      url: window.location.pathname,
       userAgent: navigator.userAgent,
     });
   };
@@ -204,7 +205,7 @@ export function setupClientErrorTracking(
         sessionId,
         userId,
         projectId,
-        url: window.location.href,
+        url: window.location.pathname,
         userAgent: navigator.userAgent,
       }),
     reportCustomEvent: (eventName, eventData) => {
@@ -213,6 +214,7 @@ export function setupClientErrorTracking(
         headers: {
           "Content-Type": "application/json",
           "x-project-id": projectId,
+          "X-CSRF-Token": "pulseguard-web",
         },
         body: JSON.stringify({
           eventName,
@@ -221,7 +223,7 @@ export function setupClientErrorTracking(
           sessionId,
           userId,
           projectId,
-          url: window.location.href,
+          url: window.location.pathname,
           userAgent: navigator.userAgent,
         }),
       }).catch(console.error);

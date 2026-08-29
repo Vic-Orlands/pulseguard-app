@@ -13,7 +13,7 @@ export async function fetchErrors(
   });
 
   const response = await fetch(`${url}/api/errors?${params.toString()}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
     credentials: "include",
   });
 

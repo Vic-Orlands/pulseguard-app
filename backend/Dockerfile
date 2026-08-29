@@ -1,4 +1,4 @@
-FROM golang:1.25.3-alpine AS builder
+FROM golang:1.25.13-alpine AS builder
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -11,4 +11,5 @@ RUN addgroup -S pulseguard && adduser -S -G pulseguard pulseguard && apk add --n
 COPY --from=builder --chown=pulseguard:pulseguard /pulseguard ./pulseguard
 USER pulseguard
 EXPOSE 8081
+EXPOSE 9091
 CMD ["./pulseguard"]

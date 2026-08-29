@@ -20,6 +20,7 @@ type ProjectService struct {
 }
 
 var ErrDuplicateSlug = errors.New("duplicate project slug")
+var ErrProjectAccessDenied = errors.New("project access denied")
 
 func NewProjectService(projectRepo *postgres.ProjectRepository) *ProjectService {
 	return &ProjectService{projectRepo: projectRepo}
@@ -44,22 +45,38 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID,
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" && pgErr.Constraint == "projects_name_key" {
-				fmt.Printf("❌ DB insert multiple project name: %v\n", err)
 				return nil, ErrDuplicateSlug
 			}
 		}
 
-		fmt.Printf("❌ DB insert create project error: %v\n", err)
 		return nil, err
 	}
 
-	fmt.Printf("✅ Project created successfully: %s\n", p.Name)
 	return p, nil
 }
 
-// ListByWorkspace retrieves all projects in the specified workspace.
-func (s *ProjectService) ListByWorkspace(ctx context.Context, workspaceID string) ([]*models.Project, error) {
-	return s.projectRepo.ListByWorkspace(ctx, workspaceID)
+func (s *ProjectService) ListByWorkspaceForMember(ctx context.Context, workspaceID, userID string) ([]*models.Project, error) {
+	return s.projectRepo.ListByWorkspaceForMember(ctx, workspaceID, userID)
+}
+
+func (s *ProjectService) CanAccessWorkspace(ctx context.Context, workspaceID, userID, minRole string) (bool, error) {
+	if _, err := uuid.Parse(workspaceID); err != nil {
+		return false, err
+	}
+	if _, err := uuid.Parse(userID); err != nil {
+		return false, err
+	}
+	return s.projectRepo.HasWorkspaceRole(ctx, workspaceID, userID, minRole)
+}
+
+func (s *ProjectService) CanAccessProject(ctx context.Context, projectID, userID, minRole string) (bool, error) {
+	if _, err := uuid.Parse(projectID); err != nil {
+		return false, err
+	}
+	if _, err := uuid.Parse(userID); err != nil {
+		return false, err
+	}
+	return s.projectRepo.HasProjectRole(ctx, projectID, userID, minRole)
 }
 
 // ListByMemberUser retrieves all projects in all workspaces the user belongs to.
@@ -76,76 +93,31 @@ func (s *ProjectService) ListByOwner(ctx context.Context, ownerID string) ([]*mo
 	return projects, nil
 }
 
-// GetBySlug retrieves projects of specified slug.
-func (s *ProjectService) GetBySlug(ctx context.Context, slug string) (*models.Project, error) {
-	project, err := s.projectRepo.GetBySlug(ctx, slug)
-	if err != nil {
-		// fmt.Printf("❌ Error retrieving project %s: %v\n", slug, err)
-		return nil, err
-	}
-
-	// if project == nil {
-	// 	fmt.Printf("ℹ️ No project found with ID %s\n", slug)
-	// } else {
-	// 	fmt.Printf("✅ Found project %s\n", project.Name)
-	// }
-
-	return project, nil
+func (s *ProjectService) GetBySlugForMember(ctx context.Context, slug, userID string) (*models.Project, error) {
+	return s.projectRepo.GetBySlugForMember(ctx, slug, userID)
 }
 
-// DeleteBySlug deletes project by specified slug
-func (s *ProjectService) DeleteBySlug(ctx context.Context, slug string) (*models.Project, error) {
-	project, err := s.projectRepo.DeleteBySlug(ctx, slug)
-	if err != nil {
-		return nil, err
-	}
-
-	return project, nil
+func (s *ProjectService) DeleteBySlugForManager(ctx context.Context, slug, userID string) (*models.Project, error) {
+	return s.projectRepo.DeleteBySlugForManager(ctx, slug, userID)
 }
 
-// UpdateProject updates an existing project with the given slug, name, and description.
-func (s *ProjectService) UpdateProject(ctx context.Context, oldSlug, name, description, slug string) (*models.Project, error) {
-	// Fetch the existing project
-	project, err := s.projectRepo.GetBySlug(ctx, oldSlug)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch project: %w", err)
-	}
-	if project == nil {
-		return nil, fmt.Errorf("project with slug %s not found", oldSlug)
-	}
-
+func (s *ProjectService) UpdateProjectForManager(ctx context.Context, oldSlug, userID, name, description, slug string) (*models.Project, error) {
 	p := &models.Project{
 		Name:        name,
 		Slug:        slug,
 		Description: description,
-		OwnerID:     project.OwnerID,
-		CreatedAt:   project.CreatedAt,
-		UpdatedAt:   time.Now(),
 	}
-
-	// Save updated project
-	project, err = s.projectRepo.UpdateProject(ctx, oldSlug, p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update project: %w", err)
-	}
-
-	return project, nil
+	return s.projectRepo.UpdateBySlugForManager(ctx, oldSlug, userID, p)
 }
 
 // Delete all projects owned by a specific user.
 func (s *ProjectService) DeleteAllByOwner(ctx context.Context, ownerID string) error {
-	deleted, err := s.projectRepo.DeleteAllByOwner(ctx, ownerID)
+	_, err := s.projectRepo.DeleteAllByOwner(ctx, ownerID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("no projects found for owner %s: %w", ownerID, err)
 		}
 		return fmt.Errorf("failed to delete projects for owner %s: %w", ownerID, err)
-	}
-
-	if len(deleted) > 0 {
-		fmt.Printf("✅ Deleted %d projects for owner %s\n", len(deleted), ownerID)
-	} else {
-		fmt.Printf("ℹ️ No projects found for owner %s to delete\n", ownerID)
 	}
 
 	return nil

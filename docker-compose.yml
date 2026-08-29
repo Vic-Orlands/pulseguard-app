@@ -92,7 +92,7 @@ services:
     image: postgres:15.13-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulseguard_dev_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: pulseguard
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -113,9 +113,15 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:-pulseguard_dev_password}@postgres:5432/pulseguard?sslmode=disable
+      APP_ENV: ${APP_ENV:-development}
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
       PORT: "8081"
-      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-production}
+      METRICS_ADDR: "0.0.0.0:9091"
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      SESSION_HASH_KEY: ${SESSION_HASH_KEY:?SESSION_HASH_KEY is required}
+      SESSION_BLOCK_KEY: ${SESSION_BLOCK_KEY:?SESSION_BLOCK_KEY is required}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:8081}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       TEMPO_URL: http://tempo:3200
       OTLP_ENDPOINT: otel-collector:4318
       LOKI_URL: http://loki:3100

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,6 +23,7 @@ import (
 	"pulseguard/pkg/otel"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func getEnvOrFail(key string, log *logger.Logger) string {
@@ -53,7 +56,29 @@ func main() {
 	dbURL := getEnvOrFail("DB_URL", appLogger)
 	lokiURL := getEnvOrFail("LOKI_URL", appLogger)
 	jwtSecret := getEnvOrFail("JWT_SECRET", appLogger)
+	if len(jwtSecret) < 32 {
+		appLogger.Error(context.Background(), "JWT_SECRET must contain at least 32 characters", nil)
+		os.Exit(1)
+	}
 	otlpEndpoint := getEnvOrFail("OTLP_ENDPOINT", appLogger)
+	frontendURL := strings.TrimRight(os.Getenv("FRONTEND_URL"), "/")
+	if frontendURL == "" {
+		if os.Getenv("APP_ENV") == "production" {
+			appLogger.Error(context.Background(), "FRONTEND_URL is required in production", nil)
+			os.Exit(1)
+		}
+		frontendURL = "http://localhost:3000"
+		_ = os.Setenv("FRONTEND_URL", frontendURL)
+	}
+	parsedFrontendURL, err := url.Parse(frontendURL)
+	if err != nil || parsedFrontendURL.Host == "" || (parsedFrontendURL.Scheme != "http" && parsedFrontendURL.Scheme != "https") {
+		appLogger.Error(context.Background(), "FRONTEND_URL must be an absolute HTTP(S) URL", nil)
+		os.Exit(1)
+	}
+	if os.Getenv("APP_ENV") == "production" && parsedFrontendURL.Scheme != "https" {
+		appLogger.Error(context.Background(), "FRONTEND_URL must use HTTPS in production", nil)
+		os.Exit(1)
+	}
 
 	prometheusURL := getEnvOrDefault("PROMETHEUS_URL", "http://prometheus:9090")
 	tempoURL := getEnvOrDefault("TEMPO_URL", "http://tempo:3200")
@@ -63,6 +88,7 @@ func main() {
 		appLogger.Error(context.Background(), "Invalid PORT", err)
 		os.Exit(1)
 	}
+	metricsAddr := getEnvOrDefault("METRICS_ADDR", "127.0.0.1:9091")
 
 	// Initialize OTEL tracing + metrics
 	otelClient, err := otel.InitClient(otlpEndpoint, appLogger)
@@ -93,7 +119,10 @@ func main() {
 	}
 
 	// social-signin configuration
-	config.InitSessionStore()
+	if err := config.InitSessionStore(); err != nil {
+		appLogger.Error(context.Background(), "Failed to initialize OAuth session store", err)
+		os.Exit(1)
+	}
 
 	// Init repositories
 	userRepo := postgres.NewUserRepository(conn)
@@ -139,17 +168,38 @@ func main() {
 
 	// Prepare graceful shutdown
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: server.Router(),
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           server.Router(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20,
+	}
+	metricsServer := &http.Server{
+		Addr:              metricsAddr,
+		Handler:           promhttp.Handler(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       30 * time.Second,
+		MaxHeaderBytes:    64 << 10,
 	}
 
 	// Start server in a goroutine
 	go func() {
-		icon:= "🖥️"
+		icon := "🖥️"
 		appLogger.Info(context.Background(), fmt.Sprintf("%s  PulseGuard HTTP server running on :%d", icon, port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			appLogger.Error(context.Background(), "Server failed", err)
 			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		appLogger.Info(context.Background(), fmt.Sprintf("Metrics server running on %s", metricsAddr))
+		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			appLogger.Error(context.Background(), "Metrics server failed", err)
 		}
 	}()
 
@@ -174,5 +224,8 @@ func main() {
 		appLogger.Error(ctx, "Server forced to shutdown", err)
 	} else {
 		appLogger.Info(ctx, "Server stopped gracefully")
+	}
+	if err := metricsServer.Shutdown(ctx); err != nil {
+		appLogger.Error(ctx, "Metrics server forced to shutdown", err)
 	}
 }

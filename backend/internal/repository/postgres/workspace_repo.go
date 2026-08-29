@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"pulseguard/internal/models"
@@ -216,9 +218,42 @@ func (repo *WorkspaceRepository) AddTeamMember(ctx context.Context, teamID uuid.
 	return err
 }
 
+func (repo *WorkspaceRepository) AddTeamMemberInWorkspace(ctx context.Context, workspaceID, teamID, userID uuid.UUID) error {
+	query := `
+		INSERT INTO team_members (id, team_id, user_id, created_at)
+		SELECT $1, t.id, wm.user_id, $4
+		FROM teams t
+		JOIN workspace_members wm ON wm.workspace_id = t.workspace_id AND wm.user_id = $3 AND wm.status = 'active'
+		WHERE t.id = $2 AND t.workspace_id = $5
+		ON CONFLICT (team_id, user_id) DO NOTHING
+	`
+	result, err := repo.db.ExecContext(ctx, query, uuid.New(), teamID, userID, time.Now(), workspaceID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (repo *WorkspaceRepository) RemoveTeamMember(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) error {
 	query := `DELETE FROM team_members WHERE team_id = $1 AND user_id = $2`
 	_, err := repo.db.ExecContext(ctx, query, teamID, userID)
+	return err
+}
+
+func (repo *WorkspaceRepository) RemoveTeamMemberInWorkspace(ctx context.Context, workspaceID, teamID, userID uuid.UUID) error {
+	query := `
+		DELETE FROM team_members tm
+		USING teams t
+		WHERE tm.team_id = t.id AND t.id = $1 AND t.workspace_id = $2 AND tm.user_id = $3
+	`
+	_, err := repo.db.ExecContext(ctx, query, teamID, workspaceID, userID)
 	return err
 }
 
@@ -240,6 +275,29 @@ func (repo *WorkspaceRepository) ListTeamMembers(ctx context.Context, teamID uui
 		userIDs = append(userIDs, uID)
 	}
 	return userIDs, nil
+}
+
+func (repo *WorkspaceRepository) ListTeamMembersInWorkspace(ctx context.Context, workspaceID, teamID uuid.UUID) ([]uuid.UUID, error) {
+	query := `
+		SELECT tm.user_id
+		FROM team_members tm
+		JOIN teams t ON t.id = tm.team_id
+		WHERE t.id = $1 AND t.workspace_id = $2
+	`
+	rows, err := repo.db.QueryContext(ctx, query, teamID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var userIDs []uuid.UUID
+	for rows.Next() {
+		var userID uuid.UUID
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs, rows.Err()
 }
 
 // --- MEMBERS REPOSITORY ---
@@ -360,7 +418,7 @@ func (repo *WorkspaceRepository) CreateInvitation(ctx context.Context, invite *m
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 	_, err := repo.db.ExecContext(ctx, query,
-		invite.ID, invite.WorkspaceID, invite.Email, invite.Role, invite.Token,
+		invite.ID, invite.WorkspaceID, invite.Email, invite.Role, hashInvitationToken(invite.Token),
 		invite.InvitedBy, invite.ExpiresAt, invite.CreatedAt, invite.Status,
 	)
 	return err
@@ -370,9 +428,9 @@ func (repo *WorkspaceRepository) GetInvitationByToken(ctx context.Context, token
 	query := `
 		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status
 		FROM workspace_invitations
-		WHERE token = $1
+		WHERE token = $1 OR token = $2
 	`
-	row := repo.db.QueryRowContext(ctx, query, token)
+	row := repo.db.QueryRowContext(ctx, query, hashInvitationToken(token), token)
 
 	var invite models.WorkspaceInvitation
 	err := row.Scan(
@@ -386,6 +444,11 @@ func (repo *WorkspaceRepository) GetInvitationByToken(ctx context.Context, token
 		return nil, err
 	}
 	return &invite, nil
+}
+
+func hashInvitationToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }
 
 func (repo *WorkspaceRepository) UpdateInvitationStatus(ctx context.Context, id uuid.UUID, status string) error {

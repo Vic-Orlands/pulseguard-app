@@ -87,7 +87,7 @@ func (h *WorkspaceHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ws, err := h.wsService.CreateWorkspace(ctx, req.Name, userID)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "create_workspace_failed")))
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		util.WriteError(w, http.StatusInternalServerError, "Failed to create workspace")
 		return
 	}
 
@@ -149,14 +149,20 @@ func (h *WorkspaceHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	invite, err := h.wsService.InviteMember(ctx, wsID, req.Email, req.Role, userID)
 	if err != nil {
 		h.logger.Error(ctx, "Failed to create workspace invitation", err)
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to create invitation")
 		return
 	}
 
-	// In a real application, we would send an invitation email here.
-	// For this app, we return the invitation containing the token.
 	h.logger.Info(ctx, "Invitation created", "email", req.Email, "workspace_id", wsIDStr)
-	util.WriteJSON(w, http.StatusCreated, invite)
+	util.WriteJSON(w, http.StatusCreated, map[string]interface{}{
+		"id":          invite.ID,
+		"workspaceId": invite.WorkspaceID,
+		"email":       invite.Email,
+		"role":        invite.Role,
+		"token":       invite.Token,
+		"expiresAt":   invite.ExpiresAt,
+		"status":      invite.Status,
+	})
 }
 
 func (h *WorkspaceHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +195,7 @@ func (h *WorkspaceHandler) AcceptInvitation(w http.ResponseWriter, r *http.Reque
 	err = h.wsService.AcceptInvitation(ctx, req.Token, userID)
 	if err != nil {
 		h.logger.Error(ctx, "Failed to accept workspace invitation", err)
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to accept invitation")
 		return
 	}
 
@@ -202,7 +208,12 @@ func (h *WorkspaceHandler) GetInvitation(w http.ResponseWriter, r *http.Request)
 	ctx, span := h.tracer.Start(ctx, "WorkspaceHandler.GetInvitation")
 	defer span.End()
 
-	token := r.URL.Query().Get("token")
+	var req acceptInvitationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	token := req.Token
 	if token == "" {
 		util.WriteError(w, http.StatusBadRequest, "Token is required")
 		return
@@ -299,7 +310,7 @@ func (h *WorkspaceHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Reque
 
 	err = h.wsService.UpdateMemberRole(ctx, wsID, userID, req.Role)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to update member role")
 		return
 	}
 
@@ -329,7 +340,7 @@ func (h *WorkspaceHandler) UpdateMemberStatus(w http.ResponseWriter, r *http.Req
 
 	err = h.wsService.UpdateMemberStatus(ctx, wsID, userID, req.Status)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to update member status")
 		return
 	}
 
@@ -353,7 +364,7 @@ func (h *WorkspaceHandler) RemoveMember(w http.ResponseWriter, r *http.Request) 
 
 	err = h.wsService.RemoveMember(ctx, wsID, userID)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to remove member")
 		return
 	}
 
@@ -380,7 +391,7 @@ func (h *WorkspaceHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 
 	team, err := h.wsService.CreateTeam(ctx, wsID, req.Name)
 	if err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		util.WriteError(w, http.StatusBadRequest, "Unable to create team")
 		return
 	}
 
@@ -413,6 +424,12 @@ func (h *WorkspaceHandler) AddTeamMember(w http.ResponseWriter, r *http.Request)
 	ctx, span := h.tracer.Start(ctx, "WorkspaceHandler.AddTeamMember")
 	defer span.End()
 
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+
 	teamIDStr := chi.URLParam(r, "teamID")
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
@@ -427,7 +444,7 @@ func (h *WorkspaceHandler) AddTeamMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = h.wsService.AddTeamMember(ctx, teamID, userID)
+	err = h.wsService.AddTeamMember(ctx, wsID, teamID, userID)
 	if err != nil {
 		util.WriteError(w, http.StatusInternalServerError, "Failed to add team member")
 		return
@@ -441,6 +458,12 @@ func (h *WorkspaceHandler) RemoveTeamMember(w http.ResponseWriter, r *http.Reque
 	ctx, span := h.tracer.Start(ctx, "WorkspaceHandler.RemoveTeamMember")
 	defer span.End()
 
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+
 	teamIDStr := chi.URLParam(r, "teamID")
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
@@ -455,7 +478,7 @@ func (h *WorkspaceHandler) RemoveTeamMember(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.wsService.RemoveTeamMember(ctx, teamID, userID)
+	err = h.wsService.RemoveTeamMember(ctx, wsID, teamID, userID)
 	if err != nil {
 		util.WriteError(w, http.StatusInternalServerError, "Failed to remove team member")
 		return
@@ -469,6 +492,12 @@ func (h *WorkspaceHandler) ListTeamMembers(w http.ResponseWriter, r *http.Reques
 	ctx, span := h.tracer.Start(ctx, "WorkspaceHandler.ListTeamMembers")
 	defer span.End()
 
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+
 	teamIDStr := chi.URLParam(r, "teamID")
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
@@ -476,7 +505,7 @@ func (h *WorkspaceHandler) ListTeamMembers(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userIDs, err := h.wsService.ListTeamMembers(ctx, teamID)
+	userIDs, err := h.wsService.ListTeamMembers(ctx, wsID, teamID)
 	if err != nil {
 		util.WriteError(w, http.StatusInternalServerError, "Failed to list team members")
 		return

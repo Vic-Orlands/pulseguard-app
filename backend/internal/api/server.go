@@ -10,7 +10,6 @@ import (
 	pulseguardOtel "pulseguard/pkg/otel"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -58,11 +57,9 @@ func NewServer(
 		tracer,
 		middleware.Tracing(tracer),
 		middleware.Metrics(metrics),
-		middleware.Auth(logger, tracer, metrics, tokenService),
+		middleware.Auth(logger, tracer, metrics, tokenService, userService),
 	)
 
-	// Add Prometheus metrics + health
-	r.Get("/metrics", promhttp.Handler().ServeHTTP)
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"status":"ok"}`))

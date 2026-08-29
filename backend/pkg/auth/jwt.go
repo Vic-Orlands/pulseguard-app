@@ -17,11 +17,13 @@ func NewTokenService(secret string) *TokenService {
 }
 
 // GenerateToken creates a JWT token for a user
-func (ts *TokenService) GenerateToken(userID, email string) (string, error) {
+func (ts *TokenService) GenerateToken(userID, email string, tokenVersion int) (string, error) {
 	_, tokenString, err := ts.tokenAuth.Encode(map[string]interface{}{
+		"iss":     "pulseguard-api",
 		"user_id": userID,
 		"email":   email,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		"ver":     tokenVersion,
+		"exp":     time.Now().Add(time.Hour).Unix(),
 	})
 	if err != nil {
 		return "", err

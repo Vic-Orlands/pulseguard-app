@@ -3,8 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
+	apiMiddleware "pulseguard/internal/api/middleware"
 	"pulseguard/internal/models"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
@@ -21,20 +25,22 @@ import (
 
 type ErrorHandler struct {
 	metrics        *otel.Metrics
-    errorService   *service.ErrorService
-    sessionService *service.SessionService
-    logger         *logger.Logger
-    tracer         trace.Tracer
+	errorService   *service.ErrorService
+	sessionService *service.SessionService
+	projectService *service.ProjectService
+	logger         *logger.Logger
+	tracer         trace.Tracer
 }
 
-func NewErrorHandler(errorService *service.ErrorService, sessionService *service.SessionService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
-    return &ErrorHandler{
-        metrics:        metrics,
-        errorService:   errorService,
-        sessionService: sessionService,
-        logger:         logger,
-        tracer:         tracer,
-    }
+func NewErrorHandler(errorService *service.ErrorService, sessionService *service.SessionService, projectService *service.ProjectService, metrics *otel.Metrics, logger *logger.Logger, tracer trace.Tracer) *ErrorHandler {
+	return &ErrorHandler{
+		metrics:        metrics,
+		errorService:   errorService,
+		sessionService: sessionService,
+		projectService: projectService,
+		logger:         logger,
+		tracer:         tracer,
+	}
 }
 
 type trackErrorRequest struct {
@@ -78,6 +84,17 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
+	if authorizedProjectID, ok := apiMiddleware.AuthorizedProjectID(ctx); !ok || authorizedProjectID != req.ProjectID {
+		util.WriteError(w, http.StatusNotFound, "Project not found")
+		return
+	}
+	req.Message = sanitizeTelemetryText(req.Message, 4096)
+	req.StackTrace = sanitizeTelemetryText(req.StackTrace, 32768)
+	req.Source = sanitizeTelemetryText(req.Source, 2048)
+	req.ComponentStack = sanitizeTelemetryText(req.ComponentStack, 16384)
+	req.UserAgent = sanitizeTelemetryText(req.UserAgent, 1024)
+	req.URL = sanitizeTelemetryPath(req.URL)
+	req.Metadata = sanitizeTelemetryMetadata(req.Metadata, 0)
 
 	projectUUID, err := uuid.Parse(req.ProjectID)
 	if err != nil {
@@ -100,31 +117,31 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle session
-    if req.SessionID != "" {
-        err := h.sessionService.IncrementErrorCount(ctx, req.SessionID)
-        if err != nil {
-            // Session doesn't exist, create it
-            session := &models.Session{
-                SessionID:     req.SessionID,
-                ProjectID:     req.ProjectID,
-                UserID:        req.UserID,
-                StartTime:     time.Now(),
-                ErrorCount:    1,
-                EventCount:    0,
-                PageviewCount: 0,
-                CreatedAt:     time.Now(),
-            }
-            if err := h.sessionService.CreateSession(ctx, session); err != nil {
-                h.logger.Error(ctx, "Failed to create session", err)
-            } else {
-                h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
-                    attribute.String("user_id", req.UserID),
-                    attribute.String("project_id", req.ProjectID),
-                    attribute.String("session_id", req.SessionID),
-                ))
-            }
-        }
-    }
+	if req.SessionID != "" {
+		err := h.sessionService.IncrementErrorCount(ctx, req.SessionID)
+		if err != nil {
+			// Session doesn't exist, create it
+			session := &models.Session{
+				SessionID:     req.SessionID,
+				ProjectID:     req.ProjectID,
+				UserID:        req.UserID,
+				StartTime:     time.Now(),
+				ErrorCount:    1,
+				EventCount:    0,
+				PageviewCount: 0,
+				CreatedAt:     time.Now(),
+			}
+			if err := h.sessionService.CreateSession(ctx, session); err != nil {
+				h.logger.Error(ctx, "Failed to create session", err)
+			} else {
+				h.metrics.ActiveSessions.Add(ctx, 1, metric.WithAttributes(
+					attribute.String("user_id", req.UserID),
+					attribute.String("project_id", req.ProjectID),
+					attribute.String("session_id", req.SessionID),
+				))
+			}
+		}
+	}
 
 	errorData := &models.Error{
 		ProjectID:      projectUUID.String(),
@@ -179,6 +196,54 @@ func (h *ErrorHandler) Track(w http.ResponseWriter, r *http.Request) {
 	)
 
 	util.WriteJSON(w, http.StatusCreated, errEntry)
+}
+
+func sanitizeTelemetryText(value string, limit int) string {
+	value = logger.RedactSensitiveText(value)
+	if len(value) > limit {
+		for limit > 0 && !utf8.ValidString(value[:limit]) {
+			limit--
+		}
+		return value[:limit]
+	}
+	return value
+}
+
+func sanitizeTelemetryPath(value string) string {
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Path == "" {
+		return "/"
+	}
+	return sanitizeTelemetryText(parsed.Path, 2048)
+}
+
+func sanitizeTelemetryMetadata(metadata map[string]interface{}, depth int) map[string]interface{} {
+	if depth > 3 || metadata == nil {
+		return nil
+	}
+	clean := make(map[string]interface{}, min(len(metadata), 50))
+	count := 0
+	for key, value := range metadata {
+		if count >= 50 {
+			break
+		}
+		lowerKey := strings.ToLower(key)
+		if strings.Contains(lowerKey, "token") || strings.Contains(lowerKey, "password") || strings.Contains(lowerKey, "secret") || strings.Contains(lowerKey, "cookie") || strings.Contains(lowerKey, "authorization") {
+			clean[key] = "[REDACTED]"
+			count++
+			continue
+		}
+		switch typed := value.(type) {
+		case string:
+			clean[key] = sanitizeTelemetryText(typed, 4096)
+		case map[string]interface{}:
+			clean[key] = sanitizeTelemetryMetadata(typed, depth+1)
+		case float64, bool, nil:
+			clean[key] = typed
+		}
+		count++
+	}
+	return clean
 }
 
 func (h *ErrorHandler) ListByProject(w http.ResponseWriter, r *http.Request) {
@@ -335,6 +400,11 @@ func (h *ErrorHandler) GetErrorByID(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusNotFound, "Error not found")
 		return
 	}
+	allowed, err := h.projectService.CanAccessProject(ctx, errorData.ProjectID, userID, "member")
+	if err != nil || !allowed {
+		util.WriteError(w, http.StatusNotFound, "Error not found")
+		return
+	}
 
 	// h.logger.Info(ctx, "Error fetched",
 	// 	"error_id", id,
@@ -402,6 +472,17 @@ func (h *ErrorHandler) UpdateErrorStatus(w http.ResponseWriter, r *http.Request)
 		span.SetStatus(codes.Error, "Unauthorized")
 		h.logger.Error(ctx, "Unauthorized access to update error status", nil)
 		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	existing, err := h.errorService.GetErrorByID(ctx, req.ID)
+	if err != nil || existing == nil {
+		util.WriteError(w, http.StatusNotFound, "Error not found")
+		return
+	}
+	allowed, err := h.projectService.CanAccessProject(ctx, existing.ProjectID, userID, "admin")
+	if err != nil || !allowed {
+		util.WriteError(w, http.StatusNotFound, "Error not found")
 		return
 	}
 

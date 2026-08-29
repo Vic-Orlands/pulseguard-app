@@ -54,6 +54,6 @@ func SendPasswordResetEmail(to string, resetLink string) error {
 		return err
 	}
 
-	log.Printf("Password reset email sent: %s", emailID)
+	log.Printf("Password reset email sent: id=%s", emailID)
 	return nil
 }

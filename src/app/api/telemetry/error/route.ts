@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trace, metrics, SpanStatusCode, Counter } from "@opentelemetry/api";
-import { createLogger } from "@/lib/telemetry/logger";
+import {
+  createLogger,
+  redactSensitiveText,
+} from "@/lib/telemetry/logger";
 import { cookies } from "next/headers";
 
 const tracer = trace.getTracer("error-api");
@@ -28,27 +31,36 @@ export async function POST(request: NextRequest) {
     try {
       const errorEvent = await request.json();
       const environment = process.env.NODE_ENV || "development";
+      const message = redactSensitiveText(String(errorEvent.message || ""));
+      const errorMessage = redactSensitiveText(
+        String(errorEvent.error?.message || message),
+      );
+      const stackTrace = redactSensitiveText(
+        String(errorEvent.error?.stack || ""),
+      );
 
       // Enhance error data with additional context
       const enhancedErrorData = {
         ...errorEvent,
         environment: request.headers.get("x-environment") || environment,
         type: errorEvent.error?.name || "unknown",
-        stackTrace: errorEvent.error?.stack || "",
+        message,
+        error: errorEvent.error
+          ? { ...errorEvent.error, message: errorMessage, stack: stackTrace }
+          : undefined,
+        stackTrace,
         userId: errorEvent.userId || "anonymous",
         sessionId: errorEvent.sessionId || "",
         userAgent: request.headers.get("user-agent") || "",
         projectId,
         metadata: {
-          headers: Object.fromEntries(request.headers.entries()),
           timestamp: new Date(),
-          ...errorEvent.metadata,
         },
       };
 
       // Set attributes on the span for better traceability
       span.setAttributes({
-        "error.message": errorEvent.message,
+        "error.message": errorMessage,
         "error.source": errorEvent.source || "unknown",
         "error.type": errorEvent.error?.name || "unknown",
         "session.id": errorEvent.sessionId,
@@ -73,6 +85,7 @@ export async function POST(request: NextRequest) {
           Cookie: cookieHeader,
           "x-environment": enhancedErrorData.environment,
           "x-project-id": projectId,
+          "X-CSRF-Token": "pulseguard-web",
         },
         body: JSON.stringify(enhancedErrorData),
       });
@@ -86,10 +99,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Log the error
-      logger.error({
-        ...errorEvent,
-        stack: errorEvent.error?.stack,
-      }, "Client error received");
+      logger.error(
+        {
+          errorType: errorEvent.error?.name,
+          path: errorEvent.url,
+          projectId,
+        },
+        "Client error received",
+      );
 
       span.setStatus({ code: SpanStatusCode.OK });
 

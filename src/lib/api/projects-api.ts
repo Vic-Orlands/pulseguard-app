@@ -10,7 +10,7 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 
 const headerConfig = {
   credentials: "include" as const,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
 };
 
 // SETTINGS - PROJECT API FUNCTIONS

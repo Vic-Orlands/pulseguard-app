@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"os"
 	"strings"
@@ -70,6 +68,9 @@ func handleSetCookie(w http.ResponseWriter, token string, timer int) {
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   timer,
 	}
+	if domain := strings.TrimSpace(os.Getenv("COOKIE_DOMAIN")); domain != "" {
+		cookie.Domain = domain
+	}
 
 	if timer < 0 {
 		cookie.Expires = time.Unix(0, 0)
@@ -112,6 +113,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Password == "" {
 		invalidFields = append(invalidFields, "password")
+	} else if !validator.IsValidPassword(req.Password) {
+		invalidFields = append(invalidFields, "password")
 	}
 	if req.Name == "" {
 		invalidFields = append(invalidFields, "name")
@@ -139,7 +142,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "registration_failed")))
 		span.SetStatus(codes.Error, "Failed to create user")
 		span.RecordError(err)
-		util.WriteError(w, http.StatusInternalServerError, "Failed to create user: "+err.Error())
+		util.WriteError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
 
@@ -152,7 +155,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	h.metrics.UserActivityTotal.Add(r.Context(), 1, metric.WithAttributes(attribute.String("activity_type", "register"), attribute.String("user_id", user.ID.String())))
 	span.SetStatus(codes.Ok, "User registered successfully")
-	h.logger.Info(r.Context(), "User registered", "user_id", user.ID.String(), "email", user.Email, "name", user.Name)
+	h.logger.Info(r.Context(), "User registered", "user_id", user.ID.String())
 	util.WriteJSON(w, http.StatusCreated, user)
 }
 
@@ -187,29 +190,19 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userService.Login(ctx, req.Email, req.Password)
 
 	if err != nil {
-		errorType := "login_failed"
-		errorMessage := "Invalid email or password"
-
-		if errors.Is(err, sql.ErrNoRows) {
-			errorType = "user_not_found"
-			errorMessage = "No user found with that email"
-		} else if strings.Contains(err.Error(), "invalid password") {
-			errorType = "invalid_password"
-		}
-
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("error_type", errorType),
+			attribute.String("error_type", "login_failed"),
 		))
 
-		span.SetStatus(codes.Error, errorMessage)
+		span.SetStatus(codes.Error, "Invalid email or password")
 		span.RecordError(err)
 
-		util.WriteError(w, http.StatusUnauthorized, errorMessage)
+		util.WriteError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
 	}
 
 	// Generate JWT token
-	token, err := h.tokenService.GenerateToken(user.ID.String(), user.Email)
+	token, err := h.tokenService.GenerateToken(user.ID.String(), user.Email, user.TokenVersion)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "jwt_creation_failed"),
@@ -251,7 +244,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	))
 
 	// Set cookie in response
-	handleSetCookie(w, token, 86400)
+	handleSetCookie(w, token, 3600)
 
 	span.SetStatus(codes.Ok, "Login successful")
 	span.SetAttributes(
@@ -272,18 +265,15 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	_, span := h.tracer.Start(ctx, "UserLogout")
 	defer span.End()
 
-	// Get session_id from request (e.g., header or body)
-	var req struct {
-		SessionID string `json:"sessionId"`
+	userID, ok := util.GetUserIDFromContext(ctx, h.metrics)
+	if !ok {
+		util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+		return
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err == nil && req.SessionID != "" {
-		if err := h.sessionService.EndSession(ctx, req.SessionID, time.Now()); err != nil {
-			h.logger.Error(ctx, "Failed to end session during logout", err)
-		} else {
-			h.metrics.ActiveSessions.Add(ctx, -1, metric.WithAttributes(
-				attribute.String("session_id", req.SessionID),
-			))
-		}
+	userUUID, err := uuid.Parse(userID)
+	if err != nil || h.userService.RevokeTokens(ctx, userUUID) != nil {
+		util.WriteError(w, http.StatusInternalServerError, "Failed to log out")
+		return
 	}
 
 	handleSetCookie(w, "", -1)
@@ -346,6 +336,10 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var hashed string
 	var err error
 	if req.Password != "" {
+		if !validator.IsValidPassword(req.Password) {
+			util.WriteErrorFields(w, "Password must be 12 to 72 bytes", []string{"password"})
+			return
+		}
 		hashed, err = auth.HashPassword(req.Password)
 		if err != nil {
 			util.WriteError(w, http.StatusInternalServerError, "Failed to hash password")
@@ -415,6 +409,12 @@ func (h *UserHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusBadRequest, "Invalid email")
 		return
 	}
+	if _, err := h.userService.GetByEmail(ctx, strings.ToLower(strings.TrimSpace(req.Email))); err != nil {
+		util.WriteJSON(w, http.StatusOK, map[string]string{
+			"message": "If an account with that email exists, you’ll receive a password reset link.",
+		})
+		return
+	}
 
 	// Generate a reset token (e.g., UUID or JWT with short expiry)
 	resetToken := uuid.New().String()
@@ -425,7 +425,7 @@ func (h *UserHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Compose reset URL (frontend will handle token from query param)
-	resetURL := os.Getenv("FRONTEND_URL") + "/reset-password?token=" + resetToken
+	resetURL := os.Getenv("FRONTEND_URL") + "/reset-password#token=" + resetToken
 
 	// Send email (assumes you have a mailer utility)
 	if err := util.SendPasswordResetEmail(req.Email, resetURL); err != nil {
@@ -453,6 +453,10 @@ func (h *UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	if req.Token == "" || req.NewPassword == "" {
 		util.WriteError(w, http.StatusBadRequest, "Token and new password are required")
+		return
+	}
+	if !validator.IsValidPassword(req.NewPassword) {
+		util.WriteErrorFields(w, "Password must be 12 to 72 bytes", []string{"new_password"})
 		return
 	}
 

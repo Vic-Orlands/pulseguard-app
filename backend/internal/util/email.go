@@ -108,7 +108,7 @@ func SendWelcomeEmail(to string, name string) error {
 		return err
 	}
 
-	log.Printf("Welcome email sent to %s: %s", to, emailID)
+	log.Printf("Welcome email sent: id=%s", emailID)
 	return nil
 }
 
@@ -156,6 +156,6 @@ func SendEmailVerificationEmail(to string, verificationLink string) error {
 		return err
 	}
 
-	log.Printf("Email verification email sent to %s: %s", to, emailID)
+	log.Printf("Email verification email sent: id=%s", emailID)
 	return nil
 }

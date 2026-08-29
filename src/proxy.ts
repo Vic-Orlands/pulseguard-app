@@ -14,17 +14,45 @@ const tracer = trace.getTracer("nextjs-middleware");
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const security = createSecurityContext(request);
+  const isMutation = !["GET", "HEAD", "OPTIONS"].includes(request.method);
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > 1024 * 1024) {
+    return applySecurityHeaders(
+      NextResponse.json({ error: "Payload too large" }, { status: 413 }),
+      security.csp,
+    );
+  }
+  if (
+    pathname.startsWith("/api/") &&
+    isMutation &&
+    request.cookies.has("auth_token") &&
+    request.headers.get("x-csrf-token") !== "pulseguard-web"
+  ) {
+    return applySecurityHeaders(
+      NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      security.csp,
+    );
+  }
 
-  // FRONTEND AUTH CHECK
   if (!pathname.startsWith("/api/")) {
     const isAuthenticated = Boolean(request.cookies.get("auth_token"));
+    const isProtectedPath = [
+      "/projects",
+      "/settings",
+      "/onboarding",
+      "/accept-invite",
+    ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
-    if (!isAuthenticated && pathname !== "/signin") {
+    if (!isAuthenticated && isProtectedPath) {
       const signinUrl = new URL("/signin", request.url);
-      return NextResponse.redirect(signinUrl);
+      return applySecurityHeaders(NextResponse.redirect(signinUrl), security.csp);
     }
 
-    return NextResponse.next();
+    return applySecurityHeaders(
+      NextResponse.next({ request: { headers: security.requestHeaders } }),
+      security.csp,
+    );
   }
 
   // API TRACING BLOCK
@@ -36,7 +64,12 @@ export async function proxy(request: NextRequest) {
     return tracer.startActiveSpan(
       `HTTP ${request.method} ${request.nextUrl.pathname}`,
       async (span) => {
-        const response = await processRequest(request, span, requestStartTime);
+        const response = await processRequest(
+          request,
+          span,
+          requestStartTime,
+          security,
+        );
         span.end();
         return response;
       },
@@ -48,11 +81,14 @@ async function processRequest(
   request: NextRequest,
   span: Span,
   startTime: number,
+  security: SecurityContext,
 ): Promise<NextResponse> {
   try {
     setRequestAttributes(span, request);
 
-    const response = NextResponse.next();
+    const response = NextResponse.next({
+      request: { headers: security.requestHeaders },
+    });
 
     const duration = Date.now() - startTime;
     const statusCode = 200; // Default status code
@@ -74,10 +110,10 @@ async function processRequest(
     // Track the request after it completes
     response.headers.set("traceparent", span.spanContext().traceId);
 
-    return response;
+    return applySecurityHeaders(response, security.csp);
   } catch (error: unknown) {
     handleRequestError(span, request, error);
-    return createErrorResponse(request, error);
+    return applySecurityHeaders(createErrorResponse(request), security.csp);
   }
 }
 
@@ -85,7 +121,7 @@ async function processRequest(
 function setRequestAttributes(span: Span, request: NextRequest) {
   span.setAttributes({
     "http.method": request.method,
-    "http.url": request.url,
+    "http.url": request.nextUrl.pathname,
     "http.target": request.nextUrl.pathname,
     "http.route": request.nextUrl.pathname,
     "http.user_agent": request.headers.get("user-agent") || "unknown",
@@ -135,10 +171,7 @@ function handleRequestError(span: Span, request: NextRequest, error: unknown) {
   });
 }
 
-function createErrorResponse(
-  request: NextRequest,
-  error: unknown,
-): NextResponse {
+function createErrorResponse(request: NextRequest): NextResponse {
   const statusCode = 500;
   const duration =
     Date.now() - Number(request.headers.get("x-request-start") || Date.now());
@@ -154,13 +187,65 @@ function createErrorResponse(
   return NextResponse.json(
     {
       error: "Internal Server Error",
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: "The request could not be completed",
       request_id: request.headers.get("x-request-id") || undefined,
     },
     { status: statusCode },
   );
 }
 
+interface SecurityContext {
+  csp: string;
+  requestHeaders: Headers;
+}
+
+function createSecurityContext(request: NextRequest): SecurityContext {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const apiOrigin = getConfiguredOrigin(process.env.NEXT_PUBLIC_API_URL);
+  const connectSources = ["'self'", apiOrigin].filter(Boolean).join(" ");
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+    `style-src 'self' 'nonce-${nonce}'`,
+    "style-src-attr 'unsafe-inline'",
+    "img-src 'self' blob: data: https://api.dicebear.com https://images.unsplash.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
+    "font-src 'self' data:",
+    `connect-src ${connectSources}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  return { csp, requestHeaders };
+}
+
+function getConfiguredOrigin(value: string | undefined): string {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.origin : "";
+  } catch {
+    return "";
+  }
+}
+
+function applySecurityHeaders(response: NextResponse, csp: string): NextResponse {
+  response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=()",
+  );
+  return response;
+}
+
 export const config = {
-  matcher: ["/api/:path*", "/projects/:path*", "/settings/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

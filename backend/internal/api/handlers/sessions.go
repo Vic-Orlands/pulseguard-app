@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+	apiMiddleware "pulseguard/internal/api/middleware"
 
 	"pulseguard/internal/models"
 	"pulseguard/internal/service"
@@ -64,6 +65,10 @@ func (h *SessionHandler) StartSession(w http.ResponseWriter, r *http.Request) {
 		span.SetStatus(codes.Error, "Missing project_id or session_id")
 		h.logger.Error(ctx, "Missing project_id or session_id in start session request", nil)
 		util.WriteError(w, http.StatusBadRequest, "Missing project_id or session_id")
+		return
+	}
+	if projectID, ok := apiMiddleware.AuthorizedProjectID(ctx); !ok || projectID != req.ProjectID {
+		util.WriteError(w, http.StatusNotFound, "Project not found")
 		return
 	}
 
@@ -153,8 +158,14 @@ func (h *SessionHandler) EndSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Missing project ID")
+		return
+	}
+
 	endTime := time.Now()
-	if err := h.sessionService.EndSession(ctx, req.SessionID, endTime); err != nil {
+	if err := h.sessionService.EndSessionForProject(ctx, req.SessionID, projectID, endTime); err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "end_session_failed"),
 		))
@@ -234,9 +245,7 @@ func (h *SessionHandler) GetSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.ErrorWithFields(ctx, "Sessions fetched", map[string]any{
-		"sessions": sessions,
-	})
+	h.logger.Info(ctx, "Sessions fetched", "count", len(sessions))
 
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("activity_type", "get_sessions"),

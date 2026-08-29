@@ -3,10 +3,15 @@ package logger
 import (
 	"context"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/trace"
 )
+
+var credentialPattern = regexp.MustCompile(`(?i)(authorization|cookie|password|secret|token|code)=([^&\s]+)`)
+var jwtPattern = regexp.MustCompile(`eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
 
 // Logger wraps a zerolog.Logger for structured logging
 type Logger struct {
@@ -57,26 +62,29 @@ func enrichEventWithContext(ctx context.Context, evt *zerolog.Event) *zerolog.Ev
 func (l *Logger) Info(ctx context.Context, msg string, fields ...interface{}) {
 	evt := enrichEventWithContext(ctx, l.zlog.Info())
 
-	for i := 0; i < len(fields); i += 2 {
+	for i := 0; i+1 < len(fields); i += 2 {
 		key, ok := fields[i].(string)
 		if !ok {
 			continue
 		}
-		evt = evt.Interface(key, fields[i+1])
+		evt = addSafeField(evt, key, fields[i+1])
 	}
 	evt.Msg(msg)
 }
 
 // Error logs an error-level message
 func (l *Logger) Error(ctx context.Context, msg string, err error, fields ...interface{}) {
-	evt := enrichEventWithContext(ctx, l.zlog.Error().Err(err))
+	evt := enrichEventWithContext(ctx, l.zlog.Error())
+	if err != nil {
+		evt = evt.Str("error", RedactSensitiveText(err.Error()))
+	}
 
-	for i := 0; i < len(fields); i += 2 {
+	for i := 0; i+1 < len(fields); i += 2 {
 		key, ok := fields[i].(string)
 		if !ok {
 			continue
 		}
-		evt = evt.Interface(key, fields[i+1])
+		evt = addSafeField(evt, key, fields[i+1])
 	}
 	evt.Msg(msg)
 }
@@ -86,7 +94,25 @@ func (l *Logger) ErrorWithFields(ctx context.Context, msg string, fields map[str
 	evt := enrichEventWithContext(ctx, l.zlog.Error())
 
 	for k, v := range fields {
-		evt = evt.Interface(k, v)
+		evt = addSafeField(evt, k, v)
 	}
 	evt.Msg(msg)
+}
+
+func addSafeField(evt *zerolog.Event, key string, value interface{}) *zerolog.Event {
+	lowerKey := strings.ToLower(key)
+	for _, sensitive := range []string{"authorization", "cookie", "password", "secret", "token", "code"} {
+		if strings.Contains(lowerKey, sensitive) {
+			return evt.Str(key, "[REDACTED]")
+		}
+	}
+	if text, ok := value.(string); ok {
+		return evt.Str(key, RedactSensitiveText(text))
+	}
+	return evt.Interface(key, value)
+}
+
+func RedactSensitiveText(value string) string {
+	value = credentialPattern.ReplaceAllString(value, "$1=[REDACTED]")
+	return jwtPattern.ReplaceAllString(value, "[REDACTED_JWT]")
 }

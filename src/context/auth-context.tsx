@@ -12,7 +12,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser, logoutUser } from "@/lib/api/user-api";
 import { listWorkspaces, type Workspace } from "@/lib/api/workspace-api";
 import type { UserProps } from "@/types/user";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "@/components/phosphor-icons";
+import { safeInternalRedirect } from "@/lib/security/safe-redirect";
 
 interface AuthContextType {
   user: UserProps | null;
@@ -95,18 +96,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // logout user func
   const logout = useCallback(async () => {
     try {
-      const res = await logoutUser();
-      if (!res) {
-        throw new Error("Error logging out");
-      }
-
+      await logoutUser();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
       setUser(null);
       setWorkspaces([]);
       setActiveWorkspaceState(null);
       localStorage.removeItem("pulseguard_active_workspace_id");
       router.push("/signin");
-    } catch (err) {
-      console.error("Logout failed:", err);
+      router.refresh();
     }
   }, [router]);
 
@@ -127,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
       if (savedRedirect) {
         localStorage.removeItem("pulseguard_post_auth_redirect");
-        router.push(savedRedirect);
+        router.push(safeInternalRedirect(savedRedirect));
         return;
       }
 

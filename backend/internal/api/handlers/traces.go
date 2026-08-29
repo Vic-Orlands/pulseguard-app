@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	apiMiddleware "pulseguard/internal/api/middleware"
+	"pulseguard/internal/models"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/internal/util/spanutil"
@@ -18,15 +20,16 @@ import (
 )
 
 type TracesHandler struct {
-	tracesService *service.TracesService
-	logger        *logger.Logger
-	metrics       *otel.Metrics
-	tracer        trace.Tracer
+	tracesService  *service.TracesService
+	projectService *service.ProjectService
+	logger         *logger.Logger
+	metrics        *otel.Metrics
+	tracer         trace.Tracer
 }
 
 // NewTracesHandler creates a new TracesHandler with the provided services and dependencies.
-func NewTracesHandler(tracesService *service.TracesService, logger *logger.Logger, metrics *otel.Metrics, tracer trace.Tracer) *TracesHandler {
-	return &TracesHandler{tracesService: tracesService, logger: logger, metrics: metrics, tracer: tracer}
+func NewTracesHandler(tracesService *service.TracesService, projectService *service.ProjectService, logger *logger.Logger, metrics *otel.Metrics, tracer trace.Tracer) *TracesHandler {
+	return &TracesHandler{tracesService: tracesService, projectService: projectService, logger: logger, metrics: metrics, tracer: tracer}
 }
 
 // SearchTraces
@@ -104,6 +107,28 @@ func (h *TracesHandler) GetTraceByID(w http.ResponseWriter, r *http.Request) {
 		util.WriteError(w, http.StatusInternalServerError, "Could not fetch trace from Tempo")
 		return
 	}
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok || !traceBelongsToProject(traceData, projectID) {
+		util.WriteError(w, http.StatusNotFound, "Trace not found")
+		return
+	}
 
 	util.WriteJSON(w, http.StatusOK, traceData)
+}
+
+func traceBelongsToProject(traceData *models.Trace, projectID string) bool {
+	if traceData == nil {
+		return false
+	}
+	for _, span := range traceData.Spans {
+		if span == nil {
+			continue
+		}
+		for _, attributes := range []map[string]string{span.Attributes, span.Resources} {
+			if attributes["project_id"] == projectID || attributes["project.id"] == projectID {
+				return true
+			}
+		}
+	}
+	return false
 }

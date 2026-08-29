@@ -17,6 +17,8 @@ type TempoClient struct {
 	httpClient *http.Client
 }
 
+const maxTempoResponseBytes = 4 << 20
+
 func NewTempoRepository(baseURL string) *TempoClient {
 	return &TempoClient{
 		baseURL:    baseURL,
@@ -49,9 +51,12 @@ func (c *TempoClient) GetTraces(ctx context.Context, projectID string, start, en
 	}
 	defer res.Body.Close()
 
-	bodyBytes, err = io.ReadAll(res.Body)
+	bodyBytes, err = io.ReadAll(io.LimitReader(res.Body, maxTempoResponseBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if len(bodyBytes) > maxTempoResponseBytes {
+		return nil, fmt.Errorf("tempo response exceeded size limit")
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -115,7 +120,7 @@ func (c *TempoClient) GetTrace(ctx context.Context, traceID string) (*models.Tra
 	}
 
 	var raw map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&raw)
+	err = json.NewDecoder(io.LimitReader(res.Body, maxTempoResponseBytes+1)).Decode(&raw)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +144,10 @@ func parseTempoTrace(data map[string]interface{}, traceID string) (*models.Trace
 	}
 
 	for _, b := range batches {
-		batch := b.(map[string]interface{})
+		batch, ok := b.(map[string]interface{})
+		if !ok {
+			continue
+		}
 		resourceAttrs := extractAttributes(batch["resource"])
 
 		scopeSpans, ok := batch["scopeSpans"].([]interface{})
@@ -148,14 +156,20 @@ func parseTempoTrace(data map[string]interface{}, traceID string) (*models.Trace
 		}
 
 		for _, ils := range scopeSpans {
-			ilsMap := ils.(map[string]interface{})
+			ilsMap, ok := ils.(map[string]interface{})
+			if !ok {
+				continue
+			}
 			rawSpans, ok := ilsMap["spans"].([]interface{})
 			if !ok {
 				continue
 			}
 
 			for _, s := range rawSpans {
-				span := s.(map[string]interface{})
+				span, ok := s.(map[string]interface{})
+				if !ok {
+					continue
+				}
 
 				startNs, err := getInt64FromAny(span["startTimeUnixNano"])
 				if err != nil {

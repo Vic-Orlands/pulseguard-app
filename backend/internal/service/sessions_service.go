@@ -24,6 +24,10 @@ func (s *SessionService) EndSession(ctx context.Context, sessionID string, endTi
 	return s.repo.UpdateSessionEnd(ctx, sessionID, endTime)
 }
 
+func (s *SessionService) EndSessionForProject(ctx context.Context, sessionID, projectID string, endTime time.Time) error {
+	return s.repo.UpdateSessionEndForProject(ctx, sessionID, projectID, endTime)
+}
+
 func (s *SessionService) IncrementErrorCount(ctx context.Context, sessionID string) error {
 	return s.repo.IncrementErrorCount(ctx, sessionID)
 }

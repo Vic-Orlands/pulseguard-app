@@ -1,23 +1,31 @@
 package util
 
 import (
+	"net"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
 // NowUTC returns the current time in UTC.
 func NowUTC() time.Time {
-    return time.Now().UTC()
+	return time.Now().UTC()
 }
 
 // GetIPAddress extracts the client's IP address from the request.
 // It checks the "X-Forwarded-For" header first, then falls back to RemoteAddr.
 func GetIPAddress(r *http.Request) string {
-	ip := r.Header.Get("X-Forwarded-For")
-	if ip == "" {
-		ip = r.RemoteAddr
+	if os.Getenv("TRUST_PROXY_HEADERS") == "true" {
+		if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+			return strings.TrimSpace(strings.Split(forwarded, ",")[0])
+		}
 	}
-	return ip
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err == nil {
+		return host
+	}
+	return r.RemoteAddr
 }
 
 // ParseTimeRange parses start and end time strings in RFC3339 format.

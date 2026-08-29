@@ -14,6 +14,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var dummyPasswordHash, _ = auth.HashPassword("pulseguard-dummy-password")
+
 type UserService struct {
 	userRepo *postgres.UserRepository
 }
@@ -45,14 +47,11 @@ func (s *UserService) Register(ctx context.Context, email, name, image, hashedPa
 	err := s.userRepo.Create(ctx, user)
 	if err != nil {
 		if postgres.IsDuplicateKeyError(err) {
-			fmt.Printf("❌ User already exists: %s\n", email)
 			return nil, fmt.Errorf("user already exists")
 		}
-		fmt.Printf("❌ DB insert error: %v\n", err)
 		return nil, err
 	}
 
-	fmt.Printf("✅ User registered successfully: %s\n", user.Email)
 	return user, nil
 }
 
@@ -60,10 +59,8 @@ func (s *UserService) Register(ctx context.Context, email, name, image, hashedPa
 func (s *UserService) Login(ctx context.Context, email, password string) (*models.User, error) {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %w", err)
-		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		_ = auth.ComparePassword(dummyPasswordHash, password)
+		return nil, errors.New("invalid credentials")
 	}
 
 	if err := auth.ComparePassword(user.Password, password); err != nil {
@@ -76,6 +73,10 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 // get current user by id
 func (s *UserService) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
 	return s.userRepo.GetByID(ctx, userID)
+}
+
+func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	return s.userRepo.GetByEmail(ctx, email)
 }
 
 // updates user details
@@ -104,7 +105,6 @@ func (s *UserService) Delete(ctx context.Context, userID uuid.UUID) error {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
-	fmt.Printf("✅ User deleted successfully: %s\n", userID.String())
 	return nil
 }
 
@@ -122,4 +122,12 @@ func (s *UserService) UpdatePassword(ctx context.Context, userID uuid.UUID, hash
 
 func (s *UserService) InvalidateResetToken(ctx context.Context, token string) error {
 	return s.userRepo.InvalidateResetToken(ctx, token)
+}
+
+func (s *UserService) GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error) {
+	return s.userRepo.GetTokenVersion(ctx, userID)
+}
+
+func (s *UserService) RevokeTokens(ctx context.Context, userID uuid.UUID) error {
+	return s.userRepo.IncrementTokenVersion(ctx, userID)
 }

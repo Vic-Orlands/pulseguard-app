@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	middlewareSlash "github.com/go-chi/chi/v5/middleware"
@@ -41,6 +42,8 @@ func NewRouter(
 	// Request middleware logging
 	middleware.Logging(r)
 	r.Use(middleware.CORS())
+	r.Use(middleware.SecurityHeaders)
+	r.Use(middleware.BodyLimit(1 << 20))
 	// Custom middlewares for tracing and metrics
 	r.Use(tracingMiddleware)
 	r.Use(metricsMiddleware)
@@ -53,8 +56,8 @@ func NewRouter(
 	workspaceHandler := handlers.NewWorkspaceHandler(wsSvc, metrics, logger, tracer)
 
 	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc, logger, tracer)
-	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, metrics, logger, tracer)
-	tracesHandler := handlers.NewTracesHandler(tracesSvc, logger, metrics, tracer)
+	errorHandler := handlers.NewErrorHandler(errorSvc, sessionSvc, projectSvc, metrics, logger, tracer)
+	tracesHandler := handlers.NewTracesHandler(tracesSvc, projectSvc, logger, metrics, tracer)
 	logsHandler := handlers.NewLogsHandler(logsSvc, logger, metrics, tracer)
 	sessionHandler := handlers.NewSessionHandler(sessionSvc, metrics, logger, tracer)
 
@@ -62,26 +65,25 @@ func NewRouter(
 	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
 
 	// user routes
-	r.Post("/api/users/register", userHandler.Register)
-	r.Post("/api/users/login", userHandler.Login)
-	r.Post("/api/users/logout", userHandler.Logout)
-	r.Post("/api/forgot-password", userHandler.ForgotPassword)
-	r.Post("/api/reset-password", userHandler.ResetPassword)
-	r.Post("/api/sessions/start", sessionHandler.StartSession)
-	r.Post("/api/sessions/end", sessionHandler.EndSession)
+	r.With(middleware.RateLimit(5, time.Hour)).Post("/api/users/register", userHandler.Register)
+	r.With(middleware.RateLimit(10, time.Minute)).Post("/api/users/login", userHandler.Login)
+	r.With(middleware.RateLimit(5, time.Hour)).Post("/api/forgot-password", userHandler.ForgotPassword)
+	r.With(middleware.RateLimit(10, time.Hour)).Post("/api/reset-password", userHandler.ResetPassword)
 
 	// social sign-in
-	r.Get("/api/auth/{provider}", oauthHandler.BeginAuth)
-	r.Get("/api/auth/{provider}/callback", oauthHandler.CompleteAuth)
+	r.With(middleware.RateLimit(20, time.Minute)).Get("/api/auth/{provider}", oauthHandler.BeginAuth)
+	r.With(middleware.RateLimit(30, time.Minute)).Get("/api/auth/{provider}/callback", oauthHandler.CompleteAuth)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.CookieTokenParser(tokenSvc.GetTokenAuth()))
 		r.Use(jwtauth.Verifier(tokenSvc.GetTokenAuth()))
 		r.Use(authMiddleware)
+		r.Use(middleware.RequireCSRF)
 
 		// user routes
 		r.Get("/api/users/me", userHandler.CheckCurrentUser)
+		r.Post("/api/users/logout", userHandler.Logout)
 		r.Put("/api/users/me", userHandler.UpdateUser)
 		r.Delete("/api/users/me", userHandler.DeleteUser)
 
@@ -96,48 +98,51 @@ func NewRouter(
 		// workspace routes
 		r.Post("/api/workspaces", workspaceHandler.Create)
 		r.Get("/api/workspaces", workspaceHandler.List)
-		r.Get("/api/invitations/get", workspaceHandler.GetInvitation)
+		r.Post("/api/invitations/get", workspaceHandler.GetInvitation)
 		r.Post("/api/invitations/accept", workspaceHandler.AcceptInvitation)
 
 		// workspace-scoped routes with membership checks
 		r.Route("/api/workspaces/{workspaceID}", func(r chi.Router) {
 			r.Use(middleware.RequireWorkspaceRole(wsSvc, "member", logger, tracer, metrics))
 
-			r.Get("/api/members", workspaceHandler.ListMembers)
-			r.Get("/api/teams", workspaceHandler.ListTeams)
-			r.Get("/api/teams/{teamID}/members", workspaceHandler.ListTeamMembers)
-			r.Get("/api/invitations", workspaceHandler.ListInvitations)
+			r.Get("/members", workspaceHandler.ListMembers)
+			r.Get("/teams", workspaceHandler.ListTeams)
+			r.Get("/teams/{teamID}/members", workspaceHandler.ListTeamMembers)
+			r.Get("/invitations", workspaceHandler.ListInvitations)
 
 			// Admin/Owner-only workspace operations
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireWorkspaceRole(wsSvc, "admin", logger, tracer, metrics))
-				r.Post("/api/invite", workspaceHandler.Invite)
-				r.Post("/api/teams", workspaceHandler.CreateTeam)
-				r.Post("/api/teams/{teamID}/members/{userID}", workspaceHandler.AddTeamMember)
-				r.Delete("/api/teams/{teamID}/members/{userID}", workspaceHandler.RemoveTeamMember)
-				r.Put("/api/members/{userID}/role", workspaceHandler.UpdateMemberRole)
-				r.Put("/api/members/{userID}/status", workspaceHandler.UpdateMemberStatus)
-				r.Delete("/api/members/{userID}", workspaceHandler.RemoveMember)
+				r.Post("/invite", workspaceHandler.Invite)
+				r.Post("/teams", workspaceHandler.CreateTeam)
+				r.Post("/teams/{teamID}/members/{userID}", workspaceHandler.AddTeamMember)
+				r.Delete("/teams/{teamID}/members/{userID}", workspaceHandler.RemoveTeamMember)
+				r.Put("/members/{userID}/role", workspaceHandler.UpdateMemberRole)
+				r.Put("/members/{userID}/status", workspaceHandler.UpdateMemberStatus)
+				r.Delete("/members/{userID}", workspaceHandler.RemoveMember)
 			})
 		})
 
 		// Error tracking routes
-		r.Post("/api/errors/track", errorHandler.Track)
-		r.Get("/api/errors", errorHandler.ListByProject)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Post("/api/errors/track", errorHandler.Track)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Get("/api/errors", errorHandler.ListByProject)
 		r.Get("/api/errors/get", errorHandler.GetErrorByID)
 		r.Put("/api/errors/status", errorHandler.UpdateErrorStatus)
 
 		// alert routes
-		r.Post("/api/alerts", alertHandler.Create)
-		r.Get("/api/alerts/{project_id}", alertHandler.ListByProject)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/alerts", alertHandler.Create)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Get("/api/alerts/{project_id}", alertHandler.ListByProject)
 
 		// otlp
-		r.Get("/api/sessions", sessionHandler.GetSessions)
-		r.Get("/api/metrics", metricsHandler.GetMetrics)
-		r.Get("/api/logs", logsHandler.GetLogsByProjectID)
-		r.Get("/api/traces", tracesHandler.ListTracesByProject)
-		r.Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
-		r.Get("/api/dashboard", dashboardHandler.GetDashboardData)
+		projectMember := middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)
+		r.With(projectMember).Post("/api/sessions/start", sessionHandler.StartSession)
+		r.With(projectMember).Post("/api/sessions/end", sessionHandler.EndSession)
+		r.With(projectMember).Get("/api/sessions", sessionHandler.GetSessions)
+		r.With(projectMember).Get("/api/metrics", metricsHandler.GetMetrics)
+		r.With(projectMember).Get("/api/logs", logsHandler.GetLogsByProjectID)
+		r.With(projectMember).Get("/api/traces", tracesHandler.ListTracesByProject)
+		r.With(projectMember).Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
+		r.With(projectMember).Get("/api/dashboard", dashboardHandler.GetDashboardData)
 	})
 
 	return r

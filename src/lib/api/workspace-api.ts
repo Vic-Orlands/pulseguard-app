@@ -2,7 +2,7 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 
 const headerConfig = {
   credentials: "include" as const,
-  headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
 };
 
 export interface Workspace {
@@ -32,7 +32,7 @@ export interface WorkspaceInvitation {
   workspaceName?: string;
   email: string;
   role: string;
-  token: string;
+  token?: string;
   expiresAt: string;
   status: string;
 }
@@ -87,8 +87,10 @@ export const inviteMember = async (
 };
 
 export const getInvitation = async (token: string): Promise<WorkspaceInvitation & { workspaceName: string }> => {
-  const res = await fetch(`${url}/api/invitations/get?token=${token}`, {
+  const res = await fetch(`${url}/api/invitations/get`, {
+    method: "POST",
     ...headerConfig,
+    body: JSON.stringify({ token }),
   });
   if (!res.ok) {
     throw new Error("Invitation not found or expired");

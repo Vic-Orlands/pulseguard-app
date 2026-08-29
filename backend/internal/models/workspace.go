@@ -50,7 +50,7 @@ type WorkspaceInvitation struct {
 	WorkspaceID uuid.UUID `json:"workspaceId"`
 	Email       string    `json:"email"`
 	Role        string    `json:"role"`
-	Token       string    `json:"token"`
+	Token       string    `json:"-"`
 	InvitedBy   uuid.UUID `json:"invitedBy"`
 	ExpiresAt   time.Time `json:"expiresAt"`
 	CreatedAt   time.Time `json:"createdAt"`

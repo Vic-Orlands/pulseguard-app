@@ -7,6 +7,41 @@ declare const EdgeRuntime: string | undefined;
 
 type LogMethod = (obj: unknown, msg?: string, ...args: unknown[]) => void;
 
+const sensitiveKeyPattern =
+  /authorization|cookie|password|secret|token|access[_-]?token|refresh[_-]?token/i;
+const credentialPattern =
+  /(authorization|cookie|password|secret|token|code)=([^&\s]+)/gi;
+const jwtPattern = /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
+
+export function redactSensitiveText(value: string): string {
+  return value
+    .replace(credentialPattern, "$1=[REDACTED]")
+    .replace(jwtPattern, "[REDACTED_JWT]");
+}
+
+function redactLogValue(value: unknown, depth = 0): unknown {
+  if (typeof value === "string") return redactSensitiveText(value);
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: redactSensitiveText(value.message),
+      stack: value.stack ? redactSensitiveText(value.stack) : undefined,
+    };
+  }
+  if (depth > 5 || value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) {
+    return value.slice(0, 100).map((item) => redactLogValue(item, depth + 1));
+  }
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      sensitiveKeyPattern.test(key)
+        ? "[REDACTED]"
+        : redactLogValue(item, depth + 1),
+    ]),
+  );
+}
+
 const isDev = process.env.NODE_ENV !== "production";
 const level = isDev ? "debug" : "info";
 const ENABLE_TRACING = process.env.ENABLE_OTEL_TRACING !== "false";
@@ -16,6 +51,29 @@ const IS_EDGE =
 const baseConfig = {
   level,
   timestamp: pino.stdTimeFunctions.isoTime,
+  redact: {
+    paths: [
+      "authorization",
+      "cookie",
+      "set-cookie",
+      "password",
+      "token",
+      "access_token",
+      "refresh_token",
+      "secret",
+      "*.authorization",
+      "*.cookie",
+      "*.password",
+      "*.token",
+      "*.access_token",
+      "*.refresh_token",
+      "*.secret",
+      "req.headers.authorization",
+      "req.headers.cookie",
+      "res.headers.set-cookie",
+    ],
+    censor: "[REDACTED]",
+  },
   serializers: {
     err: pino.stdSerializers.err,
   },
@@ -95,6 +153,7 @@ export function createLogger(name: string, projectId?: string): Logger {
 
   methods.forEach((method) => {
     wrappedLogger[method] = (...args: Parameters<LogMethod>) => {
+      args = args.map((arg) => redactLogValue(arg)) as Parameters<LogMethod>;
       try {
         const span = trace.getActiveSpan();
         if (span) {
@@ -110,7 +169,7 @@ export function createLogger(name: string, projectId?: string): Logger {
           }
         }
       } catch (error) {
-        childLogger.error("Failed to inject tracing context", { error });
+        childLogger.error({ error }, "Failed to inject tracing context");
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
       return (childLogger[method] as Function)(...args);

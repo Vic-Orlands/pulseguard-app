@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"pulseguard/internal/models"
 	"strings"
@@ -73,17 +72,17 @@ func (repo *ProjectRepository) ListByOwner(ctx context.Context, ownerID string) 
 	return projects, nil
 }
 
-// GetBySlug retrieves a project by its slug from the database.
-func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*models.Project, error) {
+func (repo *ProjectRepository) GetBySlugForMember(ctx context.Context, slug, userID string) (*models.Project, error) {
 	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
 		FROM projects p
+		JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
 		LEFT JOIN errors e ON p.id = e.project_id
-		WHERE p.slug = $1
+		WHERE p.slug = $1 AND wm.user_id = $2 AND wm.status = 'active'
 		GROUP BY p.id
 	`
 	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, slug).Scan(
+	err := repo.db.QueryRowContext(ctx, query, slug, userID).Scan(
 		&p.ID,
 		&p.WorkspaceID,
 		&p.Name,
@@ -100,68 +99,97 @@ func (repo *ProjectRepository) GetBySlug(ctx context.Context, slug string) (*mod
 	return &p, nil
 }
 
-// DeleteBySlug deletes a project by its slug from the database.
-func (repo *ProjectRepository) DeleteBySlug(ctx context.Context, slug string) (*models.Project, error) {
-    // First, select the project to return it after deletion
-    query := `
-        SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) as error_count
-        FROM projects p
-        LEFT JOIN errors e ON p.id = e.project_id
-        WHERE p.slug = $1
-        GROUP BY p.id
-    `
-    var p models.Project
-    err := repo.db.QueryRowContext(ctx, query, slug).Scan(
-        &p.ID,
-        &p.WorkspaceID,
-        &p.Name,
-        &p.Slug,
-        &p.Description,
-        &p.OwnerID,
-        &p.CreatedAt,
-        &p.UpdatedAt,
-        &p.ErrorCount,
-    )
-    if err != nil {
-        if errors.Is(err, sql.ErrNoRows) {
-            return nil, fmt.Errorf("project with slug %s not found", slug)
-        }
-        return nil, err
-    }
-
-    // Now delete the project
-    deleteQuery := `
-        DELETE FROM projects
-        WHERE slug = $1
-    `
-    result, err := repo.db.ExecContext(ctx, deleteQuery, slug)
-    if err != nil {
-        return nil, err
-    }
-
-    // Optional: Check if any rows were affected
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return nil, err
-    }
-    if rowsAffected == 0 {
-        return nil, fmt.Errorf("no project deleted with slug %s", slug)
-    }
-
-    return &p, nil
+func (repo *ProjectRepository) HasWorkspaceRole(ctx context.Context, workspaceID, userID, minRole string) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM workspace_members
+			WHERE workspace_id = $1
+			  AND user_id = $2
+			  AND status = 'active'
+			  AND CASE role
+				WHEN 'owner' THEN 3
+				WHEN 'admin' THEN 2
+				WHEN 'member' THEN 1
+				ELSE 0
+			  END >= CASE $3
+				WHEN 'owner' THEN 3
+				WHEN 'admin' THEN 2
+				ELSE 1
+			  END
+		)
+	`
+	var allowed bool
+	err := repo.db.QueryRowContext(ctx, query, workspaceID, userID, minRole).Scan(&allowed)
+	return allowed, err
 }
 
-// UpdateProject updates an existing project in the database.
-func (repo *ProjectRepository) UpdateProject(ctx context.Context, oldSlug string, project *models.Project) (*models.Project, error) {
+func (repo *ProjectRepository) HasProjectRole(ctx context.Context, projectID, userID, minRole string) (bool, error) {
 	query := `
-		UPDATE projects
-		SET name = $1, slug = $2, description = $3, updated_at = NOW()
-		WHERE slug = $4
-		RETURNING id, workspace_id, name, slug, description, owner_id, created_at, updated_at
+		SELECT EXISTS (
+			SELECT 1
+			FROM projects p
+			JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+			WHERE p.id = $1
+			  AND wm.user_id = $2
+			  AND wm.status = 'active'
+			  AND CASE wm.role
+				WHEN 'owner' THEN 3
+				WHEN 'admin' THEN 2
+				WHEN 'member' THEN 1
+				ELSE 0
+			  END >= CASE $3
+				WHEN 'owner' THEN 3
+				WHEN 'admin' THEN 2
+				ELSE 1
+			  END
+		)
 	`
+	var allowed bool
+	err := repo.db.QueryRowContext(ctx, query, projectID, userID, minRole).Scan(&allowed)
+	return allowed, err
+}
 
+func (repo *ProjectRepository) ListByWorkspaceForMember(ctx context.Context, workspaceID, userID string) ([]*models.Project, error) {
+	query := `
+		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
+		FROM projects p
+		JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+		LEFT JOIN errors e ON p.id = e.project_id
+		WHERE p.workspace_id = $1 AND wm.user_id = $2 AND wm.status = 'active'
+		GROUP BY p.id
+		ORDER BY p.created_at DESC
+	`
+	rows, err := repo.db.QueryContext(ctx, query, workspaceID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var projects []*models.Project
+	for rows.Next() {
+		var p models.Project
+		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
+			return nil, err
+		}
+		projects = append(projects, &p)
+	}
+	return projects, rows.Err()
+}
+
+func (repo *ProjectRepository) DeleteBySlugForManager(ctx context.Context, slug, userID string) (*models.Project, error) {
+	query := `
+		DELETE FROM projects p
+		USING workspace_members wm
+		WHERE p.slug = $1
+		  AND wm.workspace_id = p.workspace_id
+		  AND wm.user_id = $2
+		  AND wm.status = 'active'
+		  AND wm.role IN ('owner', 'admin')
+		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at
+	`
 	var p models.Project
-	err := repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug).Scan(
+	err := repo.db.QueryRowContext(ctx, query, slug, userID).Scan(
 		&p.ID,
 		&p.WorkspaceID,
 		&p.Name,
@@ -172,12 +200,37 @@ func (repo *ProjectRepository) UpdateProject(ctx context.Context, oldSlug string
 		&p.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("project with name %s not found", p.Name)
-		}
 		return nil, err
 	}
+	return &p, nil
+}
 
+func (repo *ProjectRepository) UpdateBySlugForManager(ctx context.Context, oldSlug, userID string, project *models.Project) (*models.Project, error) {
+	query := `
+		UPDATE projects p
+		SET name = $1, slug = $2, description = $3, updated_at = NOW()
+		FROM workspace_members wm
+		WHERE p.slug = $4
+		  AND wm.workspace_id = p.workspace_id
+		  AND wm.user_id = $5
+		  AND wm.status = 'active'
+		  AND wm.role IN ('owner', 'admin')
+		RETURNING p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at
+	`
+	var p models.Project
+	err := repo.db.QueryRowContext(ctx, query, project.Name, project.Slug, project.Description, oldSlug, userID).Scan(
+		&p.ID,
+		&p.WorkspaceID,
+		&p.Name,
+		&p.Slug,
+		&p.Description,
+		&p.OwnerID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
 	return &p, nil
 }
 
@@ -195,62 +248,33 @@ func (repo *ProjectRepository) DeleteAllByOwner(ctx context.Context, ownerID str
 	}
 	defer rows.Close()
 
-    var deletedProjects []*models.Project
-    for rows.Next() {
-        var p models.Project
-        if err := rows.Scan(
-            &p.ID,
-            &p.WorkspaceID,
-            &p.Name,
-            &p.Slug,
-            &p.Description,
-            &p.OwnerID,
-            &p.CreatedAt,
-            &p.UpdatedAt,
-        ); err != nil {
-            return nil, fmt.Errorf("failed to scan deleted project: %w", err)
-        }
-        deletedProjects = append(deletedProjects, &p)
-    }
-
-    if err := rows.Err(); err != nil {
-        return nil, err
-    }
-
-    if len(deletedProjects) == 0 {
-        return nil, fmt.Errorf("no projects found for owner %s", ownerID)
-    }
-
-    return deletedProjects, nil
-}
-
-// ListByWorkspace retrieves all projects in a workspace.
-func (repo *ProjectRepository) ListByWorkspace(ctx context.Context, workspaceID string) ([]*models.Project, error) {
-	query := `
-		SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.owner_id, p.created_at, p.updated_at, COUNT(e.id) AS error_count
-		FROM projects p
-		LEFT JOIN errors e ON p.id = e.project_id
-		WHERE p.workspace_id = $1
-		GROUP BY p.id
-		ORDER BY p.created_at DESC;
-	`
-
-	rows, err := repo.db.QueryContext(ctx, query, workspaceID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var projects []*models.Project
+	var deletedProjects []*models.Project
 	for rows.Next() {
 		var p models.Project
-		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Slug, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.ErrorCount); err != nil {
-			return nil, err
+		if err := rows.Scan(
+			&p.ID,
+			&p.WorkspaceID,
+			&p.Name,
+			&p.Slug,
+			&p.Description,
+			&p.OwnerID,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan deleted project: %w", err)
 		}
-		projects = append(projects, &p)
+		deletedProjects = append(deletedProjects, &p)
 	}
 
-	return projects, nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(deletedProjects) == 0 {
+		return nil, fmt.Errorf("no projects found for owner %s", ownerID)
+	}
+
+	return deletedProjects, nil
 }
 
 // ListByMemberUser retrieves all projects in all workspaces the user belongs to.

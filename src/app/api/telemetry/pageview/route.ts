@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
             "Content-Type": "application/json",
             Cookie: cookieHeader,
             "x-project-id": projectId,
+            "X-CSRF-Token": "pulseguard-web",
           },
           body: JSON.stringify({
             sessionId: pageViewData.sessionId,
@@ -49,7 +50,10 @@ export async function POST(request: NextRequest) {
         referrer: pageViewData.referrer,
       });
 
-      logger.info({ pageViewData }, `Processing pageview: ${pageViewData.page}`);
+      logger.info(
+        { page: pageViewData.page, projectId },
+        "Processing pageview",
+      );
 
       span.setStatus({ code: SpanStatusCode.OK });
       return NextResponse.json({ success: true });

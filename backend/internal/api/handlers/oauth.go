@@ -65,7 +65,7 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, "OAuth user authenticated", "name", user.Name, "email", user.Email, "provider", user.Provider)
+	h.logger.Info(ctx, "OAuth user authenticated", "provider", user.Provider)
 
 	// Create or fetch user from DB
 	dbUser, err := h.userService.UpsertOAuthUser(ctx, user.Email, user.Name, user.Provider, user.UserID, user.AvatarURL)
@@ -76,7 +76,7 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate JWT token
-	token, err := h.tokenService.GenerateToken(dbUser.ID.String(), dbUser.Email)
+	token, err := h.tokenService.GenerateToken(dbUser.ID.String(), dbUser.Email, dbUser.TokenVersion)
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "jwt_creation_failed"),
@@ -112,7 +112,7 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set cookie in response
-	handleSetCookie(w, token, 86400)
+	handleSetCookie(w, token, 3600)
 
 	span.SetStatus(codes.Ok, "Login successful")
 	span.SetAttributes(
@@ -121,6 +121,6 @@ func (h *OAuthHandler) CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// Redirect to frontend with token
-	redirectURL := fmt.Sprintf("%s/projects?token=%s", os.Getenv("FRONTEND_URL"), token)
+	redirectURL := os.Getenv("FRONTEND_URL") + "/projects"
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
