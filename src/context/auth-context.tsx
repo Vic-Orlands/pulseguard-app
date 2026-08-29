@@ -12,7 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser, logoutUser } from "@/lib/api/user-api";
 import { listWorkspaces, type Workspace } from "@/lib/api/workspace-api";
 import type { UserProps } from "@/types/user";
-import { LoaderCircle } from "@/components/phosphor-icons";
+import { AppLoader } from "@/components/shared/app-loader";
 import { safeInternalRedirect } from "@/lib/security/safe-redirect";
 
 interface AuthContextType {
@@ -143,6 +143,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, workspaces, pathname, loading, router]);
 
+  const hasRouteLoader =
+    pathname.startsWith("/projects/") && pathname !== "/projects";
+
   return (
     <AuthContext.Provider
       value={{
@@ -157,17 +160,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
       }}
     >
-      {loading ? (
-        <div className="bg-dot-pattern min-h-screen w-full flex items-center justify-center relative">
-          <div className="flex flex-col items-center gap-3 relative z-10">
-            <LoaderCircle
-              size={20}
-              strokeWidth={1.5}
-              className="animate-spin text-[#ff5a1f]"
-            />
-            <p className="text-sm text-[#73736e]">Loading PulseGuard...</p>
-          </div>
-        </div>
+      {loading && !hasRouteLoader ? (
+        <AppLoader title="Loading PulseGuard..." />
       ) : (
         children
       )}
