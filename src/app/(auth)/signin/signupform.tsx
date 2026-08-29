@@ -17,7 +17,7 @@ import {
   Link2,
   Image as ImageIcon,
   Building,
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 
 import { FormField, InputWithIcon } from "./shared";
 import { registerUser } from "@/lib/api/user-api";

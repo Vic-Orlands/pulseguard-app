@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { LifebuoyIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { LifebuoyIcon } from "@/components/phosphor-icons";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "@/components/phosphor-icons";
 import type { FormFieldProps, InputWithIconProps } from "@/types/form";
 
 /** Form field wrapper: label + children + inline field error */

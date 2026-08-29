@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Add01Icon } from "@/components/phosphor-icons";
 import Image from "next/image";
 import {
   Card,

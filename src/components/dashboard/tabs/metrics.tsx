@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, CancelCircleIcon, ChartLineData01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, Alert01Icon, AlertCircleIcon, CancelCircleIcon, ChartLineData01Icon, MoreHorizontalIcon, Search01Icon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Card,
@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,36 +33,18 @@ import {
 } from "@/components/ui/select";
 import {
   BarChart2
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import { format, subHours, subDays } from "date-fns";
+import { PulseChart } from "@/components/dashboard/shared/apex-chart";
 import { fetchMetrics } from "@/lib/api/otlp-api";
 import type { Project, Metric, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
-import { useTheme } from "next-themes";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar, Line } from "react-chartjs-2";
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MetricsTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 15;
@@ -65,13 +54,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
-
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme } = useTheme();
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  const isDark = mounted && resolvedTheme === "dark";
+  const [selectedMetric, setSelectedMetric] = useState<Metric | null>(null);
 
   // Calculate start time
   const start = useMemo(() => {
@@ -333,8 +316,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   {summaryStats.httpRequestsTotal}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-blue-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -349,8 +332,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   {summaryStats.httpErrorsTotal}
                 </p>
               </div>
-              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
-                <HugeiconsIcon icon={CancelCircleIcon} className="w-4 h-4 text-red-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={CancelCircleIcon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -365,8 +348,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   {summaryStats.pageViewsTotal}
                 </p>
               </div>
-              <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
-                <BarChart2 className="w-4 h-4 text-emerald-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <BarChart2 className="w-4 h-4 text-pg-muted" />
               </div>
             </CardContent>
           </Card>
@@ -381,8 +364,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   {summaryStats.activeSessions}
                 </p>
               </div>
-              <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
-                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-amber-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -390,111 +373,38 @@ const MetricsTab = ({ project }: { project: Project }) => {
 
         {/* Chart Visualization */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-          {chartData.map((chart, index) => (
+          {chartData.map((chart, index) => {
+            const labels = chart.data.labels;
+            const series = chart.data.datasets.map((dataset) => ({
+              name: dataset.label,
+              data: labels.map((label) => {
+                const match = dataset.data.find(
+                  (point) => format(point.x, "PP, h:mmaaa") === label,
+                );
+                return match?.y ?? 0;
+              }),
+            }));
+            const colors = chart.data.datasets.map((dataset) => dataset.borderColor);
+
+            return (
             <Card
               key={index}
-              className="bg-card border border-border rounded-lg shadow-none"
+              className="bg-pg-group rounded-lg"
             >
-              <CardHeader className="py-3 px-4 border-b border-border/50">
+              <CardHeader className="py-3 px-4">
                 <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   {chart.title}
                 </h3>
               </CardHeader>
               <CardContent className="p-4">
                 {chart.data.datasets.length > 0 ? (
-                  chartType === "bar" ? (
-                    <Bar
-                      data={chart.data}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: "top",
-                            labels: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                          },
-                          tooltip: { 
-                            backgroundColor: isDark ? "#18181b" : "#ffffff",
-                            borderColor: isDark ? "#27272a" : "#e4e4e7",
-                            borderWidth: 1,
-                            titleColor: isDark ? "#f4f4f5" : "#14171e",
-                            bodyColor: isDark ? "#a1a1aa" : "#7b7d81",
-                            padding: 8,
-                          },
-                        },
-                        scales: {
-                          x: {
-                            ticks: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                            grid: { display: false },
-                          },
-                          y: {
-                            beginAtZero: true,
-                            ticks: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                            grid: { 
-                              color: isDark ? "#27272a" : "#e4e4e7",
-                              drawTicks: false
-                            },
-                          },
-                        },
-                      }}
-                      height={200}
-                    />
-                  ) : (
-                    <Line
-                      data={chart.data}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: "top",
-                            labels: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                          },
-                          tooltip: { 
-                            backgroundColor: isDark ? "#18181b" : "#ffffff",
-                            borderColor: isDark ? "#27272a" : "#e4e4e7",
-                            borderWidth: 1,
-                            titleColor: isDark ? "#f4f4f5" : "#14171e",
-                            bodyColor: isDark ? "#a1a1aa" : "#7b7d81",
-                            padding: 8,
-                          },
-                        },
-                        scales: {
-                          x: {
-                            ticks: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                            grid: { display: false },
-                          },
-                          y: {
-                            beginAtZero: true,
-                            ticks: { 
-                              color: isDark ? "#a1a1aa" : "#7b7d81",
-                              font: { size: 10 }
-                            },
-                            grid: { 
-                              color: isDark ? "#27272a" : "#e4e4e7",
-                              drawTicks: false
-                            },
-                          },
-                        },
-                      }}
-                      height={200}
-                    />
-                  )
+                  <PulseChart
+                    type={chartType === "bar" ? "bar" : "area"}
+                    height={200}
+                    categories={labels}
+                    series={series}
+                    colors={colors}
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-48">
                     <p className="text-muted-foreground text-xs">No data available</p>
@@ -502,7 +412,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
 
         {/* Table */}
@@ -515,6 +426,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Timestamp</TableHead>
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Name</TableHead>
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Value</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -534,7 +446,8 @@ const MetricsTab = ({ project }: { project: Project }) => {
                   paginatedMetrics.map((metric: Metric, index: number) => (
                     <TableRow
                       key={metric.id + index}
-                      className="border-border hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMetric(metric)}
                     >
                       <TableCell className="text-foreground font-mono text-[10px] py-2 px-4">
                         {metric.id || "none"}
@@ -547,6 +460,26 @@ const MetricsTab = ({ project }: { project: Project }) => {
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4">
                         {metric.value}
+                      </TableCell>
+                      <TableCell
+                        className="py-2 px-2"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 shadow-none">
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-lg">
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => setSelectedMetric(metric)}
+                            >
+                              Open details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -587,6 +520,35 @@ const MetricsTab = ({ project }: { project: Project }) => {
           </CardContent>
         </Card>
       </div>
+
+      <Sheet open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
+        <SheetContent className="bg-pg-modal p-6">
+          <SheetHeader className="p-0 mb-5">
+            <SheetTitle>Metric details</SheetTitle>
+            <SheetDescription>
+              {selectedMetric?.name || "Metric"}
+            </SheetDescription>
+          </SheetHeader>
+          {selectedMetric ? (
+            <div className="space-y-3 text-sm">
+              <div className="rounded-lg bg-pg-group p-3">
+                <p className="text-[10px] uppercase text-pg-muted">ID</p>
+                <p className="font-mono text-xs break-all">{selectedMetric.id}</p>
+              </div>
+              <div className="rounded-lg bg-pg-group p-3">
+                <p className="text-[10px] uppercase text-pg-muted">Value</p>
+                <p className="text-xs">{selectedMetric.value}</p>
+              </div>
+              <div className="rounded-lg bg-pg-group p-3">
+                <p className="text-[10px] uppercase text-pg-muted">Timestamp</p>
+                <p className="text-xs">
+                  {format(new Date(selectedMetric.timestamp), "PPpp")}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </>
   );
 };

@@ -1,9 +1,9 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon, ArrowRight01Icon, BarChartIcon, Clock01Icon, DatabaseIcon, GlobeIcon, HierarchyFilesIcon, InformationCircleIcon, Loading02Icon, Tag01Icon, UngroupItemsIcon, WorkflowCircle01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { ArrowDown01Icon, ArrowRight01Icon, BarChartIcon, Clock01Icon, DatabaseIcon, GlobeIcon, HierarchyFilesIcon, InformationCircleIcon, Loading02Icon, Tag01Icon, UngroupItemsIcon, WorkflowCircle01Icon } from "@/components/phosphor-icons";
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import {
   Server,
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet,

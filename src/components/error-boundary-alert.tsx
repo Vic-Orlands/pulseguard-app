@@ -1,5 +1,5 @@
 import { PageFooter } from "@/components/page-footer";
-import { RefreshCcw, ExternalLink, AlertTriangle, Archive } from "lucide-react";
+import { RefreshCcw, ExternalLink, AlertTriangle, Archive } from "@/components/phosphor-icons";
 
 interface FallbackProps {
   error: Error | undefined;

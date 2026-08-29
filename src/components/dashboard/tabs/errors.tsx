@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, AlertCircleIcon, ArrowRight01Icon, Bug01Icon, Clock01Icon, CodeIcon, Copy01Icon, GlobeIcon, LinkSquare01Icon, Search01Icon, Tag01Icon, Tick01Icon, UserGroupIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, AlertCircleIcon, Bug01Icon, Clock01Icon, CodeIcon, Copy01Icon, GlobeIcon, LinkSquare01Icon, MoreHorizontalIcon, Search01Icon, Tag01Icon, Tick01Icon, UserGroupIcon } from "@/components/phosphor-icons";
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import {
   Zap
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import {
   Select,
   SelectItem,
@@ -29,6 +29,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -41,8 +47,6 @@ import { updateErrorStatus } from "@/lib/api/error-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSeverityColor } from "@/lib/utils";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
-import React, { useEffect } from "react";
 
 import type { Error, ErrorMetaRowProps, ErrorsTabProps } from "@/types/error";
 
@@ -485,13 +489,6 @@ export default function ErrorsTab({
     limit: 20 as number,
   });
 
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme } = useTheme();
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  const isDark = mounted && resolvedTheme === "dark";
-
   useMemo(() => {
     setLocalErrors(errors);
   }, [errors]);
@@ -677,23 +674,24 @@ export default function ErrorsTab({
         <CardContent className="p-0 border-t border-border/50">
           <Table>
             <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">ID</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Type</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Message</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Status</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Count</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Environment</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Last Seen</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4">Source</TableHead>
-                <TableHead className="text-xs text-muted-foreground h-9 px-4 text-right">Actions</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>ID</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Message</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Count</TableHead>
+                <TableHead>Environment</TableHead>
+                <TableHead>Last Seen</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead className="text-right"> </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredErrors.map((error) => (
                 <TableRow
                   key={error.id}
-                  className="border-border hover:bg-muted/50 transition-colors"
+                  className="cursor-pointer"
+                  onClick={() => handleErrorClick(error)}
                 >
                   {loadingErrorIds.includes(error.id) ? (
                     <TableCell colSpan={9}>
@@ -752,19 +750,25 @@ export default function ErrorsTab({
                           <span className="truncate block">{error.source}</span>
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2 px-4">
-                        <div className="flex items-center justify-end">
-                          <Button
-                            variant="ghost"
-                            className="text-primary hover:bg-muted hover:text-primary/85 text-xs h-8 shadow-none py-1 px-2.5 cursor-pointer flex items-center gap-1"
-                            onClick={() => handleErrorClick(error)}
-                            disabled={loadingErrorIds.includes(error.id)}
-                          >
-                            <HugeiconsIcon icon={ViewIcon} className="h-4 w-4" />
-                            <span>View</span>
-                            <HugeiconsIcon icon={ArrowRight01Icon} className="h-3 w-3" />
-                          </Button>
-                        </div>
+                      <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 shadow-none"
+                            >
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => handleErrorClick(error)}
+                            >
+                              Open details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </>
                   )}

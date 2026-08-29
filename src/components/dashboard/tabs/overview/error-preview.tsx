@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert01Icon, AlertCircleIcon, Bug01Icon, Clock01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Alert01Icon, AlertCircleIcon, Bug01Icon, Clock01Icon, ArrowRight } from "@/components/phosphor-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,11 +27,11 @@ export default function ErrorPreview({
   setActiveTab,
 }: ErrorPreviewProps) {
   return (
-    <Card className="bg-card border border-border shadow-none rounded-lg relative">
+    <Card className="rounded-lg relative">
       <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-border/50">
         <div>
           <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-red-500" />
+            <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
             Recent Errors
           </CardTitle>
         </div>
@@ -41,7 +41,7 @@ export default function ErrorPreview({
           className="text-primary hover:bg-muted text-xs h-7 px-2.5 font-medium flex items-center shadow-none border-none"
           onClick={() => setActiveTab?.("errors")}
         >
-          <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5 mr-1" />
+          <HugeiconsIcon icon={ArrowRight} className="w-3.5 h-3.5 mr-1" />
           View all
         </Button>
       </CardHeader>
@@ -56,10 +56,10 @@ export default function ErrorPreview({
             errors.map((error) => (
               <div
                 key={error.id}
-                className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/20"
+                className="flex items-start gap-3 p-3 rounded-lg bg-pg-surface"
               >
                 <div className="p-1.5 rounded-full bg-red-500/10 border border-red-500/20 flex-shrink-0">
-                  <HugeiconsIcon icon={AlertCircleIcon} className="h-3.5 w-3.5 text-red-500" />
+                  <HugeiconsIcon icon={AlertCircleIcon} className="h-3.5 w-3.5" />
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <div className="flex items-center justify-between gap-2">

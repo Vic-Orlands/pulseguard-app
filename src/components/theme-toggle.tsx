@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "@/components/phosphor-icons";
 
 /**
  * Floating theme toggle button — top-right corner on all full-page auth screens.

@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Copy01Icon, Loading02Icon, Search01Icon, Tick01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { AlertCircleIcon, Copy01Icon, Loading02Icon, MoreHorizontalIcon, Search01Icon, Tick01Icon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Card,
@@ -9,12 +9,17 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   Table,
@@ -38,7 +43,6 @@ import { format, subHours, subDays } from "date-fns";
 import type { Project, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../../shared/error-message";
 import TraceToLogsComponent from "./trace-to-logs";
-import { useTheme } from "next-themes";
 
 interface TracesSummary {
   traceId: string;
@@ -61,13 +65,6 @@ const TracesTab = ({ project }: { project: Project }) => {
   const [selectedTrace, setSelectedTrace] = useState<TracesSummary | null>(
     null
   );
-
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme } = useTheme();
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  const isDark = mounted && resolvedTheme === "dark";
 
   // Calculate start time
   const start = useMemo(() => {
@@ -239,7 +236,8 @@ const TracesTab = ({ project }: { project: Project }) => {
                   paginatedTraces.map((trace: TracesSummary) => (
                     <TableRow
                       key={trace.traceId}
-                      className="border-border hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer"
+                      onClick={() => setSelectedTrace(trace)}
                     >
                       <TableCell className="text-foreground text-xs py-2 px-4">
                         {trace.serviceName || "unknown"}
@@ -258,48 +256,25 @@ const TracesTab = ({ project }: { project: Project }) => {
                       <TableCell className="text-foreground text-xs py-2 px-4 font-mono">
                         {trace.duration.toFixed(2)} ms
                       </TableCell>
-                      <TableCell className="py-2 px-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <Sheet>
-                            <SheetTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                              >
-                                <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
-                              </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                              side="right"
-                              className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto"
+                      <TableCell onClick={(event) => event.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-8 h-8 p-0 shadow-none">
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
+                            <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => setSelectedTrace(trace)}>
+                              Open details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => copyToClipboard(trace.traceId, "Trace ID")}
                             >
-                              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
-                                <SheetTitle className="text-sm font-semibold text-foreground">Trace Details</SheetTitle>
-                                <SheetDescription className="text-xs text-muted-foreground">
-                                  Trace ID: {trace.traceId} | Time:{" "}
-                                  {format(
-                                    new Date(trace.startTime),
-                                    "PP, h:mmaaa"
-                                  )}
-                                </SheetDescription>
-                              </SheetHeader>
-                              {selectedTrace && (
-                                <TraceToLogsComponent traceId={trace.traceId} />
-                              )}
-                            </SheetContent>
-                          </Sheet>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              copyToClipboard(trace.traceId, "Trace ID")
-                            }
-                            className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                          >
-                            {copyText(trace.traceId)}
-                          </Button>
-                        </div>
+                              Copy trace ID
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -343,6 +318,20 @@ const TracesTab = ({ project }: { project: Project }) => {
           </CardContent>
         </Card>
       </div>
+
+      <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
+        <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+          <SheetHeader className="p-0 pb-4 mb-4">
+            <SheetTitle className="text-sm font-semibold">Trace Details</SheetTitle>
+            <SheetDescription className="text-xs text-pg-muted">
+              {selectedTrace
+                ? `Trace ID: ${selectedTrace.traceId} | Time: ${format(new Date(selectedTrace.startTime), "PP, h:mmaaa")}`
+                : ""}
+            </SheetDescription>
+          </SheetHeader>
+          {selectedTrace ? <TraceToLogsComponent traceId={selectedTrace.traceId} /> : null}
+        </SheetContent>
+      </Sheet>
     </>
   );
 };

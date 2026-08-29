@@ -81,13 +81,14 @@ export function TelemetryProvider({
       headers: {
         "Content-Type": "application/json",
         "x-project-id": projectId,
+        "X-CSRF-Token": "pulseguard-web",
       },
       body: JSON.stringify({
         page: window.location.pathname,
         timestamp: Date.now(),
         userId: userId || "anonymous",
         projectId,
-        referrer: document.referrer,
+        referrer: document.referrer ? new URL(document.referrer).origin : "",
         userAgent: navigator.userAgent,
         sessionId: getSessionId(),
       }),
@@ -103,6 +104,7 @@ export function TelemetryProvider({
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
+      headers: { "X-CSRF-Token": "pulseguard-web" },
     }).catch(console.error);
     setUserId(undefined);
   };

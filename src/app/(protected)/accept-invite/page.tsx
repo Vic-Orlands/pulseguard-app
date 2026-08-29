@@ -10,20 +10,20 @@ import {
 } from "@/lib/api/workspace-api";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowRight, LogOut, Loader2 } from "lucide-react";
+import { ArrowRight, LogOut, Loader2 } from "@/components/phosphor-icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   Cancel01Icon,
   Loading02Icon,
   CheckmarkCircle01Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/components/phosphor-icons";
 
 export default function AcceptInvitePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const [token, setToken] = useState<string | null>(searchParams.get("token"));
   const { user, fetchWorkspaces, logout } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -32,6 +32,14 @@ export default function AcceptInvitePage() {
   >(null);
   const [error, setError] = useState("");
   const [isAccepting, startAcceptTransition] = useTransition();
+
+  useEffect(() => {
+    if (token) return;
+    const fragmentToken = new URLSearchParams(window.location.hash.slice(1)).get(
+      "token",
+    );
+    if (fragmentToken) setToken(fragmentToken);
+  }, [token]);
 
   useEffect(() => {
     if (!token) {

@@ -1,9 +1,9 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert01Icon, BarChartIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Alert01Icon, BarChartIcon } from "@/components/phosphor-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap } from "lucide-react";
+import { Zap } from "@/components/phosphor-icons";
 import { format } from "date-fns";
 import { Alert } from "@/types/dashboard";
 
@@ -17,11 +17,11 @@ export default function AlertPreview({
   setActiveTab,
 }: AlertPreviewProps) {
   return (
-    <Card className="bg-card border border-border shadow-none rounded-lg relative">
+    <Card className="rounded-lg relative">
       <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-border/50">
         <div>
           <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Zap className="w-4 h-4 text-amber-500" />
+            <Zap className="w-4 h-4 text-pg-muted" />
             Recent Alerts
           </CardTitle>
         </div>
@@ -46,7 +46,7 @@ export default function AlertPreview({
             alerts.map((alert) => (
               <div
                 key={alert.id}
-                className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/20"
+                className="flex items-start gap-3 p-3 rounded-lg bg-pg-surface"
               >
                 <div
                   className={`p-1.5 rounded-full border flex-shrink-0 ${
@@ -58,7 +58,7 @@ export default function AlertPreview({
                   <HugeiconsIcon
                     icon={Alert01Icon}
                     className={`h-3.5 w-3.5 ${
-                      alert.status === "active" ? "text-red-500" : "text-blue-500"
+                      "text-pg-muted"
                     }`}
                   />
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   Alert01Icon,
   ArrowDown01Icon,
@@ -19,14 +19,14 @@ import {
   UserIcon,
   ViewIcon,
   ViewOffIcon,
-} from "@hugeicons/core-free-icons";
+} from "@/components/phosphor-icons";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Sun, Moon, Briefcase, Users, Shield, Plus, Trash2, UserPlus, UserMinus, ChevronDown, ChevronUp, Copy, Check, Loader2 } from "lucide-react";
+import { Zap, Sun, Moon, Briefcase, Users, Shield, Plus, Trash2, UserPlus, UserMinus, ChevronDown, ChevronUp, Copy, Check, Loader2 } from "@/components/phosphor-icons";
 import {
   listWorkspaceMembers,
   inviteMember,
@@ -195,11 +195,15 @@ export default function UserSettingsNew() {
     e.preventDefault();
     if (!inviteEmail.trim() || !activeWorkspace) return;
     try {
-      await inviteMember(activeWorkspace.id, inviteEmail.trim(), inviteRole);
-      toast.success("Invitation sent successfully!");
+      const invitation = await inviteMember(
+        activeWorkspace.id,
+        inviteEmail.trim(),
+        inviteRole,
+      );
+      setWorkspaceInvitations((current) => [invitation, ...current]);
+      toast.success("Invitation created");
       setInviteEmail("");
       setShowInviteDialog(false);
-      fetchWorkspaceData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to invite member");
     }
@@ -555,8 +559,10 @@ export default function UserSettingsNew() {
                     onChange={(e) => handleFormChange(field, e.target.value)}
                     className="bg-card border-border text-foreground text-xs h-8 shadow-none pr-9 focus-visible:ring-1"
                   />
-                  <span
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
+                  <button
+                    type="button"
+                    aria-label={`${showPassword[field] ? "Hide" : "Show"} ${field === "currentPassword" ? "current password" : field === "newPassword" ? "new password" : "password confirmation"}`}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer rounded text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40"
                     onClick={() =>
                       setShowPassword((prev) => ({
                         ...prev,
@@ -569,7 +575,7 @@ export default function UserSettingsNew() {
                     ) : (
                       <HugeiconsIcon icon={ViewIcon} className="h-3.5 w-3.5" />
                     )}
-                  </span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -1172,10 +1178,9 @@ export default function UserSettingsNew() {
             </CardHeader>
             <CardContent className="p-0 divide-y divide-[#dfdfda]">
               {workspaceInvitations.map((invite) => {
-                const inviteUrl = typeof window !== "undefined"
-                  ? `${window.location.origin}/accept-invite?token=${invite.token}`
-                  : `/accept-invite?token=${invite.token}`;
-
+                const inviteUrl = invite.token
+                  ? `${window.location.origin}/accept-invite#token=${invite.token}`
+                  : "";
                 return (
                   <div key={invite.id} className="p-4 flex items-center justify-between gap-4">
                     <div className="space-y-1">
@@ -1185,25 +1190,31 @@ export default function UserSettingsNew() {
                           {invite.role}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={inviteUrl}
-                          className="bg-[#f7f7f5] text-[#73736e] text-[9px] px-2 py-0.5 border border-[#dfdfda] rounded-md w-64 select-all outline-none"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            navigator.clipboard.writeText(inviteUrl);
-                            toast.success("Invite link copied!");
-                          }}
-                          className="h-6 w-6 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground shadow-none cursor-pointer"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      {inviteUrl ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={inviteUrl}
+                            className="bg-[#f7f7f5] text-[#73736e] text-[9px] px-2 py-0.5 border border-[#dfdfda] rounded-md w-64 select-all outline-none"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteUrl);
+                              toast.success("Invite link copied!");
+                            }}
+                            className="h-6 w-6 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground shadow-none cursor-pointer"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-muted-foreground">
+                          Invite link is shown only when created
+                        </p>
+                      )}
                     </div>
                     <div className="text-[10px] text-muted-foreground font-medium">
                       Expires: {format(new Date(invite.expiresAt), "MMM d, yyyy")}
@@ -1393,7 +1404,7 @@ export default function UserSettingsNew() {
   }
 
   return (
-    <div className="pg-page pg-grid min-h-screen py-10 relative overflow-hidden">
+    <div className="dashboard-page pg-page min-h-screen py-10 relative overflow-hidden">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-40 [background-image:radial-gradient(circle_at_50%_100%,rgba(255,90,31,.14),transparent_44%)]"

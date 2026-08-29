@@ -16,7 +16,8 @@ import {
   ArrowRight,
   RefreshCw,
   LogOut,
-} from "lucide-react";
+  Loader2,
+} from "@/components/phosphor-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,8 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/app/(auth)/signin/page";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { PlusSignIcon } from "@/components/phosphor-icons";
 import { CustomAlertDialog } from "@/components/dashboard/shared/custom-alert-dialog";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 
@@ -260,6 +261,7 @@ export default function ProjectSelectionPage() {
     "creating",
   );
   const [creatingProjectName, setCreatingProjectName] = useState("");
+  const [isEnteringProject, setIsEnteringProject] = useState(false);
   const [isCreateWorkspaceModalOpen, setIsCreateWorkspaceModalOpen] =
     useState(false);
 
@@ -273,7 +275,10 @@ export default function ProjectSelectionPage() {
         : `${url}/api/projects`;
 
       const response = await fetch(fetchUrl, {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": "pulseguard-web",
+        },
         credentials: "include",
       });
 
@@ -394,6 +399,7 @@ export default function ProjectSelectionPage() {
   const handleEnterProject = () => {
     const selected = projects.find((p) => p.id === selectedProjectId);
     if (selected) {
+      setIsEnteringProject(true);
       router.push(`/projects/${selected.slug}`);
     }
   };
@@ -455,6 +461,7 @@ export default function ProjectSelectionPage() {
         <CustomAlertDialog
           trigger={
             <button
+              type="button"
               className="p-2.5 rounded-full border border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center hover:bg-zinc-900"
               title="Sign out"
             >
@@ -463,7 +470,9 @@ export default function ProjectSelectionPage() {
           }
           title="Sign out"
           description="Are you sure you want to sign out of your account?"
-          onConfirm={logout}
+          onConfirm={() => {
+            void logout();
+          }}
         />
       </div>
 
@@ -596,7 +605,7 @@ export default function ProjectSelectionPage() {
                 type="button"
                 whileTap={{ scale: 0.99 }}
                 onClick={handleEnterProject}
-                disabled={!selectedProjectId}
+                disabled={!selectedProjectId || isEnteringProject}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-[5px] font-medium relative transition-all duration-150 ease-in-out active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-[#18181b] text-white border border-zinc-800 hover:opacity-90 dark:bg-[#e2e2e2] dark:text-black dark:border-transparent h-9 px-4 text-sm gap-2 w-full cursor-pointer group mt-2"
               >
                 <motion.span
@@ -604,8 +613,17 @@ export default function ProjectSelectionPage() {
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
-                  <span>Enter telemetry suite</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isEnteringProject ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Opening project...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Enter telemetry suite</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </motion.span>
               </motion.button>
             </motion.div>

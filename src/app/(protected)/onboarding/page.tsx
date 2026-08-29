@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { createWorkspace } from "@/lib/api/workspace-api";
-import { Briefcase, ArrowRight } from "lucide-react";
+import { Briefcase, ArrowRight } from "@/components/phosphor-icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
 import { Logo } from "@/app/(auth)/signin/page";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Loading02Icon } from "@/components/phosphor-icons";
 
 export default function OnboardingPage() {
   const router = useRouter();

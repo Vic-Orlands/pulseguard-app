@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Briefcase } from "lucide-react";
+import { Briefcase } from "@/components/phosphor-icons";
 import { useAuth } from "@/context/auth-context";
 import { createWorkspace } from "@/lib/api/workspace-api";
 import { toast } from "sonner";

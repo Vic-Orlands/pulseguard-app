@@ -1,11 +1,26 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Alert01Icon, Cancel01Icon, Delete02Icon, FloppyDiskIcon, Mail01Icon, Message01Icon, PencilEdit01Icon, Settings01Icon, Tick01Icon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Add01Icon, Alert01Icon, Cancel01Icon, Delete02Icon, FloppyDiskIcon, Mail01Icon, Message01Icon, PencilEdit01Icon, Settings01Icon, Tick01Icon, ViewIcon, ViewOffIcon } from "@/components/phosphor-icons";
 import React, { useState } from "react";
-const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
+
+type NotificationGroup = {
+  id: number;
+  name: string;
+  emails: string[];
+  slackChannel: string;
+  excludedEmails: string[];
+};
+
+type AlertConfigurationProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (config: unknown) => void;
+};
+
+const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps) => {
   const [activeTab, setActiveTab] = useState("notifications");
 
   // Notification Groups Management
-  const [groups, setGroups] = useState([
+  const [groups, setGroups] = useState<NotificationGroup[]>([
     {
       id: 1,
       name: "Development Team",
@@ -22,14 +37,17 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
     },
   ]);
 
-  const [newGroup, setNewGroup] = useState({
+  const [newGroup, setNewGroup] = useState<Omit<NotificationGroup, "id">>({
     name: "",
     emails: [],
     slackChannel: "",
     excludedEmails: [],
   });
 
-  const [editingGroup, setEditingGroup] = useState(null);
+  const [editingGroup, setEditingGroup] = useState<NotificationGroup | null>(null);
+  const updateEditingGroup = (update: (group: NotificationGroup) => NotificationGroup) => {
+    setEditingGroup((current) => current ? update(current) : current);
+  };
   const [showAddGroup, setShowAddGroup] = useState(false);
 
   // Individual Email Management
@@ -92,47 +110,48 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
     }
   };
 
-  const handleEditGroup = (group) => {
+  const handleEditGroup = (group: NotificationGroup) => {
     setEditingGroup({ ...group });
   };
 
   const handleSaveGroup = () => {
+    if (!editingGroup) return;
     setGroups((prev) =>
       prev.map((g) => (g.id === editingGroup.id ? editingGroup : g))
     );
     setEditingGroup(null);
   };
 
-  const handleDeleteGroup = (groupId) => {
+  const handleDeleteGroup = (groupId: number) => {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
-  const handleAddEmailToGroup = (groupId, email) => {
+  const handleAddEmailToGroup = (groupId: number, email: string) => {
     if (editingGroup && editingGroup.id === groupId) {
-      setEditingGroup((prev) => ({
+      setEditingGroup((prev) => prev ? ({
         ...prev,
         emails: [...prev.emails, email],
-      }));
+      }) : prev);
     }
   };
 
-  const handleRemoveEmailFromGroup = (groupId, email) => {
+  const handleRemoveEmailFromGroup = (groupId: number, email: string) => {
     if (editingGroup && editingGroup.id === groupId) {
-      setEditingGroup((prev) => ({
+      setEditingGroup((prev) => prev ? ({
         ...prev,
         emails: prev.emails.filter((e) => e !== email),
-      }));
+      }) : prev);
     }
   };
 
-  const handleToggleExcludedEmail = (groupId, email) => {
+  const handleToggleExcludedEmail = (groupId: number, email: string) => {
     if (editingGroup && editingGroup.id === groupId) {
-      setEditingGroup((prev) => ({
+      setEditingGroup((prev) => prev ? ({
         ...prev,
         excludedEmails: prev.excludedEmails.includes(email)
           ? prev.excludedEmails.filter((e) => e !== email)
           : [...prev.excludedEmails, email],
-      }));
+      }) : prev);
     }
   };
 
@@ -157,7 +176,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-none text-foreground">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
@@ -254,9 +273,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               type="text"
                               value={editingGroup.name}
                               onChange={(e) =>
-                                setEditingGroup((prev) => ({
+                                updateEditingGroup((prev) => ({
                                   ...prev,
-                                  name: e.target.value,
+                                  name: e.currentTarget.value,
                                 }))
                               }
                               className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -271,9 +290,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                 type="text"
                                 value={editingGroup.slackChannel}
                                 onChange={(e) =>
-                                  setEditingGroup((prev) => ({
+                                  updateEditingGroup((prev) => ({
                                     ...prev,
-                                    slackChannel: e.target.value,
+                                    slackChannel: e.currentTarget.value,
                                   }))
                                 }
                                 className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -346,9 +365,9 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                       if (e.key === "Enter") {
                                         handleAddEmailToGroup(
                                           group.id,
-                                          e.target.value
+                                          e.currentTarget.value
                                         );
-                                        e.target.value = "";
+                                        e.currentTarget.value = "";
                                       }
                                     }}
                                   />
@@ -424,7 +443,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           onChange={(e) =>
                             setNewGroup((prev) => ({
                               ...prev,
-                              name: e.target.value,
+                              name: e.currentTarget.value,
                             }))
                           }
                           className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -436,7 +455,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           onChange={(e) =>
                             setNewGroup((prev) => ({
                               ...prev,
-                              slackChannel: e.target.value,
+                              slackChannel: e.currentTarget.value,
                             }))
                           }
                           className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -448,12 +467,12 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             placeholder="Add email addresses (press Enter)"
                             className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             onKeyUp={(e) => {
-                              if (e.key === "Enter" && e.target.value) {
+                              if (e.key === "Enter" && e.currentTarget.value) {
                                 setNewGroup((prev) => ({
                                   ...prev,
-                                  emails: [...prev.emails, e.target.value],
+                                  emails: [...prev.emails, e.currentTarget.value],
                                 }));
-                                e.target.value = "";
+                                e.currentTarget.value = "";
                               }
                             }}
                           />
@@ -512,7 +531,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                       <input
                         type="email"
                         value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
+                        onChange={(e) => setNewEmail(e.currentTarget.value)}
                         className="flex-1 px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         placeholder="Enter email address"
                         onKeyUp={(e) =>
@@ -769,7 +788,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         ...prev.errors.thresholds,
                                         errorRate: {
                                           ...prev.errors.thresholds.errorRate,
-                                          value: parseInt(e.target.value),
+                                          value: parseInt(e.currentTarget.value),
                                         },
                                       },
                                     },
@@ -790,7 +809,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         ...prev.errors.thresholds,
                                         errorRate: {
                                           ...prev.errors.thresholds.errorRate,
-                                          unit: e.target.value,
+                                          unit: e.currentTarget.value,
                                         },
                                       },
                                     },
@@ -821,7 +840,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                       ...prev.errors.thresholds,
                                       errorCount: {
                                         ...prev.errors.thresholds.errorCount,
-                                        value: parseInt(e.target.value),
+                                        value: parseInt(e.currentTarget.value),
                                       },
                                     },
                                   },
@@ -862,7 +881,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             onChange={(e) =>
                               setGeneralConfig((prev) => ({
                                   ...prev,
-                                  alertFrequency: e.target.value,
+                                  alertFrequency: e.currentTarget.value,
                               }))
                             }
                             className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
@@ -883,7 +902,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             onChange={(e) =>
                               setGeneralConfig((prev) => ({
                                 ...prev,
-                                alertFrequency: e.target.value,
+                                alertFrequency: e.currentTarget.value,
                               }))
                             }
                             className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
@@ -904,7 +923,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                             onChange={(e) =>
                               setGeneralConfig((prev) => ({
                                 ...prev,
-                                alertFrequency: e.target.value,
+                                alertFrequency: e.currentTarget.value,
                               }))
                             }
                             className="mt-0.5 w-3.5 h-3.5 text-primary bg-background border-border focus:ring-ring"
@@ -930,7 +949,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           onChange={(e) =>
                             setGeneralConfig((prev) => ({
                               ...prev,
-                              batchWindow: parseInt(e.target.value),
+                              batchWindow: parseInt(e.currentTarget.value),
                             }))
                           }
                           className="w-24 px-2.5 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -950,7 +969,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                           onChange={(e) =>
                             setGeneralConfig((prev) => ({
                               ...prev,
-                              digestSchedule: e.target.value,
+                              digestSchedule: e.currentTarget.value,
                             }))
                           }
                           className="px-2 py-1 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -1008,7 +1027,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               ...prev,
                               quietHours: {
                                 ...prev.quietHours,
-                                start: e.target.value,
+                                start: e.currentTarget.value,
                               },
                             }))
                           }
@@ -1027,7 +1046,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               ...prev,
                               quietHours: {
                                 ...prev.quietHours,
-                                end: e.target.value,
+                                end: e.currentTarget.value,
                               },
                             }))
                           }
@@ -1082,7 +1101,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                               ...prev,
                               escalationRules: {
                                 ...prev.escalationRules,
-                                escalateAfter: parseInt(e.target.value),
+                                escalateAfter: parseInt(e.currentTarget.value),
                               },
                             }))
                           }
@@ -1139,7 +1158,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         ];
                                         newLevels[index] = {
                                           ...newLevels[index],
-                                          after: parseInt(e.target.value),
+                                          after: parseInt(e.currentTarget.value),
                                         };
                                         setGeneralConfig((prev) => ({
                                           ...prev,
@@ -1200,7 +1219,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                         onKeyUp={(e) => {
                                           if (
                                             e.key === "Enter" &&
-                                            e.target.value
+                                            e.currentTarget.value
                                           ) {
                                             const newLevels = [
                                               ...generalConfig.escalationRules
@@ -1210,7 +1229,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                               ...newLevels[index],
                                               notify: [
                                                 ...newLevels[index].notify,
-                                                e.target.value,
+                                                e.currentTarget.value,
                                               ],
                                             };
                                             setGeneralConfig((prev) => ({
@@ -1220,7 +1239,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }) => {
                                                 escalationLevels: newLevels,
                                               },
                                             }));
-                                            e.target.value = "";
+                                            e.currentTarget.value = "";
                                           }
                                         }}
                                       />

@@ -6,12 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, Mail, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Lock } from "@/components/phosphor-icons";
 
 import { FormField, InputWithIcon } from "./shared";
 import { loginUser } from "@/lib/api/user-api";
 import { useAuth } from "@/context/auth-context";
 import { loginSchema, type FormProps, type LoginFormData } from "@/types/form";
+import { safeInternalRedirect } from "@/lib/security/safe-redirect";
 
 export const LoginForm = ({ onToggleMode }: FormProps) => {
   const { fetchUser } = useAuth();
@@ -30,24 +31,6 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
     resolver: zodResolver(loginSchema),
   });
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const token = searchParams.get("token");
-    const redirectUrl = searchParams.get("redirect") || "/projects";
-    if (token) {
-      startTransition(async () => {
-        try {
-          await fetchUser();
-          router.push(redirectUrl);
-          toast("Login successful!");
-        } catch (error) {
-          console.log("Error fetching user:", error);
-          setError("Failed to authenticate");
-        }
-      });
-    }
-  }, [searchParams, fetchUser, router]);
-
   const onSubmit = (data: LoginFormData) => {
     startTransition(async () => {
       try {
@@ -61,7 +44,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
         if (message) {
           await fetchUser();
 
-          const redirectUrl = searchParams.get("redirect") || "/projects";
+          const redirectUrl = safeInternalRedirect(searchParams.get("redirect"));
           setTimeout(() => {
             router.push(redirectUrl);
             toast("Login successful!");
@@ -75,7 +58,7 @@ export const LoginForm = ({ onToggleMode }: FormProps) => {
 
   // prefetch projects page
   useEffect(() => {
-    const redirectUrl = searchParams.get("redirect") || "/projects";
+    const redirectUrl = safeInternalRedirect(searchParams.get("redirect"));
     router.prefetch(redirectUrl);
 
     if (error !== "") {

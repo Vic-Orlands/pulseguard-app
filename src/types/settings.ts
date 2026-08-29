@@ -9,8 +9,8 @@ export const UserFormSchema = z
       .string()
       .optional()
       .refine(
-        (val) => !val || val.length >= 8,
-        "New password must be at least 8 characters long"
+        (val) => !val || val.length >= 12,
+        "New password must be at least 12 characters long"
       ),
     confirmPassword: z.string().optional(),
     avatar: z.string().optional(),

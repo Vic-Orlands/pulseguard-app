@@ -1,11 +1,12 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, HelpCircleIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Add01Icon, HelpCircleIcon } from "@/components/phosphor-icons";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import HelpButton from "@/components/dashboard/shared/help-button";
+import { AnimatePresence } from "framer-motion";
 
 import LogsTab from "@/components/dashboard/tabs/logs";
 import Navbar from "@/components/dashboard/shared/navbar";
@@ -18,6 +19,11 @@ import SettingsTab from "@/components/dashboard/tabs/settings/page";
 import OverviewTab from "@/components/dashboard/tabs/overview/page";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
+import { PageMotion } from "@/components/dashboard/shared/page-motion";
+import {
+  DashboardCanvas,
+  SheetScaleProvider,
+} from "@/components/dashboard/shared/sheet-scale";
 
 import { fetchErrors } from "@/lib/api/error-api";
 
@@ -40,14 +46,12 @@ export default function DashboardComponent({ project }: { project: Project }) {
     limit: 20 as number,
   });
 
-  // Update URL when tab changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     params.set("tab", activeTab);
     router.push(`?${params.toString()}`, { scroll: false });
   }, [activeTab, router, searchParams]);
 
-  // fetch all errors for specific project
   const fetchErrorData = async () => {
     try {
       const response: ErrorListResponse = await fetchErrors(errorsConfig);
@@ -99,6 +103,19 @@ export default function DashboardComponent({ project }: { project: Project }) {
     },
   ];
 
+  const titles: Record<NavItem, string> = {
+    overview: "Overview",
+    sessions: "Sessions",
+    metrics: "Metrics",
+    errors: "Errors",
+    logs: "Logs",
+    traces: "Traces",
+    alerts: "Alerts",
+    integrations: "Integrations",
+    settings: "Settings",
+    "connect-platform": "Connect Platform",
+  };
+
   const renderActiveTab = () => {
     switch (activeTab) {
       case "overview":
@@ -135,47 +152,69 @@ export default function DashboardComponent({ project }: { project: Project }) {
   };
 
   return (
-    <div className="pg-page bg-dot-pattern min-h-screen">
-      <Navbar
-        alerts={alerts}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        project={project}
-      />
+    <SheetScaleProvider>
+      <div className="dashboard-shell min-h-screen md:flex">
+        <Navbar
+          alerts={alerts}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          project={project}
+        />
 
-      <main className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 md:px-8 md:py-8">
-        <div className="rounded-xl border border-pg-border bg-pg-modal p-5 md:p-6">
-          <div className="flex justify-end border-b border-pg-border/70 pb-5">
-            <div className="flex flex-wrap gap-2">
-                <a href="/documentation" target="_blank" rel="noopener noreferrer">
-                  <Button
-                    variant="outline"
-                    className="h-8 rounded-lg border-pg-border/60 bg-pg-surface px-3 text-xs font-sans font-medium text-pg-muted shadow-none hover:text-pg-text"
-                  >
-                    <HugeiconsIcon icon={HelpCircleIcon} className="mr-1.5 h-3.5 w-3.5" />
-                    Documentation
-                  </Button>
-                </a>
-                <Button
-                  className="btn-primary h-8 rounded-lg px-3 text-xs font-sans font-semibold shadow-none"
-                  onClick={() => {
-                    setIsConnectPlatformPending(true);
-                    setActiveTab("connect-platform");
-                  }}
-                  loading={isConnectPlatformPending}
-                  loadingText="Opening platform flow..."
-                >
-                  <HugeiconsIcon icon={Add01Icon} className="mr-1.5 h-3.5 w-3.5" />
-                  Connect Platform
-                </Button>
-            </div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <DashboardCanvas>
+            <main className="min-h-screen">
+              <div className="flex items-center justify-between gap-3 px-6 py-5">
+                <h1 className="text-lg font-semibold tracking-tight text-pg-text">
+                  {titles[activeTab]}
+                </h1>
+                {activeTab !== "settings" ? (
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href="/documentation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="ghost"
+                        className="h-8 rounded-lg px-3 text-xs font-medium text-pg-muted shadow-none hover:bg-pg-group hover:text-pg-text"
+                      >
+                        <HugeiconsIcon
+                          icon={HelpCircleIcon}
+                          className="mr-1.5 h-3.5 w-3.5"
+                        />
+                        Documentation
+                      </Button>
+                    </a>
+                    <Button
+                      className="btn-primary h-8 rounded-lg px-3 text-xs font-semibold shadow-none"
+                      onClick={() => {
+                        setIsConnectPlatformPending(true);
+                        setActiveTab("connect-platform");
+                      }}
+                      loading={isConnectPlatformPending}
+                      loadingText="Opening..."
+                    >
+                      <HugeiconsIcon
+                        icon={Add01Icon}
+                        className="mr-1.5 h-3.5 w-3.5"
+                      />
+                      Connect Platform
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
 
-          <div className="pt-6">{renderActiveTab()}</div>
+              <div className="px-6 pb-16">
+                <AnimatePresence mode="wait">
+                  <PageMotion id={activeTab}>{renderActiveTab()}</PageMotion>
+                </AnimatePresence>
+              </div>
+            </main>
+          </DashboardCanvas>
         </div>
-      </main>
-
+      </div>
       <HelpButton />
-    </div>
+    </SheetScaleProvider>
   );
 }

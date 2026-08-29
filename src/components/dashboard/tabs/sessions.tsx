@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, Bookmark01Icon, Bug01Icon, Calendar01Icon, CalendarAdd01Icon, Clock01Icon, Search01Icon, UserGroupIcon, UserIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, Alert01Icon, AlertCircleIcon, Bookmark01Icon, Bug01Icon, Calendar01Icon, CalendarAdd01Icon, Clock01Icon, MoreHorizontalIcon, Search01Icon, UserGroupIcon, UserIcon } from "@/components/phosphor-icons";
 import React, { useState, useMemo, useEffect } from "react";
 import useSWR from "swr";
 import {
@@ -10,11 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   Table,
@@ -34,18 +39,9 @@ import {
 } from "@/components/ui/select";
 import {
   BarChart2
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import { format, subHours, subDays } from "date-fns";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PulseChart } from "@/components/dashboard/shared/apex-chart";
 import { fetchSessions } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../shared/error-message";
 
@@ -57,6 +53,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
   // Calculate start and end times
   const { start, end } = useMemo(() => {
@@ -216,8 +213,8 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   {summaryStats.totalSessions}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4 text-blue-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -232,8 +229,8 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   {summaryStats.activeSessions}
                 </p>
               </div>
-              <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
-                <BarChart2 className="w-4 h-4 text-emerald-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <BarChart2 className="w-4 h-4 text-pg-muted" />
               </div>
             </CardContent>
           </Card>
@@ -248,8 +245,8 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   {(summaryStats.avgDuration / 1000).toFixed(2)} s
                 </p>
               </div>
-              <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
-                <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4 text-amber-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Clock01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -264,8 +261,8 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   {summaryStats.totalErrors}
                 </p>
               </div>
-              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
-                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-red-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -281,29 +278,13 @@ const SessionsTab = ({ project }: { project: Project }) => {
           <CardContent className="p-4">
             <div className="h-80">
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
-                    <XAxis dataKey="time" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                    <YAxis stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--card)",
-                        borderColor: "var(--border)",
-                        color: "var(--foreground)",
-                        fontSize: "11px",
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: "11px" }} />
-                    <Line
-                      type="monotone"
-                      dataKey="sessions"
-                      stroke="var(--primary)"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "var(--primary)" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <PulseChart
+                  type="area"
+                  height={320}
+                  categories={chartData.map((point) => point.time)}
+                  series={[{ name: "sessions", data: chartData.map((point) => point.sessions) }]}
+                  colors={["#34d399"]}
+                />
               ) : (
                 <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
                   No session activity data available
@@ -345,177 +326,45 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   paginatedSessions.map((session: Session) => (
                     <TableRow
                       key={session.session_id}
-                      className="border-border hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer"
+                      onClick={() => setSelectedSession(session)}
                     >
-                      <TableCell className="text-foreground font-mono text-[10px] py-2 px-4">
+                      <TableCell className="text-foreground font-mono text-[10px]">
                         {session.session_id || "none"}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4">
+                      <TableCell className="text-foreground text-xs">
                         {session.user_id || "anonymous"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-xs py-2 px-4">
+                      <TableCell className="text-muted-foreground text-xs">
                         {format(new Date(session.start_time), "PP, h:mmaaa")}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4">
+                      <TableCell className="text-foreground text-xs">
                         {session.duration_ms
                           ? `${(session.duration_ms / 1000).toFixed(2)} s`
                           : "Active Session"}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4">
+                      <TableCell className="text-foreground text-xs">
                         {session.pageview_count}
                       </TableCell>
-                      <TableCell className="text-foreground text-xs py-2 px-4 font-semibold">
+                      <TableCell className="text-foreground text-xs font-semibold">
                         {session.error_count}
                       </TableCell>
-                      <TableCell className="py-2 px-4">
-                        <Sheet>
-                          <SheetTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-primary hover:text-primary/85 hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                            >
-                              <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
+                      <TableCell onClick={(event) => event.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 shadow-none">
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
                             </Button>
-                          </SheetTrigger>
-                          <SheetContent
-                            side="right"
-                            className="sm:max-w-lg bg-card border-l border-border text-foreground p-6"
-                          >
-                            <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
-                              <SheetTitle className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-primary" />
-                                <span>Session Details</span>
-                              </SheetTitle>
-                            </SheetHeader>
-                            <div className="h-full relative text-foreground">
-                              <div className="text-xs text-muted-foreground flex items-center justify-end gap-1.5 mb-4">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    !session.duration_ms
-                                      ? "bg-emerald-500 animate-pulse"
-                                      : "bg-muted-foreground/50"
-                                  }`}
-                                ></div>
-                                {!session.duration_ms
-                                  ? "Active Session"
-                                  : "Session Ended"}
-                              </div>
-
-                              <div className="bg-muted rounded-lg p-3 border border-border mb-4">
-                                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
-                                  Session ID
-                                </div>
-                                <div className="font-mono text-xs text-foreground break-all">
-                                  {session.session_id}
-                                </div>
-                              </div>
-
-                              {/* Stats Grid */}
-                              <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                  <HugeiconsIcon icon={Clock01Icon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[10px] text-muted-foreground mb-0.5">
-                                      Session Duration
-                                    </div>
-                                    <div className="text-xs font-bold text-foreground">
-                                      {session.duration_ms
-                                        ? `${(
-                                            session.duration_ms / 1000
-                                          ).toFixed(1)}s`
-                                        : "∞"}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                  <HugeiconsIcon icon={Bug01Icon} className="w-5 h-5 text-destructive flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[10px] text-muted-foreground mb-0.5">
-                                      Errors
-                                    </div>
-                                    <div className="text-xs font-bold text-foreground">
-                                      {session.error_count}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                  <HugeiconsIcon icon={CalendarAdd01Icon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[10px] text-muted-foreground mb-0.5">
-                                      Event count
-                                    </div>
-                                    <div className="text-xs font-bold text-foreground">
-                                      {session.event_count}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                  <HugeiconsIcon icon={Bookmark01Icon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[10px] text-muted-foreground mb-0.5">
-                                      PageView count
-                                    </div>
-                                    <div className="text-xs font-bold text-foreground">
-                                      {session.pageview_count}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* User & Timing Info */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                  <HugeiconsIcon icon={UserIcon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-[10px] text-muted-foreground mb-0.5">
-                                      User ID
-                                    </div>
-                                    <div className="font-mono text-xs text-foreground truncate">
-                                      {session.user_id || "anonymous"}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-4">
-                                  <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                    <HugeiconsIcon icon={Calendar01Icon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                      <div className="text-[10px] text-muted-foreground mb-0.5">
-                                        Started
-                                      </div>
-                                      <div className="text-xs font-bold text-foreground truncate">
-                                        {format(new Date(session.start_time), "PPpp")}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-2.5 p-3 bg-muted rounded-lg border border-border">
-                                    <HugeiconsIcon icon={Calendar01Icon} className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                      <div className="text-[10px] text-muted-foreground mb-0.5">
-                                        Updated at
-                                      </div>
-                                      <div className="text-xs font-bold text-foreground truncate">
-                                        {format(new Date(session.updated_at), "PPpp")}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Footer */}
-                              <div className="mt-8 pt-4 border-t border-border/50 text-[10px] text-muted-foreground/60 text-center">
-                                Created {format(new Date(session.created_at), "PPpp")}
-                              </div>
-                            </div>
-                          </SheetContent>
-                        </Sheet>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => setSelectedSession(session)}
+                            >
+                              Open details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -559,6 +408,75 @@ const SessionsTab = ({ project }: { project: Project }) => {
           </CardContent>
         </Card>
       </div>
+
+      <Sheet open={!!selectedSession} onOpenChange={(open) => !open && setSelectedSession(null)}>
+        <SheetContent side="right" className="sm:max-w-lg bg-pg-modal p-6">
+          {selectedSession ? (
+            <>
+              <SheetHeader className="p-0 pb-4 mb-4">
+                <SheetTitle className="flex items-center gap-2 text-sm font-semibold">
+                  <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4" />
+                  <span>Session Details</span>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="text-xs text-pg-muted flex items-center justify-end gap-1.5 mb-4">
+                {!selectedSession.duration_ms ? "Active Session" : "Session Ended"}
+              </div>
+              <div className="bg-pg-group rounded-lg p-3 mb-4">
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-pg-muted mb-1">
+                  Session ID
+                </div>
+                <div className="font-mono text-xs text-pg-text break-all">
+                  {selectedSession.session_id}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
+                  <HugeiconsIcon icon={Clock01Icon} className="w-5 h-5 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-pg-muted">Duration</div>
+                    <div className="text-xs font-semibold">
+                      {selectedSession.duration_ms
+                        ? `${(selectedSession.duration_ms / 1000).toFixed(1)}s`
+                        : "∞"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
+                  <HugeiconsIcon icon={Bug01Icon} className="w-5 h-5 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-pg-muted">Errors</div>
+                    <div className="text-xs font-semibold">{selectedSession.error_count}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
+                  <HugeiconsIcon icon={CalendarAdd01Icon} className="w-5 h-5 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-pg-muted">Events</div>
+                    <div className="text-xs font-semibold">{selectedSession.event_count}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
+                  <HugeiconsIcon icon={Bookmark01Icon} className="w-5 h-5 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-pg-muted">Page views</div>
+                    <div className="text-xs font-semibold">{selectedSession.pageview_count}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 p-3 bg-pg-group rounded-lg">
+                <HugeiconsIcon icon={UserIcon} className="w-5 h-5 shrink-0" />
+                <div>
+                  <div className="text-[10px] text-pg-muted">User ID</div>
+                  <div className="font-mono text-xs truncate">
+                    {selectedSession.user_id || "anonymous"}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </>
   );
 };

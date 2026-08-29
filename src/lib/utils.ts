@@ -61,8 +61,8 @@ export class HttpError extends Error {
 }
 
 // calculate uptime
-export function getUptime(errors: RecentError[]): string {
-  const activeErrors = errors.filter(
+export function getUptime(errors: RecentError[] | null | undefined): string {
+  const activeErrors = (errors ?? []).filter(
     (e) => e.status.toLowerCase() === "active"
   );
 

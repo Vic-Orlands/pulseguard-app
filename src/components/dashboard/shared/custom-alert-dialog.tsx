@@ -35,7 +35,10 @@ export function CustomAlertDialog({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onConfirm}
+            type="button"
+            onClick={() => {
+              void onConfirm();
+            }}
             className="flex-1 btn-primary"
           >
             Continue

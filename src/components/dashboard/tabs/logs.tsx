@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, AiNetworkIcon, Alert01Icon, AlertCircleIcon, AnalyticsUpIcon, Bug01Icon, CheckmarkCircle01Icon, Clock01Icon, Copy01Icon, CpuIcon, DatabaseIcon, GlobeIcon, HashtagIcon, InformationCircleIcon, Layers01Icon, Location01Icon, Route01Icon, Search01Icon, Shield01Icon, Target01Icon, Tick01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, AiNetworkIcon, Alert01Icon, AlertCircleIcon, AnalyticsUpIcon, Bug01Icon, CheckmarkCircle01Icon, Clock01Icon, Copy01Icon, CpuIcon, DatabaseIcon, GlobeIcon, HashtagIcon, InformationCircleIcon, Layers01Icon, Location01Icon, MoreHorizontalIcon, Route01Icon, Search01Icon, Shield01Icon, Target01Icon, Tick01Icon } from "@/components/phosphor-icons";
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
@@ -9,6 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -37,7 +43,7 @@ import {
   Zap,
   Server,
   FileCog
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeverityColor, getSeverityIcon } from "../shared/severity-icons";
@@ -45,7 +51,6 @@ import { fetchLogs } from "@/lib/api/otlp-api";
 import type { Log, Project, TimeProp } from "@/types/dashboard";
 import CustomErrorMessage from "../shared/error-message";
 import TraceToLogsComponent from "./traces/trace-to-logs";
-import { useTheme } from "next-themes";
 
 // Timeline data for the right sidebar
 const timelineSteps = [
@@ -108,13 +113,8 @@ const LogsTab = ({ project }: { project: Project }) => {
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
   const [filterLevel, setFilterLevel] = useState<string>("all");
   const [showTraceDemo, setShowTraceDemo] = useState<boolean>(false);
-
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme } = useTheme();
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  const isDark = mounted && resolvedTheme === "dark";
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
+  const [traceLog, setTraceLog] = useState<Log | null>(null);
 
   let start: string;
   switch (timeRange) {
@@ -599,8 +599,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                   {logs.length}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-blue-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -615,8 +615,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                   {logs.filter((log) => log.level === 50).length}
                 </p>
               </div>
-              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
-                <HugeiconsIcon icon={Bug01Icon} className="w-4 h-4 text-red-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Bug01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -631,8 +631,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                   {logs.filter((log) => log.level === 40).length}
                 </p>
               </div>
-              <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20">
-                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-amber-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -647,8 +647,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                   {logs.filter((log) => log.level === 30).length}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <HugeiconsIcon icon={InformationCircleIcon} className="w-4 h-4 text-blue-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={InformationCircleIcon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -686,7 +686,8 @@ const LogsTab = ({ project }: { project: Project }) => {
                   paginatedLogs.map((log) => (
                     <TableRow
                       key={log.id}
-                      className="border-border hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer"
+                      onClick={() => setSelectedLog(log)}
                     >
                       <TableCell className="text-muted-foreground font-mono text-[10px] py-2 px-4 whitespace-nowrap">
                         {format(new Date(log.time), "PP, h:mmaaa")}
@@ -709,70 +710,33 @@ const LogsTab = ({ project }: { project: Project }) => {
                       <TableCell className="text-foreground text-xs py-2 px-4 max-w-xs truncate">
                         {log.msg ?? "N/A"}
                       </TableCell>
-                      <TableCell className="py-2 px-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <Sheet>
-                            <SheetTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                              >
-                                <HugeiconsIcon icon={ViewIcon} className="w-3.5 h-3.5" />
-                              </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                              side="right"
-                              className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto"
+                      <TableCell onClick={(event) => event.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-8 h-8 p-0 shadow-none">
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-pg-modal rounded-lg">
+                            <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => setSelectedLog(log)}>
+                              Open details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              disabled={!log.traceId}
+                              onClick={() => setTraceLog(log)}
                             >
-                              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
-                                <SheetTitle className="text-sm font-semibold text-foreground">Log Details</SheetTitle>
-                              </SheetHeader>
-                              <MemoizedLogVisualization log={log} />
-                            </SheetContent>
-                          </Sheet>
-
-                          <Sheet>
-                            <SheetTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={!log.traceId}
-                                className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                              >
-                                <HugeiconsIcon icon={Route01Icon} className="w-3.5 h-3.5" />
-                              </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                              side="right"
-                              className="sm:max-w-2xl bg-card border-l border-border text-foreground overflow-y-auto"
+                              Open trace
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              disabled={!log.traceId}
+                              onClick={() => copyToClipboard(log.traceId ?? "", "Trace ID")}
                             >
-                              <SheetHeader className="p-0 border-b border-border/50 pb-4 mb-4">
-                                <SheetTitle className="text-sm font-semibold text-foreground">
-                                  Trace Details
-                                </SheetTitle>
-                                <SheetDescription className="text-xs text-muted-foreground">
-                                  Trace ID: {log.traceId ?? "N/A"}
-                                </SheetDescription>
-                              </SheetHeader>
-                              {log.traceId && (
-                                <TraceToLogsComponent traceId={log.traceId} />
-                              )}
-                            </SheetContent>
-                          </Sheet>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              copyToClipboard(log.traceId ?? "", "Trace ID")
-                            }
-                            className="text-primary hover:bg-muted w-8 h-8 rounded-md p-0 shadow-none flex items-center justify-center cursor-pointer"
-                            disabled={!log.traceId}
-                          >
-                            {copyText(log.traceId ?? "")}
-                          </Button>
-                        </div>
+                              Copy trace ID
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -816,6 +780,27 @@ const LogsTab = ({ project }: { project: Project }) => {
             )}
           </CardContent>
         </Card>
+
+        <Sheet open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+          <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+            <SheetHeader className="p-0 pb-4 mb-4">
+              <SheetTitle className="text-sm font-semibold">Log Details</SheetTitle>
+            </SheetHeader>
+            {selectedLog ? <MemoizedLogVisualization log={selectedLog} /> : null}
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={!!traceLog} onOpenChange={(open) => !open && setTraceLog(null)}>
+          <SheetContent side="right" className="sm:max-w-2xl bg-pg-modal overflow-y-auto p-6">
+            <SheetHeader className="p-0 pb-4 mb-4">
+              <SheetTitle className="text-sm font-semibold">Trace Details</SheetTitle>
+              <SheetDescription className="text-xs text-pg-muted">
+                Trace ID: {traceLog?.traceId ?? "N/A"}
+              </SheetDescription>
+            </SheetHeader>
+            {traceLog?.traceId ? <TraceToLogsComponent traceId={traceLog.traceId} /> : null}
+          </SheetContent>
+        </Sheet>
 
         {/* Trace Flow Sheet */}
         <Sheet open={showTraceDemo} onOpenChange={setShowTraceDemo}>

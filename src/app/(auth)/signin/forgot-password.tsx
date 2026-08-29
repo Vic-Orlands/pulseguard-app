@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Loader2, Mail } from "@/components/phosphor-icons";
 
 import { FormField, InputWithIcon } from "./shared";
 import { sendResetPasswordEmail } from "@/lib/api/user-api";

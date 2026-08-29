@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { IconSvgElement } from "@hugeicons/react";
 
 export type FormMode = "oauth" | "login" | "signup" | "forgot-password";
 
@@ -28,7 +27,7 @@ export const loginSchema = z.object({
   password: z
     .string()
     .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+    .min(12, "Password must be at least 12 characters"),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -46,7 +45,7 @@ const signupStep1Schema = z.object({
 const signupStep2Schema = z.object({
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
+    .min(12, "Password must be at least 12 characters")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       "Password must contain at least one uppercase letter, one lowercase letter, and one number"

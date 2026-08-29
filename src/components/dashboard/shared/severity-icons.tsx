@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, CancelCircleIcon, CheckmarkCircle01Icon, PlayCircleIcon, StopCircleIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Activity01Icon, Alert01Icon, AlertCircleIcon, CancelCircleIcon, CheckmarkCircle01Icon, PlayCircleIcon, StopCircleIcon } from "@/components/phosphor-icons";
 
 // SeverityIcon
 export const getSeverityIcon = (severity: number) => {

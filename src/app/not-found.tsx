@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft, Home } from "@/components/phosphor-icons";
 import { Logo } from "@/app/(auth)/signin/page";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";

@@ -1,7 +1,14 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Activity01Icon, Alert01Icon, AlertCircleIcon, UserGroupIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import {
+  Activity01Icon,
+  Alert01Icon,
+  AlertCircleIcon,
+  MoreHorizontalIcon,
+  UserGroupIcon,
+} from "@/components/phosphor-icons";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -11,9 +18,22 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Server,
   Zap
-} from "lucide-react";
+} from "@/components/phosphor-icons";
 import { fetchDashboardData } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../../shared/error-message";
 import ErrorPreview from "./error-preview";
@@ -22,7 +42,7 @@ import { format } from "date-fns";
 import { getUptime } from "@/lib/utils";
 
 import type { Dispatch, SetStateAction } from "react";
-import type { Project, DashboardData, NavItem } from "@/types/dashboard";
+import type { Project, DashboardData, NavItem, Session } from "@/types/dashboard";
 
 interface OverviewTabProps {
   project: Project;
@@ -42,6 +62,7 @@ export default function OverviewTab({
     total_errors: 0,
     error_rate: 0,
   });
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
   useEffect(() => {
     async function getDashboardData() {
@@ -73,8 +94,8 @@ export default function OverviewTab({
                   {data.total_errors}
                 </p>
               </div>
-              <div className="p-2 bg-red-500/10 rounded border border-red-500/20">
-                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-red-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -89,8 +110,8 @@ export default function OverviewTab({
                   {getUptime(data.errors)}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4 text-blue-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={Activity01Icon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -105,8 +126,8 @@ export default function OverviewTab({
                   {data.sessions.length}
                 </p>
               </div>
-              <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
-                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4 text-emerald-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <HugeiconsIcon icon={UserGroupIcon} className="w-4 h-4" />
               </div>
             </CardContent>
           </Card>
@@ -121,8 +142,8 @@ export default function OverviewTab({
                   {data.error_rate.toFixed(2)}%
                 </p>
               </div>
-              <div className="p-2 bg-purple-500/10 rounded border border-purple-500/20">
-                <Zap className="w-4 h-4 text-purple-500" />
+              <div className="p-2 rounded-lg bg-pg-surface">
+                <Zap className="w-4 h-4 text-pg-muted" />
               </div>
             </CardContent>
           </Card>
@@ -139,17 +160,18 @@ export default function OverviewTab({
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
+                <TableRow className="hover:bg-transparent">
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Session ID</TableHead>
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">User ID</TableHead>
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Start Time</TableHead>
                   <TableHead className="text-xs text-muted-foreground h-9 px-4">Error Count</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.sessions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-16">
+                    <TableCell colSpan={5} className="text-center py-16">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                       <p className="text-muted-foreground text-xs">
                         No active sessions
@@ -160,7 +182,8 @@ export default function OverviewTab({
                   data.sessions.map((session) => (
                     <TableRow
                       key={session.session_id}
-                      className="border-border hover:bg-muted/50"
+                      className="cursor-pointer"
+                      onClick={() => setSelectedSession(session)}
                     >
                       <TableCell className="text-foreground font-mono text-[10px] py-2 px-4">
                         {session.session_id}
@@ -173,6 +196,32 @@ export default function OverviewTab({
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4 font-semibold">
                         {session.error_count}
+                      </TableCell>
+                      <TableCell
+                        className="py-2 px-2"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 shadow-none">
+                              <HugeiconsIcon icon={MoreHorizontalIcon} className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-lg">
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => setSelectedSession(session)}
+                            >
+                              Open details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs cursor-pointer"
+                              onClick={() => setActiveTab("sessions")}
+                            >
+                              View all sessions
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -195,7 +244,7 @@ export default function OverviewTab({
         </div>
 
         {/* footer analysis */}
-        <section className="bg-card border border-border rounded-lg p-3">
+        <section className="rounded-lg bg-pg-group p-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
               <div className="flex items-center">
@@ -223,6 +272,38 @@ export default function OverviewTab({
           </div>
         </section>
       </div>
+
+      <Sheet
+        open={!!selectedSession}
+        onOpenChange={(open) => !open && setSelectedSession(null)}
+      >
+        <SheetContent className="bg-pg-modal p-6">
+          <SheetHeader className="mb-5 p-0">
+            <SheetTitle>Session details</SheetTitle>
+            <SheetDescription>
+              {selectedSession?.session_id}
+            </SheetDescription>
+          </SheetHeader>
+          {selectedSession ? (
+            <dl className="space-y-3 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-pg-muted">User</dt>
+                <dd className="text-pg-text">{selectedSession.user_id || "N/A"}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-pg-muted">Started</dt>
+                <dd className="text-pg-text">
+                  {format(new Date(selectedSession.start_time), "PP, h:mmaaa")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-pg-muted">Errors</dt>
+                <dd className="text-pg-text">{selectedSession.error_count}</dd>
+              </div>
+            </dl>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

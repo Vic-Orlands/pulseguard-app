@@ -1,21 +1,56 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Alert01Icon, ArrowDown01Icon, Bug01Icon, Cancel01Icon, Clock01Icon, DatabaseIcon, Delete02Icon, FloppyDiskIcon, GlobeIcon, GridIcon, ListViewIcon, Mail01Icon, Message01Icon, Notification01Icon, PencilEdit01Icon, Search01Icon, Settings01Icon, Tick01Icon, UserGroupIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Add01Icon, Alert01Icon, ArrowDown01Icon, Bug01Icon, Cancel01Icon, Clock01Icon, DatabaseIcon, Delete02Icon, FloppyDiskIcon, GlobeIcon, GridIcon, ListViewIcon, Mail01Icon, Message01Icon, Notification01Icon, PencilEdit01Icon, Search01Icon, Settings01Icon, Tick01Icon, UserGroupIcon, ViewIcon, ViewOffIcon } from "@/components/phosphor-icons";
 import React, { useState, useMemo } from "react";
 import { Project } from "@/types/dashboard";
+import type { PulseIconProps } from "@/components/phosphor-icons";
+
+type AlertNotifications = {
+  email: string[];
+  slack: boolean;
+  slackChannel: string;
+  groups: string[];
+  excludedEmails: string[];
+};
+
+type AlertItem = {
+  id: number;
+  name: string;
+  type: string;
+  severity: string;
+  status: string;
+  triggers: Record<string, string>;
+  notifications: AlertNotifications;
+  created: string;
+  lastTriggered: string;
+  alertFor: string;
+  errorTypes: string[];
+  logPattern: string;
+};
+
+type AlertDraft = Omit<AlertItem, "id" | "created" | "lastTriggered">;
+
+type NotificationGroup = {
+  id: number;
+  name: string;
+  emails: string[];
+};
 
 // import AlertConfiguration from "./settings/config";
 
 const AlertPage = ({ project }: { project: Project }) => {
   const [view, setView] = useState("grid");
-  const [selectedAlerts, setSelectedAlerts] = useState([]);
+  const [selectedAlerts, setSelectedAlerts] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingAlert, setEditingAlert] = useState(null);
+  const [editingAlert, setEditingAlert] = useState<AlertItem | null>(null);
+  const updateEditingAlert = (update: (alert: AlertItem) => AlertItem) => {
+    setEditingAlert((current) => current ? update(current) : current);
+  };
   const [showConfigPage, setShowConfigPage] = useState(false);
 
-  const [alerts, setAlerts] = useState([
+  const [alerts, setAlerts] = useState<AlertItem[]>([
     {
       id: 1,
       name: "Critical Database Errors",
@@ -34,6 +69,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       lastTriggered: "2024-06-18 14:30",
       alertFor: "error",
       errorTypes: ["database"],
+      logPattern: "",
     },
     {
       id: 2,
@@ -53,6 +89,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       lastTriggered: "2024-06-17 09:15",
       alertFor: "log",
       logPattern: "API slow",
+      errorTypes: [],
     },
     {
       id: 3,
@@ -72,6 +109,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       lastTriggered: "Never",
       alertFor: "error",
       errorTypes: ["http"],
+      logPattern: "",
     },
   ]);
 
@@ -84,7 +122,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     slackChannels: ["#alerts", "#support"],
   });
 
-  const [newAlert, setNewAlert] = useState({
+  const [newAlert, setNewAlert] = useState<AlertDraft>({
     name: "",
     type: "error",
     severity: "medium",
@@ -102,14 +140,14 @@ const AlertPage = ({ project }: { project: Project }) => {
     logPattern: "",
   });
 
-  const severityColors = {
+  const severityColors: Record<string, string> = {
     critical: "bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/20 dark:text-destructive-foreground/90 dark:border-destructive/30",
     warning: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
     medium: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
     low: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30",
   };
 
-  const typeIcons = {
+  const typeIcons: Record<string, React.ComponentType<PulseIconProps>> = {
     error: Bug01Icon,
     performance: Clock01Icon,
     database: DatabaseIcon,
@@ -131,7 +169,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     });
   }, [alerts, searchTerm, filterType]);
 
-  const handleSelectAlert = (alertId) => {
+  const handleSelectAlert = (alertId: number) => {
     setSelectedAlerts((prev) =>
       prev.includes(alertId)
         ? prev.filter((id) => id !== alertId)
@@ -154,7 +192,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     setSelectedAlerts([]);
   };
 
-  const handleToggleStatus = (alertId) => {
+  const handleToggleStatus = (alertId: number) => {
     setAlerts((prev) =>
       prev.map((alert) =>
         alert.id === alertId
@@ -199,6 +237,7 @@ const AlertPage = ({ project }: { project: Project }) => {
   };
 
   const handleEditAlert = () => {
+    if (!editingAlert) return;
     setAlerts((prev) =>
       prev.map((alert) => (alert.id === editingAlert.id ? editingAlert : alert))
     );
@@ -206,7 +245,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     setEditingAlert(null);
   };
 
-  const AlertCard = ({ alert }) => {
+  const AlertCard = ({ alert }: { alert: AlertItem }) => {
     const TypeIcon = typeIcons[alert.type] || Bug01Icon;
 
     return (
@@ -312,7 +351,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     );
   };
 
-  const AlertRow = ({ alert }) => {
+  const AlertRow = ({ alert }: { alert: AlertItem }) => {
     const TypeIcon = typeIcons[alert.type] || Bug01Icon;
 
     return (
@@ -411,11 +450,11 @@ const AlertPage = ({ project }: { project: Project }) => {
     );
   };
 
-  const Modal = ({ isOpen, onClose, title, children }) => {
+  const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode }) => {
     if (!isOpen) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-none text-foreground">
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-sm font-bold text-foreground">{title}</h2>
@@ -455,11 +494,11 @@ const AlertPage = ({ project }: { project: Project }) => {
     });
 
     const [activeTab, setActiveTab] = useState("emails");
-    const [editingGroup, setEditingGroup] = useState(null);
+    const [editingGroup, setEditingGroup] = useState<NotificationGroup | null>(null);
     const [showGroupDialog, setShowGroupDialog] = useState(false);
-    const [newGroupForm, setNewGroupForm] = useState({ name: "", emails: [] });
+    const [newGroupForm, setNewGroupForm] = useState<{ name: string; emails: string[] }>({ name: "", emails: [] });
     const [newEmail, setNewEmail] = useState("");
-    const [selectedEmails, setSelectedEmails] = useState([]);
+    const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
     const [newSlackChannel, setNewSlackChannel] = useState("");
 
     // Multi-select dropdown states
@@ -482,7 +521,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     ];
 
     // Email Management
-    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const handleAddEmail = () => {
       // Handle multiple emails separated by comma or pipe
@@ -517,7 +556,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       setSelectedEmails([]);
     };
 
-    const toggleEmailSelection = (email) => {
+    const toggleEmailSelection = (email: string) => {
       setSelectedEmails((prev) =>
         prev.includes(email)
           ? prev.filter((e) => e !== email)
@@ -649,20 +688,20 @@ const AlertPage = ({ project }: { project: Project }) => {
       setNewGroupForm({ name: "", emails: [] });
     };
 
-    const handleEditGroup = (group) => {
+    const handleEditGroup = (group: NotificationGroup) => {
       setEditingGroup(group);
       setNewGroupForm({ name: group.name, emails: [...group.emails] });
       setShowGroupDialog(true);
     };
 
-    const handleDeleteGroup = (groupId) => {
+    const handleDeleteGroup = (groupId: number) => {
       setConfig((prev) => ({
         ...prev,
         groups: prev.groups.filter((group) => group.id !== groupId),
       }));
     };
 
-    const toggleEmailInGroup = (email) => {
+    const toggleEmailInGroup = (email: string) => {
       setNewGroupForm((prev) => ({
         ...prev,
         emails: prev.emails.includes(email)
@@ -684,7 +723,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       }
     };
 
-    const handleRemoveSlackChannel = (channel) => {
+    const handleRemoveSlackChannel = (channel: string) => {
       setConfig((prev) => ({
         ...prev,
         slackChannels: prev.slackChannels.filter((c) => c !== channel),
@@ -692,7 +731,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     };
 
     // Multi-select dropdown handlers
-    const handleSeverityToggle = (value) => {
+    const handleSeverityToggle = (value: string) => {
       setConfig((prev) => ({
         ...prev,
         alertConditions: {
@@ -706,7 +745,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       }));
     };
 
-    const handleErrorTypeToggle = (value) => {
+    const handleErrorTypeToggle = (value: string) => {
       setConfig((prev) => ({
         ...prev,
         alertConditions: {
@@ -718,7 +757,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       }));
     };
 
-    const TabButton = ({ id, label, icon: Icon, isActive, onClick }) => (
+    const TabButton = ({ id, label, icon: Icon, isActive, onClick }: { id: string; label: string; icon: React.ComponentType<PulseIconProps>; isActive: boolean; onClick: (id: string) => void }) => (
       <button
         onClick={() => onClick(id)}
         className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all ${
@@ -740,7 +779,7 @@ const AlertPage = ({ project }: { project: Project }) => {
       isOpen,
       setIsOpen,
       placeholder = "Select options...",
-    }) => (
+    }: { label: string; options: { value: string; label: string }[]; selectedValues: string[]; onToggle: (value: string) => void; isOpen: boolean; setIsOpen: React.Dispatch<React.SetStateAction<boolean>>; placeholder?: string }) => (
       <div className="relative">
         <label className="block text-sm font-medium text-slate-300 mb-2">
           {label}
@@ -811,7 +850,7 @@ const AlertPage = ({ project }: { project: Project }) => {
     );
 
     const GroupDialog = () => (
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center z-50">
         <div className="bg-card border border-border rounded-lg p-5 w-full max-w-md mx-4 shadow-none text-foreground">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-foreground">
@@ -1776,7 +1815,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 type="text"
                 value={editingAlert.name}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({ ...prev, name: e.target.value }))
+                  updateEditingAlert((prev) => ({ ...prev, name: e.target.value }))
                 }
                 className="w-full px-3 py-1.5 bg-background border border-border rounded text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
@@ -1790,7 +1829,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 <select
                   value={editingAlert.type}
                   onChange={(e) =>
-                    setEditingAlert((prev) => ({
+                    updateEditingAlert((prev) => ({
                       ...prev,
                       type: e.target.value,
                     }))
@@ -1810,7 +1849,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 <select
                   value={editingAlert.severity}
                   onChange={(e) =>
-                    setEditingAlert((prev) => ({
+                    updateEditingAlert((prev) => ({
                       ...prev,
                       severity: e.target.value,
                     }))
@@ -1832,7 +1871,7 @@ const AlertPage = ({ project }: { project: Project }) => {
               <select
                 value={editingAlert.alertFor}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({
+                  updateEditingAlert((prev) => ({
                     ...prev,
                     alertFor: e.target.value,
                     errorTypes: [],
@@ -1855,7 +1894,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   multiple
                   value={editingAlert.errorTypes}
                   onChange={(e) =>
-                    setEditingAlert((prev) => ({
+                    updateEditingAlert((prev) => ({
                       ...prev,
                       errorTypes: Array.from(
                         e.target.selectedOptions,
@@ -1880,7 +1919,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                   type="text"
                   value={editingAlert.logPattern}
                   onChange={(e) =>
-                    setEditingAlert((prev) => ({
+                    updateEditingAlert((prev) => ({
                       ...prev,
                       logPattern: e.target.value,
                     }))
@@ -1899,7 +1938,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 multiple
                 value={editingAlert.notifications.email}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({
+                  updateEditingAlert((prev) => ({
                     ...prev,
                     notifications: {
                       ...prev.notifications,
@@ -1928,7 +1967,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 multiple
                 value={editingAlert.notifications.groups}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({
+                  updateEditingAlert((prev) => ({
                     ...prev,
                     notifications: {
                       ...prev.notifications,
@@ -1957,7 +1996,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 multiple
                 value={editingAlert.notifications.excludedEmails}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({
+                  updateEditingAlert((prev) => ({
                     ...prev,
                     notifications: {
                       ...prev.notifications,
@@ -1984,7 +2023,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 id="edit-slack"
                 checked={editingAlert.notifications.slack}
                 onChange={(e) =>
-                  setEditingAlert((prev) => ({
+                  updateEditingAlert((prev) => ({
                     ...prev,
                     notifications: {
                       ...prev.notifications,
@@ -2007,7 +2046,7 @@ const AlertPage = ({ project }: { project: Project }) => {
                 <select
                   value={editingAlert.notifications.slackChannel}
                   onChange={(e) =>
-                    setEditingAlert((prev) => ({
+                    updateEditingAlert((prev) => ({
                       ...prev,
                       notifications: {
                         ...prev.notifications,

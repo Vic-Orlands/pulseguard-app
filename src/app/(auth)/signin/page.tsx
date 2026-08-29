@@ -3,15 +3,16 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowRight } from "lucide-react";
-import { GithubIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Loader2, ArrowRight } from "@/components/phosphor-icons";
+import { GithubIcon } from "@/components/phosphor-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
 import { useHydrated } from "./user-hydrated";
 import { LoginForm } from "./loginform";
 import { SignupForm } from "./signupform";
 import ForgotPassword from "./forgot-password";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PageFooter } from "@/components/page-footer";
+import { safeInternalRedirect } from "@/lib/security/safe-redirect";
 
 // Beautiful premium concentric brand logo matching Traces brand aesthetics
 export const Logo = () => (
@@ -201,11 +202,12 @@ function AuthContent() {
   if (!hydrated) return null;
 
   const handleOAuthLogin = async (provider: string) => {
-    const redirectUrl = searchParams.get("redirect");
-    if (redirectUrl) {
+    const requestedRedirect = searchParams.get("redirect");
+    const redirectUrl = safeInternalRedirect(requestedRedirect);
+    if (requestedRedirect) {
       localStorage.setItem("pulseguard_post_auth_redirect", redirectUrl);
     }
-    const callbackUrl = redirectUrl
+    const callbackUrl = requestedRedirect
       ? `/api/auth/${provider}?redirect=${encodeURIComponent(redirectUrl)}`
       : `/api/auth/${provider}`;
     window.location.href = callbackUrl;

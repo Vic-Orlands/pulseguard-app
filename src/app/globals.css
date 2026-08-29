@@ -18,6 +18,8 @@
   --color-pg-overlay: var(--pg-overlay);
   --color-pg-modal:   var(--pg-modal);
   --color-pg-border:  var(--pg-border);
+  --color-pg-group:   var(--pg-group);
+  --color-border:     var(--pg-border);
   --color-pg-err-bg:  var(--pg-err-bg);
   --color-pg-err-bd:  var(--pg-err-bd);
   --color-pg-err-txt: var(--pg-err-txt);
@@ -140,8 +142,9 @@
   --pg-surface: rgba(9, 9, 11, 0.6);   /* inputs, pills */
   --pg-overlay: rgba(9, 9, 11, 0.4);   /* theme toggle bg */
   --pg-modal:   #0a0a0a;               /* modal/panel bg */
+  --pg-group:   #161618;               /* grouped list / card fill */
   /* Borders */
-  --pg-border:  #27272a;   /* default border */
+  --pg-border:  #3f3f46;   /* dark grey — never white in dark mode */
   /* Error */
   --pg-err-bg:  rgba(69, 10, 10, 0.4);
   --pg-err-bd:  rgba(127, 29, 29, 0.5);
@@ -150,6 +153,9 @@
   --pg-ok-bg:   rgba(6, 78, 59, 0.4);
   --pg-ok-bd:   rgba(6, 78, 59, 0.5);
   --pg-ok-txt:  #34d399;
+  --pg-panel-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 12px 36px rgba(0, 0, 0, 0.22);
 }
 
 /* Light mode variables and overrides */
@@ -192,6 +198,7 @@ html:not(.dark) {
   --pg-surface: rgba(244, 244, 245, 0.7);
   --pg-overlay: rgba(255, 255, 255, 0.7);
   --pg-modal:   #ffffff;
+  --pg-group:   #f4f4f5;
   --pg-border:  #e4e4e7;
   --pg-err-bg:  rgba(254, 226, 226, 0.8);
   --pg-err-bd:  rgba(239, 68, 68, 0.35);
@@ -199,6 +206,24 @@ html:not(.dark) {
   --pg-ok-bg:   rgba(209, 250, 229, 0.8);
   --pg-ok-bd:   rgba(16, 185, 129, 0.35);
   --pg-ok-txt:  #065f46;
+  --pg-panel-shadow:
+    0 0 0 1px rgba(9, 9, 11, 0.045),
+    0 12px 36px rgba(9, 9, 11, 0.07);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 body {
@@ -261,12 +286,149 @@ button {
 .pg-shell {
   width: min(100%, 1440px);
   margin: 0 auto;
-  border-inline: 1px solid var(--panel-bg-0b);
 }
 
 .pg-panel {
   border: 1px solid var(--color-zinc-800);
   background: var(--panel-bg-12);
+}
+
+.dashboard-shell,
+.dashboard-page {
+  color: var(--pg-text);
+  background-color: var(--background);
+  background-image: none;
+}
+
+.pg-icon {
+  color: var(--pg-muted);
+}
+
+.dashboard-shell main,
+.dashboard-page > div {
+  position: relative;
+}
+
+.dashboard-shell [data-slot="card"],
+.dashboard-page [data-slot="card"],
+.dashboard-shell .pg-panel,
+.dashboard-page .pg-panel {
+  background: var(--pg-group) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0.5rem !important;
+}
+
+.dashboard-shell [data-slot="card-header"],
+.dashboard-page [data-slot="card-header"],
+.dashboard-shell [data-slot="card-footer"],
+.dashboard-page [data-slot="card-footer"] {
+  border-color: color-mix(in oklab, var(--pg-border) 75%, transparent) !important;
+}
+
+.dashboard-shell :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select),
+.dashboard-page :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  border: 1px solid var(--pg-border) !important;
+  border-radius: 0.5rem !important;
+  background: var(--pg-surface) !important;
+  color: var(--pg-text) !important;
+  box-shadow: none !important;
+  outline: none;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.dashboard-shell :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select)::placeholder,
+.dashboard-page :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select)::placeholder {
+  color: var(--pg-subtle) !important;
+}
+
+.dashboard-shell :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible,
+.dashboard-page :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  border-color: #71717a !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+}
+
+.dashboard-shell :is(input, textarea, select):disabled,
+.dashboard-page :is(input, textarea, select):disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.dashboard-shell [data-slot="dialog-content"],
+.dashboard-page [data-slot="dialog-content"],
+.dashboard-shell [data-slot="alert-dialog-content"],
+.dashboard-page [data-slot="alert-dialog-content"] {
+  background: var(--pg-modal) !important;
+  border: none !important;
+  color: var(--pg-text) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dashboard-shell [data-slot="sheet-content"],
+.dashboard-page [data-slot="sheet-content"] {
+  background: var(--pg-modal) !important;
+  border: none !important;
+  color: var(--pg-text) !important;
+}
+
+.dashboard-shell [data-slot="dropdown-menu-content"],
+.dashboard-page [data-slot="dropdown-menu-content"],
+.dashboard-shell [data-slot="select-content"],
+.dashboard-page [data-slot="select-content"] {
+  background: var(--pg-modal) !important;
+  border: none !important;
+  color: var(--pg-text) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28) !important;
+}
+
+.dashboard-shell [data-slot="table"],
+.dashboard-page [data-slot="table"] {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.dark .dashboard-shell,
+.dark .dashboard-page {
+  --pg-border: #3f3f46;
+  --color-border: #3f3f46;
+}
+
+.dashboard-page .bg-white,
+.dashboard-page .bg-\[\#f7f7f5\],
+.dashboard-page .bg-\[\#f7f7f5\]\/40 {
+  background-color: var(--pg-surface) !important;
+}
+
+.dashboard-page :is(.text-\[\#1d1d1b\], .text-\[\#171716\]) {
+  color: var(--pg-text) !important;
+}
+
+.dashboard-page .text-\[\#73736e\] {
+  color: var(--pg-muted) !important;
+}
+
+.dashboard-page :is(.border-\[\#dfdfda\], .border-\[\#e4e4df\]) {
+  border-color: var(--pg-border) !important;
+}
+
+[data-slot="dialog-overlay"],
+[data-slot="alert-dialog-overlay"],
+[data-slot="sheet-overlay"],
+.pg-backdrop {
+  background: rgba(0, 0, 0, 0.72) !important;
+  backdrop-filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Scrollbar styling */

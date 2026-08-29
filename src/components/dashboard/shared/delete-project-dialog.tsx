@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert01Icon, Cancel01Icon, CheckmarkCircle01Icon, Delete02Icon, Refresh01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
+import { Alert01Icon, Cancel01Icon, CheckmarkCircle01Icon, Delete02Icon, Refresh01Icon } from "@/components/phosphor-icons";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";

@@ -41,6 +41,7 @@ export default function Image() {
             style={{
               width: "80%",
               height: "80%",
+              display: "flex",
               background: "linear-gradient(to bottom right, #2563eb, #9333ea)",
               opacity: 0.8,
               borderRadius: "50%",

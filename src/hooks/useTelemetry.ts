@@ -47,6 +47,7 @@ export function useTelemetry({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": "pulseguard-web",
       },
       body: JSON.stringify({
         page,
@@ -67,6 +68,7 @@ export function useTelemetry({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-CSRF-Token": "pulseguard-web",
           },
           body: JSON.stringify({
             name: entry.name,

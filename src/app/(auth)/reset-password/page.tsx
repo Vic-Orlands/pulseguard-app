@@ -1,11 +1,11 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   Loading02Icon,
   CheckmarkCircle01Icon,
-} from "@hugeicons/core-free-icons";
-import { ArrowLeft, Lock } from "lucide-react";
+} from "@/components/phosphor-icons";
+import { ArrowLeft, Lock } from "@/components/phosphor-icons";
 import { useState, useTransition, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
+      .min(12, "Password must be at least 12 characters")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
         {
@@ -48,7 +48,7 @@ export function ResetPassword() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const [token, setToken] = useState<string | null>(searchParams.get("token"));
 
   const {
     register,
@@ -61,6 +61,14 @@ export function ResetPassword() {
   });
 
   const password = watch("password");
+
+  useEffect(() => {
+    if (token) return;
+    const fragmentToken = new URLSearchParams(window.location.hash.slice(1)).get(
+      "token",
+    );
+    if (fragmentToken) setToken(fragmentToken);
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
@@ -112,7 +120,7 @@ export function ResetPassword() {
     if (!pw)
       return { score: 0, label: "Enter password", color: "text-zinc-500" };
     let score = 0;
-    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
     if (/[a-z]/.test(pw)) score++;
     if (/[A-Z]/.test(pw)) score++;
     if (/\d/.test(pw)) score++;
