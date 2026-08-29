@@ -13,6 +13,7 @@ type Error struct {
 	OccurredAt     time.Time         `json:"occurredAt"`
 	LastSeen       time.Time         `json:"lastSeen"`
 	Environment    string            `json:"environment"`
+	Release        string            `json:"release,omitempty"`
 	Count          int               `json:"count"`
 	Source         string            `json:"source"`
 	Type           string            `json:"type"`

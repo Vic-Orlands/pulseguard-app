@@ -10,12 +10,15 @@ export async function POST(request: NextRequest) {
   const logger = createLogger("error-api", projectId);
   const tracer = trace.getTracer("error-api");
   const authHeaders = await getAuthForwardHeaders();
+  if (!authHeaders || !url) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   return tracer.startActiveSpan("pageview-api.process", async (span) => {
     try {
       const pageViewData = await request.json();
 
-      if (pageViewData.sessionId && authHeaders) {
+      if (pageViewData.sessionId) {
         await fetch(`${url}/api/sessions/start`, {
           method: "POST",
           headers: {

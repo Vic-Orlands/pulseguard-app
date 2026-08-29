@@ -11,6 +11,7 @@ import (
 
 	"pulseguard/internal/api/handlers"
 	"pulseguard/internal/api/middleware"
+	"pulseguard/internal/repository/postgres"
 	"pulseguard/internal/service"
 	"pulseguard/pkg/auth"
 	"pulseguard/pkg/logger"
@@ -30,6 +31,7 @@ func NewRouter(
 	projectSvc *service.ProjectService,
 	errorSvc *service.ErrorService,
 	sessionSvc *service.SessionService,
+	sourceMapRepo *postgres.SourceMapRepository,
 	metrics *otel.Metrics,
 	tokenSvc *auth.TokenService,
 	logger *logger.Logger,
@@ -45,7 +47,7 @@ func NewRouter(
 	middleware.Logging(r)
 	r.Use(middleware.CORS())
 	r.Use(middleware.SecurityHeaders)
-	r.Use(middleware.BodyLimit(1 << 20))
+	r.Use(middleware.BodyLimit(2 << 20))
 	// Custom middlewares for tracing and metrics
 	r.Use(tracingMiddleware)
 	r.Use(metricsMiddleware)
@@ -67,6 +69,7 @@ func NewRouter(
 	alertHandler := handlers.NewAlertHandler(alertSvc, metrics)
 	notificationHandler := handlers.NewNotificationHandler(notificationSvc)
 	integrationHandler := handlers.NewIntegrationHandler(integrationSvc)
+	sourceMapHandler := handlers.NewSourceMapHandler(sourceMapRepo, projectSvc)
 
 	// user routes
 	r.With(middleware.RateLimit(5, time.Hour)).Post("/api/users/register", userHandler.Register)
@@ -77,6 +80,19 @@ func NewRouter(
 	// social sign-in
 	r.With(middleware.RateLimit(20, time.Minute)).Get("/api/auth/{provider}", oauthHandler.BeginAuth)
 	r.With(middleware.RateLimit(30, time.Minute)).Get("/api/auth/{provider}/callback", oauthHandler.CompleteAuth)
+
+	ingestAuth := middleware.RequireIngestKey(projectSvc, logger, tracer, metrics)
+	r.Route("/api/ingest", func(r chi.Router) {
+		r.Use(middleware.RateLimit(180, time.Minute))
+		r.Use(ingestAuth)
+		r.Post("/error", errorHandler.Track)
+		r.Post("/log", logsHandler.Ingest)
+		r.Post("/trace", tracesHandler.Ingest)
+		r.Post("/session/start", sessionHandler.StartSession)
+		r.Post("/session/end", sessionHandler.EndSession)
+		r.Post("/event", sessionHandler.TrackEvent)
+		r.Post("/pageview", sessionHandler.TrackPageview)
+	})
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
@@ -98,6 +114,7 @@ func NewRouter(
 		r.Delete("/api/projects", projectHandler.DeleteAllByOwner)
 		r.Put("/api/projects/{slug}", projectHandler.UpdateProject)
 		r.Delete("/api/projects/{slug}", projectHandler.DeleteBySlug)
+		r.Post("/api/projects/{slug}/dsn/rotate", projectHandler.RotateDSN)
 
 		// workspace routes
 		r.Post("/api/workspaces", workspaceHandler.Create)
@@ -110,6 +127,7 @@ func NewRouter(
 			r.Use(middleware.RequireWorkspaceRole(wsSvc, "member", logger, tracer, metrics))
 
 			r.Get("/members", workspaceHandler.ListMembers)
+			r.Get("/usage", workspaceHandler.GetUsage)
 			r.Get("/teams", workspaceHandler.ListTeams)
 			r.Get("/teams/{teamID}/members", workspaceHandler.ListTeamMembers)
 			r.Get("/invitations", workspaceHandler.ListInvitations)
@@ -168,6 +186,9 @@ func NewRouter(
 		r.With(projectMember).Get("/api/traces", tracesHandler.ListTracesByProject)
 		r.With(projectMember).Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
 		r.With(projectMember).Get("/api/dashboard", dashboardHandler.GetDashboardData)
+		r.With(projectMember).Get("/api/source-maps", sourceMapHandler.List)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/source-maps", sourceMapHandler.Upload)
+		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Delete("/api/source-maps/{id}", sourceMapHandler.Delete)
 	})
 
 	return r

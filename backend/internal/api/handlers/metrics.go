@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
+	apiMiddleware "pulseguard/internal/api/middleware"
 	"pulseguard/internal/service"
 	"pulseguard/internal/util"
 	"pulseguard/pkg/otel"
@@ -24,9 +24,8 @@ func NewMetricsHandler(metricsService *service.MetricsService, metrics *otel.Met
 func (h *MetricsHandler) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Extract project ID from context
-	projectID := r.URL.Query().Get("project_id")
-	if projectID == "" {
+	projectID, ok := apiMiddleware.AuthorizedProjectID(ctx)
+	if !ok {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "missing_project_id"),
 		))
@@ -38,15 +37,9 @@ func (h *MetricsHandler) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("error_type", "fetch_metrics_failed"),
-			attribute.String("error_message", err.Error()),
 		))
-		log.Printf("Failed to fetch metrics for project %s: %v", projectID, err)
 		util.WriteError(w, http.StatusInternalServerError, "Failed to fetch metrics")
 		return
-	}
-
-	if len(metricsData) == 0 {
-		log.Printf("No metrics found for project %s", projectID)
 	}
 
 	h.metrics.UserActivityTotal.Add(ctx, 1, metric.WithAttributes(

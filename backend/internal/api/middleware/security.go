@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/subtle"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,7 +11,7 @@ import (
 	"pulseguard/internal/util"
 )
 
-const csrfHeaderValue = "pulseguard-web"
+const csrfCookieName = "csrf_token"
 
 func BodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -45,7 +46,19 @@ func RequireCSRF(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if r.Header.Get("X-CSRF-Token") != csrfHeaderValue || r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+		origin := strings.TrimSpace(r.Header.Get("Origin"))
+		if origin != "" && !OriginAllowed(origin) {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		cookie, err := r.Cookie(csrfCookieName)
+		header := r.Header.Get("X-CSRF-Token")
+		if err != nil || cookie.Value == "" || header == "" || len(cookie.Value) < 32 ||
+			subtle.ConstantTimeCompare([]byte(cookie.Value), []byte(header)) != 1 {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}

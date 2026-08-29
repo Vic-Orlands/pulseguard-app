@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"pulseguard/internal/api/middleware"
+	"pulseguard/internal/repository/postgres"
 	"pulseguard/internal/service"
 	"pulseguard/pkg/auth"
 	"pulseguard/pkg/logger"
@@ -34,6 +35,7 @@ func NewServer(
 	tracesService *service.TracesService,
 	dashboardService *service.DashboardService,
 	sessionService *service.SessionService,
+	sourceMapRepo *postgres.SourceMapRepository,
 	port int,
 	logger *logger.Logger,
 	metrics *pulseguardOtel.Metrics,
@@ -55,6 +57,7 @@ func NewServer(
 		projectService,
 		errorService,
 		sessionService,
+		sourceMapRepo,
 		metrics,
 		tokenService,
 		logger,

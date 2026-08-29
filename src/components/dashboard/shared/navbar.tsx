@@ -246,10 +246,6 @@ export default function Header({
         platform: "OpenTelemetry Project",
         workspaceId,
       });
-      if (created?.error) {
-        toast.error(created.error);
-        return;
-      }
       toast.success("Project created");
       setIsCreateProjectOpen(false);
       setIsOrgSwitcherOpen(false);
@@ -265,13 +261,23 @@ export default function Header({
   };
 
   const getCodeSnippet = () => {
+    const dsn = project.dsn || "";
+    let ingestKey = "";
+    let ingest = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+    try {
+      const parsed = new URL(dsn);
+      ingestKey = decodeURIComponent(parsed.username || "");
+      ingest = `${parsed.protocol}//${parsed.host}`;
+    } catch {
+      ingestKey = "";
+    }
     switch (modalCodeTab) {
       case "node":
-        return `const res = await fetch("/api/telemetry/log", {\n  method: "POST",\n  credentials: "include",\n  headers: {\n    "Content-Type": "application/json",\n    "x-project-id": "${project.id}",\n    "X-CSRF-Token": "pulseguard-web"\n  },\n  body: JSON.stringify({\n    message: "Server started",\n    level: "info"\n  })\n});`;
+        return `import { initPulseguard, reportLog } from "pulseguard";\n\ninitPulseguard({ dsn: "${dsn || "https://pg_key@host/project-id"}" });\nreportLog("Server started", "info");`;
       case "python":
-        return `import requests\n\nrequests.post(\n    "https://your-app/api/telemetry/log",\n    headers={"x-project-id": "${project.id}"},\n    json={"message": "Server started", "level": "info"},\n)`;
+        return `import requests\n\nrequests.post(\n    "${ingest}/api/ingest/log",\n    headers={\n        "X-PulseGuard-Key": "${ingestKey || "pg_your_key"}",\n        "X-Project-ID": "${project.id}",\n    },\n    json={"message": "Server started", "level": "info"},\n)`;
       default:
-        return `curl -X POST /api/telemetry/log \\\n  -H "x-project-id: ${project.id}" \\\n  -H "Content-Type: application/json" \\\n  -H "X-CSRF-Token: pulseguard-web" \\\n  -d '{"message": "Ping check", "level": "info"}'`;
+        return `curl -X POST ${ingest}/api/ingest/log \\\n  -H "X-PulseGuard-Key: ${ingestKey || "pg_your_key"}" \\\n  -H "X-Project-ID: ${project.id}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"message": "Ping check", "level": "info"}'\n\n# Prefer the SDK:\n# npm install pulseguard\n# initPulseguard({ dsn: "${dsn}" })`;
     }
   };
 
@@ -485,7 +491,7 @@ export default function Header({
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
         >
           <Key className="h-4 w-4 text-pg-muted" />
-          Project ID
+          Project DSN
         </button>
 
         <DropdownMenu>
@@ -756,28 +762,27 @@ export default function Header({
           <div className="max-h-[85vh] space-y-5 overflow-y-auto p-6">
             <DialogHeader className="space-y-1 text-left">
               <DialogTitle className="text-base font-semibold text-pg-text">
-                Project ID
+                Project DSN
               </DialogTitle>
               <DialogDescription className="max-w-xl text-xs leading-relaxed text-pg-muted">
-                Pass this ID to the SDK so errors, sessions, logs, and traces
-                land in this project. This dashboard is already connected when
-                the app&apos;s projectId matches this value. It is not a Slack
-                or Google OAuth key — those are outbound alert destinations.
+                Pass this DSN to the PulseGuard SDK. Telemetry is ingested with
+                the project key, not your dashboard login. Rotate it from the
+                Connect tab if it leaks.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-2">
               <span className="block text-[11px] font-medium text-pg-subtle">
-                Project ID
+                Project DSN
               </span>
               <div className="flex items-center gap-1 rounded-lg bg-pg-group px-3 py-2">
                 <span className="min-w-0 flex-1 truncate font-mono text-xs text-pg-text">
-                  {project.id}
+                  {project.dsn || project.id}
                 </span>
                 <button
                   type="button"
                   onClick={() => {
-                    void navigator.clipboard.writeText(project.id);
+                    void navigator.clipboard.writeText(project.dsn || project.id);
                     setIsApiKeyCopied(true);
                     setTimeout(() => setIsApiKeyCopied(false), 2000);
                   }}

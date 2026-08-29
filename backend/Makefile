@@ -25,10 +25,10 @@ build:
 # backup-db:
 # 	pg_dump -U postgres -h localhost -d pulseguard > backups/backup_$(shell date +%F_%H-%M-%S).sql
 
-## Run only database migrations
+## Run database migrations (applied automatically on server start)
 migrate:
-	@echo "🧱 Running migrations..."
-	@go run $(CMD_PATH) -migrate-only
+	@echo "🧱 Migrations run automatically when the server starts."
+	@echo "   Start the API with: go run $(CMD_PATH)"
 
 ## Format all Go files
 fmt:

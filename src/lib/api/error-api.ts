@@ -1,3 +1,4 @@
+import { csrfHeaders } from "@/lib/security/csrf";
 import type { Error, ErrorListResponse, ErrorFilterProps } from "@/types/error";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -13,25 +14,16 @@ export async function fetchErrors(
   });
 
   const response = await fetch(`${url}/api/errors?${params.toString()}`, {
-    headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
+    headers: {
+      "Content-Type": "application/json",
+      ...csrfHeaders(),
+      "X-Project-ID": filters.project_id,
+    },
     credentials: "include",
   });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch errors: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-export async function fetchErrorById(id: string): Promise<Error> {
-  const response = await fetch(`${url}/api/errors/get?id=${id}`, {
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch error: ${response.status}`);
   }
 
   return response.json();
@@ -43,7 +35,7 @@ export async function updateErrorStatus(
 ): Promise<Error> {
   const response = await fetch(`${url}/api/errors/status`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify({ id, status }),
     credentials: "include",
   });

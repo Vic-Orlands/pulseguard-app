@@ -10,6 +10,7 @@ import (
 
 	"pulseguard/internal/models"
 	"pulseguard/internal/repository/postgres"
+	"pulseguard/internal/util"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -17,18 +18,33 @@ import (
 
 type ProjectService struct {
 	projectRepo *postgres.ProjectRepository
+	wsRepo      *postgres.WorkspaceRepository
 }
 
 var ErrDuplicateSlug = errors.New("duplicate project slug")
 var ErrProjectAccessDenied = errors.New("project access denied")
 
-func NewProjectService(projectRepo *postgres.ProjectRepository) *ProjectService {
-	return &ProjectService{projectRepo: projectRepo}
+func NewProjectService(projectRepo *postgres.ProjectRepository, wsRepo *postgres.WorkspaceRepository) *ProjectService {
+	return &ProjectService{projectRepo: projectRepo, wsRepo: wsRepo}
 }
 
 // Create creates a new project with the given name, description, owner ID, and workspace ID.
 func (s *ProjectService) Create(ctx context.Context, name, description, ownerID, workspaceID string) (*models.Project, error) {
+	if s.wsRepo != nil {
+		usage, err := s.wsRepo.GetUsage(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+		if usage.ProjectCount >= usage.MaxProjects {
+			return nil, ErrProjectLimit
+		}
+	}
+
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+	key, err := util.GenerateIngestKey()
+	if err != nil {
+		return nil, err
+	}
 
 	p := &models.Project{
 		ID:          uuid.NewString(),
@@ -37,11 +53,12 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID,
 		Slug:        slug,
 		Description: description,
 		OwnerID:     ownerID,
+		IngestKey:   key,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 
-	err := s.projectRepo.Create(ctx, p)
+	err = s.projectRepo.Create(ctx, p)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" && pgErr.Constraint == "projects_name_key" {
@@ -53,6 +70,96 @@ func (s *ProjectService) Create(ctx context.Context, name, description, ownerID,
 	}
 
 	return p, nil
+}
+
+func (s *ProjectService) GetByIngestKey(ctx context.Context, ingestKey string) (*models.Project, error) {
+	return s.projectRepo.GetByIngestKey(ctx, ingestKey)
+}
+
+func (s *ProjectService) RotateIngestKey(ctx context.Context, slug, userID string) (*models.Project, error) {
+	key, err := util.GenerateIngestKey()
+	if err != nil {
+		return nil, err
+	}
+	return s.projectRepo.RotateIngestKey(ctx, slug, userID, key)
+}
+
+func (s *ProjectService) MarkFirstEvent(ctx context.Context, projectID string) (bool, error) {
+	return s.projectRepo.MarkFirstEvent(ctx, projectID)
+}
+
+func (s *ProjectService) ConsumeIngestEvent(ctx context.Context, workspaceID string) error {
+	if s.wsRepo == nil {
+		return nil
+	}
+	usage, err := s.wsRepo.ConsumeEvent(ctx, workspaceID)
+	if err != nil {
+		return err
+	}
+	if usage.EventsUsed > usage.MonthlyEvents {
+		return ErrQuotaExceeded
+	}
+	return nil
+}
+
+func (s *ProjectService) GetWorkspaceUsage(ctx context.Context, workspaceID string) (*models.WorkspaceUsage, error) {
+	if s.wsRepo == nil {
+		return nil, fmt.Errorf("workspace usage is unavailable")
+	}
+	return s.wsRepo.GetUsage(ctx, workspaceID)
+}
+
+func (s *ProjectService) NotifyFirstEvent(ctx context.Context, project *models.Project) {
+	if project == nil || s.wsRepo == nil {
+		return
+	}
+	first, err := s.projectRepo.MarkFirstEvent(ctx, project.ID)
+	if err != nil || !first {
+		return
+	}
+	wsID, err := uuid.Parse(project.WorkspaceID)
+	if err != nil {
+		return
+	}
+	members, err := s.wsRepo.ListWorkspaceMembers(ctx, wsID)
+	if err != nil {
+		return
+	}
+	connectURL := fmt.Sprintf("%s/projects/%s?tab=connect-platform", util.FrontendURL(), project.Slug)
+	for _, member := range members {
+		if member.Status != "active" || member.UserEmail == "" {
+			continue
+		}
+		if member.Role != "owner" && member.Role != "admin" {
+			continue
+		}
+		_ = util.SendProductUpdateEmail(member.UserEmail, "Your first event arrived",
+			fmt.Sprintf("%s just received its first telemetry event. Open the dashboard to inspect errors, sessions, and logs.", project.Name),
+			connectURL)
+	}
+}
+
+func (s *ProjectService) NotifyProjectReady(ctx context.Context, project *models.Project) {
+	if project == nil || s.wsRepo == nil {
+		return
+	}
+	wsID, err := uuid.Parse(project.WorkspaceID)
+	if err != nil {
+		return
+	}
+	members, err := s.wsRepo.ListWorkspaceMembers(ctx, wsID)
+	if err != nil {
+		return
+	}
+	connectURL := fmt.Sprintf("%s/projects/%s?tab=connect-platform", util.FrontendURL(), project.Slug)
+	for _, member := range members {
+		if member.Status != "active" || member.UserEmail == "" || member.Role != "owner" {
+			continue
+		}
+		_ = util.SendFeatureAnnouncementEmail(member.UserEmail, "DSN ingest",
+			fmt.Sprintf("Install the PulseGuard SDK and paste this project's DSN to start sending errors, sessions, logs, and traces into %s.", project.Name),
+			connectURL)
+	}
 }
 
 func (s *ProjectService) ListByWorkspaceForMember(ctx context.Context, workspaceID, userID string) ([]*models.Project, error) {

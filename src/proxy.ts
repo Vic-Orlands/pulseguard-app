@@ -23,11 +23,13 @@ export async function proxy(request: NextRequest) {
       security.csp,
     );
   }
+  const csrfHeader = request.headers.get("x-csrf-token") ?? "";
+  const csrfCookie = request.cookies.get("csrf_token")?.value ?? "";
   if (
     pathname.startsWith("/api/") &&
     isMutation &&
     request.cookies.has("auth_token") &&
-    request.headers.get("x-csrf-token") !== "pulseguard-web"
+    (csrfHeader.length < 32 || csrfHeader !== csrfCookie)
   ) {
     return applySecurityHeaders(
       NextResponse.json({ error: "Forbidden" }, { status: 403 }),

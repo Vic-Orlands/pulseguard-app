@@ -1,3 +1,5 @@
+import { csrfHeaders, getCsrfToken } from "@/lib/security/csrf";
+
 function currentSessionId(): string {
   if (typeof window === "undefined") return "";
   return localStorage.getItem("pulseguard_session_id") || "";
@@ -44,7 +46,7 @@ function headers(): HeadersInit {
   return {
     "Content-Type": "application/json",
     "x-project-id": projectId,
-    "X-CSRF-Token": "pulseguard-web",
+    ...csrfHeaders(),
   };
 }
 
@@ -66,7 +68,7 @@ export function reportLog(input: {
   traceId?: string;
   spanId?: string;
 }): void {
-  if (!projectId || typeof window === "undefined") return;
+  if (!projectId || typeof window === "undefined" || !getCsrfToken()) return;
   const message = input.message.trim();
   if (!message) return;
 
@@ -97,7 +99,7 @@ function queueFlush(): void {
 }
 
 async function flushTrace(): Promise<void> {
-  if (!pending || pending.spans.length === 0 || !projectId) return;
+  if (!pending || pending.spans.length === 0 || !projectId || !getCsrfToken()) return;
   const current = pending;
   const endedAt = Date.now();
   pending = {

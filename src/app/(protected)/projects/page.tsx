@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { csrfHeaders } from "@/lib/security/csrf";
 import { useAuth } from "@/context/auth-context";
 import { getLastProjectSlug, setLastProjectSlug } from "@/lib/last-project";
 import { motion, AnimatePresence } from "framer-motion";
@@ -289,7 +290,7 @@ export default function ProjectSelectionPage() {
       const response = await fetch(fetchUrl, {
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": "pulseguard-web",
+          ...csrfHeaders(),
         },
         credentials: "include",
       });

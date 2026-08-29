@@ -7,11 +7,11 @@ services:
       - ./logs:/app/logs
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4319:4317" # OTLP gRPC
-      - "4315:4318" # OTLP HTTP
-      - "8888:8888" # Collector metrics
-      - "8889:8889" # Prometheus metrics
-      - "1313:1313" # Health check
+      - "127.0.0.1:4319:4317" # OTLP gRPC
+      - "127.0.0.1:4315:4318" # OTLP HTTP
+      - "127.0.0.1:8888:8888" # Collector metrics
+      - "127.0.0.1:8889:8889" # Prometheus metrics
+      - "127.0.0.1:1313:1313" # Health check
     networks:
       - monitoring
     restart: unless-stopped
@@ -20,8 +20,8 @@ services:
   loki:
     image: grafana/loki:3.5.1
     ports:
-      - "3100:3100"
-      - "9096:9096"
+      - "127.0.0.1:3100:3100"
+      - "127.0.0.1:9096:9096"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
       - loki_data:/tmp/loki
@@ -39,10 +39,10 @@ services:
       - ./tempo.yaml:/etc/tempo.yaml
       - tempo_data:/var/tempo/blocks
     ports:
-      - "3200:3200" # tempo
-      - "9095:9095" # tempo gRPC (for frontend communication)
-      - "4317:4317" # otlp grpc
-      - "4318:4318" # otlp HTTP
+      - "127.0.0.1:3200:3200" # tempo
+      - "127.0.0.1:9095:9095" # tempo gRPC (for frontend communication)
+      - "127.0.0.1:4317:4317" # otlp grpc
+      - "127.0.0.1:4318:4318" # otlp HTTP
     networks:
       - monitoring
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     networks:
       - monitoring
     restart: unless-stopped
@@ -71,14 +71,14 @@ services:
   grafana:
     image: grafana/grafana:12.0.0
     ports:
-      - "3101:3000"
+      - "127.0.0.1:3101:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     # user: "1000:1000" # Run as non-root user
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
     networks:
@@ -99,7 +99,7 @@ services:
     networks:
       - monitoring
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d pulseguard"]
@@ -122,6 +122,7 @@ services:
       SESSION_BLOCK_KEY: ${SESSION_BLOCK_KEY:?SESSION_BLOCK_KEY is required}
       BACKEND_URL: ${BACKEND_URL:-http://localhost:8081}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      INGEST_PUBLIC_URL: ${INGEST_PUBLIC_URL:-http://localhost:8081}
       TEMPO_URL: http://tempo:3200
       OTLP_ENDPOINT: otel-collector:4318
       LOKI_URL: http://loki:3100

@@ -1,9 +1,11 @@
+import { csrfHeaders } from "@/lib/security/csrf";
+
 const url = process.env.NEXT_PUBLIC_API_URL;
 
-const headers = {
+const headers = () => ({
   "Content-Type": "application/json",
-  "X-CSRF-Token": "pulseguard-web",
-};
+  ...csrfHeaders(),
+});
 
 export type AppNotification = {
   id: string;
@@ -31,7 +33,7 @@ export async function listNotifications(): Promise<{
 }> {
   const res = await fetch(`${url}/api/notifications`, {
     credentials: "include",
-    headers,
+    headers: headers(),
   });
   if (!res.ok) {
     throw new Error("Failed to load notifications");
@@ -47,7 +49,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   const res = await fetch(`${url}/api/notifications/${id}/read`, {
     method: "POST",
     credentials: "include",
-    headers,
+    headers: headers(),
   });
   if (!res.ok) {
     throw new Error("Failed to mark notification read");
@@ -58,7 +60,7 @@ export async function markAllNotificationsRead(): Promise<void> {
   const res = await fetch(`${url}/api/notifications/read-all`, {
     method: "POST",
     credentials: "include",
-    headers,
+    headers: headers(),
   });
   if (!res.ok) {
     throw new Error("Failed to mark notifications read");
@@ -68,7 +70,7 @@ export async function markAllNotificationsRead(): Promise<void> {
 export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   const res = await fetch(`${url}/api/notifications/prefs`, {
     credentials: "include",
-    headers,
+    headers: headers(),
   });
   if (!res.ok) {
     throw new Error("Failed to load notification preferences");
@@ -82,7 +84,7 @@ export async function saveNotificationPrefs(
   const res = await fetch(`${url}/api/notifications/prefs`, {
     method: "PUT",
     credentials: "include",
-    headers,
+    headers: headers(),
     body: JSON.stringify(prefs),
   });
   if (!res.ok) {

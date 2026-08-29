@@ -90,12 +90,29 @@ func (r *SessionRepository) IncrementErrorCount(ctx context.Context, sessionID s
 	return nil
 }
 
+func (r *SessionRepository) IncrementEventCount(ctx context.Context, sessionID string) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE sessions SET event_count = event_count + 1 WHERE session_id = $1`, sessionID)
+	if err != nil {
+		return fmt.Errorf("increment event count: %w", err)
+	}
+	return nil
+}
+
+func (r *SessionRepository) IncrementPageviewCount(ctx context.Context, sessionID string) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE sessions SET pageview_count = pageview_count + 1 WHERE session_id = $1`, sessionID)
+	if err != nil {
+		return fmt.Errorf("increment pageview count: %w", err)
+	}
+	return nil
+}
+
 func (r *SessionRepository) GetSessions(ctx context.Context, projectID string, start, end time.Time) ([]*models.Session, error) {
 	query := `
         SELECT session_id, project_id, user_id, start_time, end_time, duration_ms, error_count, event_count, pageview_count, created_at, updated_at
         FROM sessions
         WHERE project_id = $1 AND start_time >= $2 AND start_time <= $3
         ORDER BY start_time DESC
+        LIMIT 500
     `
 	rows, err := r.db.QueryContext(ctx, query, projectID, start, end)
 	if err != nil {

@@ -36,7 +36,7 @@ export function ProviderLogo({ provider }: { provider: string }) {
   }
 
   return (
-    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/10 dark:bg-zinc-100">
+    <span className="provider-logo">
       <img src={src} alt="" className="h-4 w-4 object-contain" />
     </span>
   );

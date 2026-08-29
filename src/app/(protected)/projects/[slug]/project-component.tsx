@@ -137,7 +137,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
       case "settings":
         return <SettingsTab project={project} setActiveTab={setActiveTab} />;
       case "connect-platform":
-        return <ConnectPlatformPage />;
+        return <ConnectPlatformPage project={project} />;
       default:
         return <OverviewTab {...{ project, setActiveTab }} />;
     }

@@ -22,13 +22,15 @@ func TestRequireCSRFRejectsCookieMutationWithoutHeader(t *testing.T) {
 	}
 }
 
-func TestRequireCSRFAcceptsSameSiteHeader(t *testing.T) {
+func TestRequireCSRFAcceptsMatchingCookieAndHeader(t *testing.T) {
 	handler := RequireCSRF(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
+	token := strings.Repeat("a", 32)
 	req := httptest.NewRequest(http.MethodPost, "/api/projects", nil)
 	req.AddCookie(&http.Cookie{Name: "auth_token", Value: "token"})
-	req.Header.Set("X-CSRF-Token", csrfHeaderValue)
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: token})
+	req.Header.Set("X-CSRF-Token", token)
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
 	res := httptest.NewRecorder()
 
@@ -36,6 +38,24 @@ func TestRequireCSRFAcceptsSameSiteHeader(t *testing.T) {
 
 	if res.Code != http.StatusNoContent {
 		t.Fatalf("expected 204, got %d", res.Code)
+	}
+}
+
+func TestRequireCSRFRejectsMismatchedHeader(t *testing.T) {
+	handler := RequireCSRF(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	req := httptest.NewRequest(http.MethodPost, "/api/projects", nil)
+	req.AddCookie(&http.Cookie{Name: "auth_token", Value: "token"})
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: strings.Repeat("a", 32)})
+	req.Header.Set("X-CSRF-Token", strings.Repeat("b", 32))
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	res := httptest.NewRecorder()
+
+	handler.ServeHTTP(res, req)
+
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", res.Code)
 	}
 }
 

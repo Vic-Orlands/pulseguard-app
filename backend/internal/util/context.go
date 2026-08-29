@@ -9,9 +9,12 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-// GetUserIDFromContext retrieves the user_id from the context
+type contextKey string
+
+const UserIDContextKey contextKey = "user_id"
+
 func GetUserIDFromContext(ctx context.Context, metrics *otel.Metrics) (string, bool) {
-	userID, ok := ctx.Value("user_id").(string)
+	userID, ok := ctx.Value(UserIDContextKey).(string)
 	if !ok && metrics != nil {
 		metrics.AppErrorsTotal.Add(ctx, 1, metric.WithAttributes(attribute.String("error_type", "missing_user_id")))
 	}

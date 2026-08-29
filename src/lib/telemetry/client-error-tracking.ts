@@ -1,3 +1,4 @@
+import { csrfHeaders, getCsrfToken } from "@/lib/security/csrf";
 import { validate as validateUUID } from "uuid";
 import { getTraceContext, isDuplicate } from "./telemetry-utils";
 import { getActiveTraceIds, reportLog } from "./ingest-client";
@@ -20,13 +21,13 @@ export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
     localStorage.setItem("pulseguard_session_id", sessionId);
   }
 
-  if (config.projectId && validateUUID(config.projectId)) {
+  if (config.projectId && validateUUID(config.projectId) && getCsrfToken()) {
     fetch("/api/telemetry/session/start", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-project-id": config.projectId ?? "",
-        "X-CSRF-Token": "pulseguard-web",
+        ...csrfHeaders(),
       },
       body: JSON.stringify({
         sessionId,
@@ -41,13 +42,13 @@ export function initClientErrorTracking(userConfig: ErrorTrackingConfig): void {
 }
 
 export function endSession(): void {
-  if (sessionId) {
+  if (sessionId && getCsrfToken()) {
     fetch("/api/telemetry/session/end", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-project-id": config.projectId ?? "",
-        "X-CSRF-Token": "pulseguard-web",
+        ...csrfHeaders(),
       },
       body: JSON.stringify({
         sessionId,
@@ -146,12 +147,14 @@ export function setupClientErrorTracking(
       spanId: active.spanId,
     });
 
+    if (!getCsrfToken()) return Promise.resolve();
+
     return fetch("/api/telemetry/error", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-project-id": projectId || "",
-        "X-CSRF-Token": "pulseguard-web",
+        ...csrfHeaders(),
       },
       body: JSON.stringify({
         ...rest,
@@ -220,12 +223,13 @@ export function setupClientErrorTracking(
         userAgent: navigator.userAgent,
       }),
     reportCustomEvent: (eventName, eventData) => {
+      if (!getCsrfToken()) return;
       fetch("/api/telemetry/event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-project-id": projectId,
-          "X-CSRF-Token": "pulseguard-web",
+          ...csrfHeaders(),
         },
         body: JSON.stringify({
           eventName,

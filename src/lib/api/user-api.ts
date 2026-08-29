@@ -1,15 +1,13 @@
 import type { UpdateUserData } from "@/types/user";
 import type { LoginFormData, SignupFormData } from "@/types/form";
+import {
+  clearCsrfToken,
+  jsonAuthConfig,
+  setCsrfToken,
+} from "@/lib/security/csrf";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
-const headerConfig = {
-  credentials: "include" as const,
-  headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
-};
-
-// SETTINGS - USER API FUNCTIONS
-// Register user
 export const registerUser = async (data: SignupFormData) => {
   try {
     const response = await fetch(`${url}/api/users/register`, {
@@ -29,12 +27,11 @@ export const registerUser = async (data: SignupFormData) => {
   }
 };
 
-// Login user
 export const loginUser = async (data: LoginFormData) => {
   try {
     const response = await fetch(`${url}/api/users/login`, {
       method: "POST",
-      ...headerConfig,
+      ...jsonAuthConfig(),
       body: JSON.stringify(data),
     });
 
@@ -43,18 +40,19 @@ export const loginUser = async (data: LoginFormData) => {
       return error;
     }
 
-    return response.json();
+    const result = await response.json();
+    setCsrfToken(result?.csrf_token);
+    return result;
   } catch (error) {
     throw error;
   }
 };
 
-// forgot password
 export const sendResetPasswordEmail = async (email: string) => {
   try {
     const response = await fetch(`${url}/api/forgot-password`, {
       method: "POST",
-      ...headerConfig,
+      ...jsonAuthConfig(),
       body: JSON.stringify({ email }),
     });
 
@@ -69,12 +67,11 @@ export const sendResetPasswordEmail = async (email: string) => {
   }
 };
 
-// reset password
 export const resetPassword = async (token: string, newPassword: string) => {
   try {
     const response = await fetch(`${url}/api/reset-password`, {
       method: "POST",
-      ...headerConfig,
+      ...jsonAuthConfig(),
       body: JSON.stringify({
         token,
         new_password: newPassword,
@@ -92,73 +89,54 @@ export const resetPassword = async (token: string, newPassword: string) => {
   }
 };
 
-// Optional: Add token validation function
-export const validateResetToken = async (token: string) => {
+export const logoutUser = async () => {
   try {
-    const response = await fetch(`${url}/api/validate-reset-token`, {
+    const res = await fetch(`${url}/api/users/logout`, {
       method: "POST",
-      ...headerConfig,
-      body: JSON.stringify({ token }),
+      ...jsonAuthConfig(),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      return { valid: false, error: error.message };
+    if (!res.ok && res.status !== 204) {
+      throw new Error(`Error logging out: ${res.statusText}`);
     }
 
-    const result = await response.json();
-    return { valid: true, ...result };
-  } catch (error) {
-    return {
-      valid: false,
-      error:
-        error instanceof Error ? error.message : "Failed to validate token",
-    };
+    const contentType = res.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      return res.json();
+    }
+
+    return true;
+  } finally {
+    clearCsrfToken();
   }
 };
 
-// logs out user
-export const logoutUser = async () => {
-  const res = await fetch(`${url}/api/users/logout`, {
-    method: "POST",
-    ...headerConfig,
-  });
-
-  if (!res.ok && res.status !== 204) {
-    throw new Error(`Error logging out: ${res.statusText}`);
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    return res.json();
-  }
-
-  return true;
-};
-
-// get current user
 export const getCurrentUser = async () => {
   try {
     const res = await fetch(`${url}/api/users/me`, {
-      ...headerConfig,
+      ...jsonAuthConfig(),
     });
 
     if (res.status === 401) return null;
     if (!res.ok) throw new Error("Failed to fetch user");
 
-    return await res.json();
+    const data = await res.json();
+    if (data && typeof data === "object") {
+      setCsrfToken(data.csrf_token);
+      delete data.csrf_token;
+    }
+    return data;
   } catch (error) {
     console.error("Error fetching current user:", error);
     return null;
   }
 };
 
-// update user
 export const updateUser = async (userData: UpdateUserData) => {
   try {
     const res = await fetch(`${url}/api/users/me`, {
       method: "PUT",
-      ...headerConfig,
+      ...jsonAuthConfig(),
       body: JSON.stringify(userData),
     });
 
@@ -171,12 +149,11 @@ export const updateUser = async (userData: UpdateUserData) => {
   }
 };
 
-// delete user
 export const deleteUser = async () => {
   try {
     const res = await fetch(`${url}/api/users/me`, {
       method: "DELETE",
-      ...headerConfig,
+      ...jsonAuthConfig(),
     });
 
     if (!res.ok) throw new Error(`Error: ${res.statusText}`);
