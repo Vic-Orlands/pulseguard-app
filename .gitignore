@@ -45,3 +45,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 dist_linux/mint
+
+# demo video source frames (encoded mp4s are committed)
+/docs/videos/frames/
+/docs/videos/*.txt

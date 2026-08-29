@@ -4,6 +4,14 @@
 
 PulseGuard is a full-stack observability and telemetry platform for modern cloud applications. It integrates structured logging, distributed tracing, and metrics collection into a unified observability pipeline using OpenTelemetry and Grafana's ecosystem (Loki, Tempo, Prometheus, and Grafana).
 
+## Product walkthrough
+
+Short summary of the current dashboard (overview, metrics, errors, integrations, project switcher, and settings):
+
+![Dashboard summary](docs/videos/dashboard-summary.mp4)
+
+Full tab-by-tab test run: [dashboard-walkthrough.mp4](docs/videos/dashboard-walkthrough.mp4)
+
 ---
 
 ## Architecture Diagram
