@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -34,6 +35,11 @@ func CookieTokenParser(tokenAuth *jwtauth.JWTAuth) func(http.Handler) http.Handl
 func Auth(logger *logger.Logger, tracer trace.Tracer, metrics *otel.Metrics, tokenService *auth.TokenService, userService *service.UserService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodOptions {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			ctx := r.Context()
 			_, span := tracer.Start(ctx, "authMiddleware")
 			defer span.End()
@@ -41,7 +47,10 @@ func Auth(logger *logger.Logger, tracer trace.Tracer, metrics *otel.Metrics, tok
 			// Verify JWT token
 			token, claims, err := jwtauth.FromContext(ctx)
 			if err != nil || token == nil {
-				logger.Error(ctx, "JWT verification failed", err)
+				// Missing cookies are expected for anonymous telemetry and public pages.
+				if err != nil && !errors.Is(err, jwtauth.ErrNoTokenFound) {
+					logger.Error(ctx, "JWT verification failed", err)
+				}
 				span.SetAttributes(attribute.String("error", "jwt_verification_failed"))
 				util.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 				return

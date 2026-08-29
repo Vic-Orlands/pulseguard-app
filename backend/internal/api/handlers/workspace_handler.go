@@ -41,8 +41,19 @@ type createWorkspaceRequest struct {
 }
 
 type inviteMemberRequest struct {
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	Email        string   `json:"email"`
+	Role         string   `json:"role"`
+	AllProjects  *bool    `json:"allProjects"`
+	ProjectIDs   []string `json:"projectIds"`
+}
+
+type updateWorkspaceRequest struct {
+	Name string `json:"name"`
+}
+
+type updateMemberAccessRequest struct {
+	AllProjects *bool    `json:"allProjects"`
+	ProjectIDs  []string `json:"projectIds"`
 }
 
 type acceptInvitationRequest struct {
@@ -146,7 +157,11 @@ func (h *WorkspaceHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	}
 	userID, _ := uuid.Parse(userIDStr)
 
-	invite, err := h.wsService.InviteMember(ctx, wsID, req.Email, req.Role, userID)
+	allProjects := true
+	if req.AllProjects != nil {
+		allProjects = *req.AllProjects
+	}
+	invite, err := h.wsService.InviteMember(ctx, wsID, req.Email, req.Role, userID, allProjects, req.ProjectIDs)
 	if err != nil {
 		h.logger.Error(ctx, "Failed to create workspace invitation", err)
 		util.WriteError(w, http.StatusBadRequest, "Unable to create invitation")
@@ -155,13 +170,15 @@ func (h *WorkspaceHandler) Invite(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, "Invitation created", "email", req.Email, "workspace_id", wsIDStr)
 	util.WriteJSON(w, http.StatusCreated, map[string]interface{}{
-		"id":          invite.ID,
-		"workspaceId": invite.WorkspaceID,
-		"email":       invite.Email,
-		"role":        invite.Role,
-		"token":       invite.Token,
-		"expiresAt":   invite.ExpiresAt,
-		"status":      invite.Status,
+		"id":           invite.ID,
+		"workspaceId":  invite.WorkspaceID,
+		"email":        invite.Email,
+		"role":         invite.Role,
+		"token":        invite.Token,
+		"expiresAt":    invite.ExpiresAt,
+		"status":       invite.Status,
+		"allProjects":  invite.AllProjects,
+		"projectIds":   invite.ProjectIDs,
 	})
 }
 
@@ -512,4 +529,66 @@ func (h *WorkspaceHandler) ListTeamMembers(w http.ResponseWriter, r *http.Reques
 	}
 
 	util.WriteJSON(w, http.StatusOK, userIDs)
+}
+
+func (h *WorkspaceHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+	var req updateWorkspaceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	ws, err := h.wsService.UpdateWorkspaceName(ctx, wsID, req.Name)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	util.WriteJSON(w, http.StatusOK, ws)
+}
+
+func (h *WorkspaceHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+	if err := h.wsService.DeleteWorkspace(ctx, wsID); err != nil {
+		util.WriteError(w, http.StatusInternalServerError, "Failed to delete workspace")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *WorkspaceHandler) UpdateMemberAccess(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	wsID, err := uuid.Parse(chi.URLParam(r, "workspaceID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid workspace ID")
+		return
+	}
+	userID, err := uuid.Parse(chi.URLParam(r, "userID"))
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+	var req updateMemberAccessRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	allProjects := true
+	if req.AllProjects != nil {
+		allProjects = *req.AllProjects
+	}
+	if err := h.wsService.UpdateMemberAccess(ctx, wsID, userID, allProjects, req.ProjectIDs); err != nil {
+		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

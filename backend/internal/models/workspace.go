@@ -24,13 +24,15 @@ type Team struct {
 }
 
 type WorkspaceMember struct {
-	ID          uuid.UUID `json:"id"`
-	WorkspaceID uuid.UUID `json:"workspaceId"`
-	UserID      uuid.UUID `json:"userId"`
-	Role        string    `json:"role"`   // 'owner', 'admin', 'member'
-	Status      string    `json:"status"` // 'active', 'invited', 'blocked'
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID           uuid.UUID `json:"id"`
+	WorkspaceID  uuid.UUID `json:"workspaceId"`
+	UserID       uuid.UUID `json:"userId"`
+	Role         string    `json:"role"`   // 'owner', 'admin', 'member'
+	Status       string    `json:"status"` // 'active', 'invited', 'blocked'
+	AllProjects  bool      `json:"allProjects"`
+	ProjectIDs   []string  `json:"projectIds"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 
 	// Joined fields for listing
 	UserName   string `json:"userName,omitempty"`
@@ -46,13 +48,15 @@ type TeamMember struct {
 }
 
 type WorkspaceInvitation struct {
-	ID          uuid.UUID `json:"id"`
-	WorkspaceID uuid.UUID `json:"workspaceId"`
-	Email       string    `json:"email"`
-	Role        string    `json:"role"`
-	Token       string    `json:"-"`
-	InvitedBy   uuid.UUID `json:"invitedBy"`
-	ExpiresAt   time.Time `json:"expiresAt"`
-	CreatedAt   time.Time `json:"createdAt"`
-	Status      string    `json:"status"` // 'pending', 'accepted', 'revoked'
+	ID           uuid.UUID `json:"id"`
+	WorkspaceID  uuid.UUID `json:"workspaceId"`
+	Email        string    `json:"email"`
+	Role         string    `json:"role"`
+	Token        string    `json:"-"`
+	InvitedBy    uuid.UUID `json:"invitedBy"`
+	ExpiresAt    time.Time `json:"expiresAt"`
+	CreatedAt    time.Time `json:"createdAt"`
+	Status       string    `json:"status"` // 'pending', 'accepted', 'revoked'
+	AllProjects  bool      `json:"allProjects"`
+	ProjectIDs   []string  `json:"projectIds"`
 }

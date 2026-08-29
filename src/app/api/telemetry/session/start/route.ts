@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
-import { cookies } from "next/headers";
+import { getAuthForwardHeaders } from "@/lib/telemetry/forward-auth";
 
 const tracer = trace.getTracer("session-api");
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -9,12 +9,11 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") as string;
   const logger = createLogger("session-api", projectId);
+  const authHeaders = await getAuthForwardHeaders();
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
+  if (!authHeaders) {
+    return NextResponse.json({ success: true, skipped: true });
+  }
 
   return tracer.startActiveSpan("session-api.start", async (span) => {
     try {
@@ -30,9 +29,8 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Cookie: cookieHeader,
           "x-project-id": projectId,
-          "X-CSRF-Token": "pulseguard-web",
+          ...authHeaders,
         },
         body: JSON.stringify(sessionData),
       });

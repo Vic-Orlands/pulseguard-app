@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type WorkspaceRepository struct {
@@ -307,29 +308,31 @@ func (repo *WorkspaceRepository) AddWorkspaceMember(ctx context.Context, member 
 	member.CreatedAt = now
 	member.UpdatedAt = now
 	query := `
-		INSERT INTO workspace_members (id, workspace_id, user_id, role, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO workspace_members (id, workspace_id, user_id, role, status, all_projects, project_ids, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
-	_, err := repo.db.ExecContext(ctx, query, member.ID, member.WorkspaceID, member.UserID, member.Role, member.Status, member.CreatedAt, member.UpdatedAt)
+	_, err := repo.db.ExecContext(ctx, query, member.ID, member.WorkspaceID, member.UserID, member.Role, member.Status, member.AllProjects, pq.Array(member.ProjectIDs), member.CreatedAt, member.UpdatedAt)
 	return err
 }
 
 func (repo *WorkspaceRepository) GetWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID) (*models.WorkspaceMember, error) {
 	query := `
-		SELECT id, workspace_id, user_id, role, status, created_at, updated_at
+		SELECT id, workspace_id, user_id, role, status, COALESCE(all_projects, true), COALESCE(project_ids, '{}'), created_at, updated_at
 		FROM workspace_members
 		WHERE workspace_id = $1 AND user_id = $2
 	`
 	row := repo.db.QueryRowContext(ctx, query, workspaceID, userID)
 
 	var wm models.WorkspaceMember
-	err := row.Scan(&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.CreatedAt, &wm.UpdatedAt)
+	var projectIDs pq.StringArray
+	err := row.Scan(&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.AllProjects, &projectIDs, &wm.CreatedAt, &wm.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("membership not found")
 		}
 		return nil, err
 	}
+	wm.ProjectIDs = []string(projectIDs)
 	return &wm, nil
 }
 
@@ -380,7 +383,7 @@ func (repo *WorkspaceRepository) RemoveWorkspaceMember(ctx context.Context, work
 
 func (repo *WorkspaceRepository) ListWorkspaceMembers(ctx context.Context, workspaceID uuid.UUID) ([]*models.WorkspaceMember, error) {
 	query := `
-		SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.status, wm.created_at, wm.updated_at,
+		SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.status, COALESCE(wm.all_projects, true), COALESCE(wm.project_ids, '{}'), wm.created_at, wm.updated_at,
 		       u.name as user_name, u.email as user_email, COALESCE(u.image, '') as user_avatar
 		FROM workspace_members wm
 		JOIN users u ON wm.user_id = u.id
@@ -396,13 +399,15 @@ func (repo *WorkspaceRepository) ListWorkspaceMembers(ctx context.Context, works
 	var members []*models.WorkspaceMember
 	for rows.Next() {
 		var wm models.WorkspaceMember
+		var projectIDs pq.StringArray
 		err := rows.Scan(
-			&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.CreatedAt, &wm.UpdatedAt,
+			&wm.ID, &wm.WorkspaceID, &wm.UserID, &wm.Role, &wm.Status, &wm.AllProjects, &projectIDs, &wm.CreatedAt, &wm.UpdatedAt,
 			&wm.UserName, &wm.UserEmail, &wm.UserAvatar,
 		)
 		if err != nil {
 			return nil, err
 		}
+		wm.ProjectIDs = []string(projectIDs)
 		members = append(members, &wm)
 	}
 	return members, nil
@@ -414,28 +419,29 @@ func (repo *WorkspaceRepository) CreateInvitation(ctx context.Context, invite *m
 	now := time.Now()
 	invite.CreatedAt = now
 	query := `
-		INSERT INTO workspace_invitations (id, workspace_id, email, role, token, invited_by, expires_at, created_at, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO workspace_invitations (id, workspace_id, email, role, token, invited_by, expires_at, created_at, status, all_projects, project_ids)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	_, err := repo.db.ExecContext(ctx, query,
 		invite.ID, invite.WorkspaceID, invite.Email, invite.Role, hashInvitationToken(invite.Token),
-		invite.InvitedBy, invite.ExpiresAt, invite.CreatedAt, invite.Status,
+		invite.InvitedBy, invite.ExpiresAt, invite.CreatedAt, invite.Status, invite.AllProjects, pq.Array(invite.ProjectIDs),
 	)
 	return err
 }
 
 func (repo *WorkspaceRepository) GetInvitationByToken(ctx context.Context, token string) (*models.WorkspaceInvitation, error) {
 	query := `
-		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status
+		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status, COALESCE(all_projects, true), COALESCE(project_ids, '{}')
 		FROM workspace_invitations
 		WHERE token = $1 OR token = $2
 	`
 	row := repo.db.QueryRowContext(ctx, query, hashInvitationToken(token), token)
 
 	var invite models.WorkspaceInvitation
+	var projectIDs pq.StringArray
 	err := row.Scan(
 		&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Token,
-		&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status,
+		&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status, &invite.AllProjects, &projectIDs,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -443,6 +449,7 @@ func (repo *WorkspaceRepository) GetInvitationByToken(ctx context.Context, token
 		}
 		return nil, err
 	}
+	invite.ProjectIDs = []string(projectIDs)
 	return &invite, nil
 }
 
@@ -459,7 +466,7 @@ func (repo *WorkspaceRepository) UpdateInvitationStatus(ctx context.Context, id 
 
 func (repo *WorkspaceRepository) ListInvitationsByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*models.WorkspaceInvitation, error) {
 	query := `
-		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status
+		SELECT id, workspace_id, email, role, token, COALESCE(invited_by, '00000000-0000-0000-0000-000000000000'), expires_at, created_at, status, COALESCE(all_projects, true), COALESCE(project_ids, '{}')
 		FROM workspace_invitations
 		WHERE workspace_id = $1 AND status = 'pending'
 		ORDER BY created_at DESC
@@ -473,14 +480,37 @@ func (repo *WorkspaceRepository) ListInvitationsByWorkspace(ctx context.Context,
 	var invitations []*models.WorkspaceInvitation
 	for rows.Next() {
 		var invite models.WorkspaceInvitation
+		var projectIDs pq.StringArray
 		err := rows.Scan(
 			&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Token,
-			&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status,
+			&invite.InvitedBy, &invite.ExpiresAt, &invite.CreatedAt, &invite.Status, &invite.AllProjects, &projectIDs,
 		)
 		if err != nil {
 			return nil, err
 		}
+		invite.ProjectIDs = []string(projectIDs)
 		invitations = append(invitations, &invite)
 	}
 	return invitations, nil
+}
+
+func (repo *WorkspaceRepository) UpdateWorkspace(ctx context.Context, ws *models.Workspace) error {
+	query := `UPDATE workspaces SET name = $1, slug = $2, updated_at = $3 WHERE id = $4`
+	_, err := repo.db.ExecContext(ctx, query, ws.Name, ws.Slug, time.Now(), ws.ID)
+	return err
+}
+
+func (repo *WorkspaceRepository) DeleteWorkspace(ctx context.Context, id uuid.UUID) error {
+	_, err := repo.db.ExecContext(ctx, `DELETE FROM workspaces WHERE id = $1`, id)
+	return err
+}
+
+func (repo *WorkspaceRepository) UpdateMemberAccess(ctx context.Context, workspaceID, userID uuid.UUID, allProjects bool, projectIDs []string) error {
+	query := `
+		UPDATE workspace_members
+		SET all_projects = $1, project_ids = $2, updated_at = $3
+		WHERE workspace_id = $4 AND user_id = $5
+	`
+	_, err := repo.db.ExecContext(ctx, query, allProjects, pq.Array(projectIDs), time.Now(), workspaceID, userID)
+	return err
 }

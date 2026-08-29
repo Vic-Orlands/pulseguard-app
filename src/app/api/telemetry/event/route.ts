@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { createLogger } from "@/lib/telemetry/logger";
-import { cookies } from "next/headers";
+import { getAuthForwardHeaders } from "@/lib/telemetry/forward-auth";
 
 const tracer = trace.getTracer("error-api");
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -9,26 +9,19 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") as string;
   const logger = createLogger("error-api", projectId);
-
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
+  const authHeaders = await getAuthForwardHeaders();
 
   return tracer.startActiveSpan("event-api.process", async (span) => {
     try {
       const eventData = await request.json();
 
-      // create session if sessionID is not provided
-      if (eventData.sessionId) {
+      if (eventData.sessionId && authHeaders) {
         await fetch(`${url}/api/sessions/start`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Cookie: cookieHeader,
             "x-project-id": projectId,
-            "X-CSRF-Token": "pulseguard-web",
+            ...authHeaders,
           },
           body: JSON.stringify({
             sessionId: eventData.sessionId,

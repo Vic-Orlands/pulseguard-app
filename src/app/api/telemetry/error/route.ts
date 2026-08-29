@@ -4,7 +4,7 @@ import {
   createLogger,
   redactSensitiveText,
 } from "@/lib/telemetry/logger";
-import { cookies } from "next/headers";
+import { getAuthForwardHeaders } from "@/lib/telemetry/forward-auth";
 
 const tracer = trace.getTracer("error-api");
 const meter = metrics.getMeter("error-api");
@@ -20,12 +20,11 @@ const errorCounter: Counter = meter.createCounter("app.errors.total", {
 export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") as string;
   const logger = createLogger("error-api", projectId);
+  const authHeaders = await getAuthForwardHeaders();
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
+  if (!authHeaders) {
+    return NextResponse.json({ success: true, skipped: true });
+  }
 
   return tracer.startActiveSpan("error-api.process", async (span) => {
     try {
@@ -82,10 +81,10 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Cookie: cookieHeader,
+          Cookie: authHeaders.Cookie,
           "x-environment": enhancedErrorData.environment,
           "x-project-id": projectId,
-          "X-CSRF-Token": "pulseguard-web",
+          "X-CSRF-Token": authHeaders["X-CSRF-Token"],
         },
         body: JSON.stringify(enhancedErrorData),
       });

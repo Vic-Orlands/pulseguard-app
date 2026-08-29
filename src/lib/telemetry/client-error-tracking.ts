@@ -1,5 +1,6 @@
 import { validate as validateUUID } from "uuid";
 import { getTraceContext, isDuplicate } from "./telemetry-utils";
+import { getActiveTraceIds, reportLog } from "./ingest-client";
 
 export type ErrorTrackingConfig = {
   userId?: string;
@@ -134,6 +135,16 @@ export function setupClientErrorTracking(
     const { error, ...rest } = errorEvent;
 
     if (error && isDuplicate(error.message)) return;
+
+    const active = getActiveTraceIds();
+    reportLog({
+      message: errorEvent.message,
+      level: "error",
+      route: errorEvent.url,
+      source: errorEvent.source || "error",
+      traceId: active.traceId,
+      spanId: active.spanId,
+    });
 
     return fetch("/api/telemetry/error", {
       method: "POST",

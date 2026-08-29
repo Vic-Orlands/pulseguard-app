@@ -118,6 +118,9 @@ func NewRouter(
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireWorkspaceRole(wsSvc, "admin", logger, tracer, metrics))
 				r.Post("/invite", workspaceHandler.Invite)
+				r.Put("/", workspaceHandler.Update)
+				r.Delete("/", workspaceHandler.Delete)
+				r.Put("/members/{userID}/access", workspaceHandler.UpdateMemberAccess)
 				r.Post("/teams", workspaceHandler.CreateTeam)
 				r.Post("/teams/{teamID}/members/{userID}", workspaceHandler.AddTeamMember)
 				r.Delete("/teams/{teamID}/members/{userID}", workspaceHandler.RemoveTeamMember)
@@ -134,9 +137,9 @@ func NewRouter(
 		r.Put("/api/errors/status", errorHandler.UpdateErrorStatus)
 
 		// alert routes
-		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Post("/api/alerts", alertHandler.Create)
-		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Put("/api/alerts/{alert_id}", alertHandler.Update)
-		r.With(middleware.RequireProjectRole(projectSvc, "admin", logger, tracer, metrics)).Delete("/api/alerts/{alert_id}", alertHandler.Delete)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Post("/api/alerts", alertHandler.Create)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Put("/api/alerts/{alert_id}", alertHandler.Update)
+		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Delete("/api/alerts/{alert_id}", alertHandler.Delete)
 		r.With(middleware.RequireProjectRole(projectSvc, "member", logger, tracer, metrics)).Get("/api/alerts/{project_id}", alertHandler.ListByProject)
 
 		// notifications
@@ -159,7 +162,9 @@ func NewRouter(
 		r.With(projectMember).Post("/api/sessions/end", sessionHandler.EndSession)
 		r.With(projectMember).Get("/api/sessions", sessionHandler.GetSessions)
 		r.With(projectMember).Get("/api/metrics", metricsHandler.GetMetrics)
+		r.With(projectMember).Post("/api/logs", logsHandler.Ingest)
 		r.With(projectMember).Get("/api/logs", logsHandler.GetLogsByProjectID)
+		r.With(projectMember).Post("/api/traces", tracesHandler.Ingest)
 		r.With(projectMember).Get("/api/traces", tracesHandler.ListTracesByProject)
 		r.With(projectMember).Get("/api/traces/{trace_id}", tracesHandler.GetTraceByID)
 		r.With(projectMember).Get("/api/dashboard", dashboardHandler.GetDashboardData)

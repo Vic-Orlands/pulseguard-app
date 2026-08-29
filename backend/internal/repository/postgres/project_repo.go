@@ -169,6 +169,10 @@ func (repo *ProjectRepository) HasProjectRole(ctx context.Context, projectID, us
 				WHEN 'admin' THEN 2
 				ELSE 1
 			  END
+			  AND (
+				COALESCE(wm.all_projects, true) = true
+				OR p.id = ANY (COALESCE(wm.project_ids, '{}'))
+			  )
 		)
 	`
 	var allowed bool

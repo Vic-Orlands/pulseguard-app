@@ -26,8 +26,11 @@ type Span struct {
 
 type TraceSummary struct {
 	TraceID     string    `json:"traceId"`
+	ProjectID   string    `json:"projectId,omitempty"`
 	Name        string    `json:"name"`
 	ServiceName string    `json:"serviceName"`
 	StartTime   time.Time `json:"startTime"`
 	DurationMs  float64   `json:"duration"`
+	HTTPStatus  int       `json:"httpStatus,omitempty"`
+	SpanCount   int       `json:"spanCount,omitempty"`
 }

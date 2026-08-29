@@ -94,7 +94,7 @@ func (s *WorkspaceService) GetWorkspaceMember(ctx context.Context, wsID, userID 
 	return s.workspaceRepo.GetWorkspaceMember(ctx, wsID, userID)
 }
 
-func (s *WorkspaceService) InviteMember(ctx context.Context, wsID uuid.UUID, email string, role string, invitedBy uuid.UUID) (*models.WorkspaceInvitation, error) {
+func (s *WorkspaceService) InviteMember(ctx context.Context, wsID uuid.UUID, email string, role string, invitedBy uuid.UUID, allProjects bool, projectIDs []string) (*models.WorkspaceInvitation, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" {
 		return nil, errors.New("email cannot be empty")
@@ -103,6 +103,9 @@ func (s *WorkspaceService) InviteMember(ctx context.Context, wsID uuid.UUID, ema
 	// Validate role
 	if role != "admin" && role != "member" {
 		return nil, errors.New("invalid invitation role")
+	}
+	if !allProjects && len(projectIDs) == 0 {
+		allProjects = true
 	}
 
 	// Check if already a member of workspace
@@ -122,8 +125,10 @@ func (s *WorkspaceService) InviteMember(ctx context.Context, wsID uuid.UUID, ema
 		Role:        role,
 		Token:       token,
 		InvitedBy:   invitedBy,
-		ExpiresAt:   time.Now().Add(7 * 24 * time.Hour), // 7 days expiration
-		Status:      "pending",
+		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour), // 7 days expiration
+		Status:       "pending",
+		AllProjects:  allProjects,
+		ProjectIDs:   projectIDs,
 	}
 
 	err = s.workspaceRepo.CreateInvitation(ctx, invite)
@@ -167,6 +172,8 @@ func (s *WorkspaceService) AcceptInvitation(ctx context.Context, token string, u
 		UserID:      userID,
 		Role:        invite.Role,
 		Status:      "active",
+		AllProjects: invite.AllProjects,
+		ProjectIDs:  invite.ProjectIDs,
 	}
 
 	err = s.workspaceRepo.AddWorkspaceMember(ctx, member)
@@ -249,6 +256,40 @@ func (s *WorkspaceService) RemoveMember(ctx context.Context, wsID, userID uuid.U
 		return errors.New("cannot remove the owner of the workspace")
 	}
 	return s.workspaceRepo.RemoveWorkspaceMember(ctx, wsID, userID)
+}
+
+func (s *WorkspaceService) UpdateWorkspaceName(ctx context.Context, wsID uuid.UUID, name string) (*models.Workspace, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, errors.New("workspace name cannot be empty")
+	}
+	ws, err := s.workspaceRepo.GetByID(ctx, wsID)
+	if err != nil {
+		return nil, err
+	}
+	ws.Name = name
+	if err := s.workspaceRepo.UpdateWorkspace(ctx, ws); err != nil {
+		return nil, err
+	}
+	return ws, nil
+}
+
+func (s *WorkspaceService) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
+	return s.workspaceRepo.DeleteWorkspace(ctx, wsID)
+}
+
+func (s *WorkspaceService) UpdateMemberAccess(ctx context.Context, wsID, userID uuid.UUID, allProjects bool, projectIDs []string) error {
+	member, err := s.workspaceRepo.GetWorkspaceMember(ctx, wsID, userID)
+	if err != nil {
+		return err
+	}
+	if member.Role == "owner" {
+		return errors.New("workspace owner already has access to every project")
+	}
+	if !allProjects && len(projectIDs) == 0 {
+		allProjects = true
+	}
+	return s.workspaceRepo.UpdateMemberAccess(ctx, wsID, userID, allProjects, projectIDs)
 }
 
 func (s *WorkspaceService) CreateTeam(ctx context.Context, wsID uuid.UUID, name string) (*models.Team, error) {

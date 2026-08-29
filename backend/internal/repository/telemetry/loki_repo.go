@@ -98,11 +98,58 @@ func (r *LokiRepository) QueryLogs(ctx context.Context, projectID string, start,
 			}
 
 			if currentProjectID == projectID {
+				level := "info"
+				serviceName := stream.Stream["service_name"]
+				message := rawMessage
+				traceID := ""
+				spanID := ""
+				route := ""
+				if v, ok := parsed["msg"].(string); ok && v != "" {
+					message = v
+				} else if v, ok := parsed["message"].(string); ok && v != "" {
+					message = v
+				} else if body, ok := parsed["body"].(string); ok && body != "" {
+					message = body
+				}
+				switch v := parsed["level"].(type) {
+				case string:
+					level = v
+				case float64:
+					switch v {
+					case 50:
+						level = "error"
+					case 40:
+						level = "warn"
+					default:
+						level = "info"
+					}
+				}
+				if v, ok := parsed["traceId"].(string); ok {
+					traceID = v
+				}
+				if v, ok := parsed["spanId"].(string); ok {
+					spanID = v
+				}
+				if attr, ok := parsed["attributes"].(map[string]interface{}); ok {
+					if v, ok := attr["http.route"].(string); ok {
+						route = v
+					}
+				}
+				if serviceName == "" {
+					if v, ok := parsed["service_name"].(string); ok {
+						serviceName = v
+					}
+				}
 				logs = append(logs, &models.Log{
-					ID:        value[0],
-					ProjectID: projectID,
-					Message:   rawMessage,
-					Timestamp: timestamp,
+					ID:          value[0],
+					ProjectID:   projectID,
+					Message:     message,
+					Timestamp:   timestamp,
+					Level:       level,
+					ServiceName: serviceName,
+					TraceID:     traceID,
+					SpanID:      spanID,
+					Route:       route,
 				})
 			}
 		}
