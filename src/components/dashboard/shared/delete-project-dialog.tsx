@@ -115,7 +115,7 @@ export const DeleteProjectDialog = ({
                           <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-destructive" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-pg-text">
+                          <h3 className="text-sm font-semibold text-pg-text">
                             Delete Project
                           </h3>
                           <p className="text-xs text-pg-muted mt-0.5">
@@ -224,7 +224,7 @@ export const DeleteProjectDialog = ({
                             </svg>
                           </div>
 
-                          <h3 className="text-sm font-bold text-pg-text mb-1 animate-pulse">
+                          <h3 className="text-sm font-semibold text-pg-text mb-1 animate-pulse">
                             Deleting Project...
                           </h3>
 
@@ -272,7 +272,7 @@ export const DeleteProjectDialog = ({
                       <HugeiconsIcon icon={CheckmarkCircle01Icon} className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                     </div>
 
-                    <h3 className="text-sm font-bold text-pg-text mb-1">
+                    <h3 className="text-sm font-semibold text-pg-text mb-1">
                       Project Deleted
                     </h3>
 
@@ -298,7 +298,7 @@ export const DeleteProjectDialog = ({
                           <HugeiconsIcon icon={Alert01Icon} className="w-4 h-4 text-destructive" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-pg-text">
+                          <h3 className="text-sm font-semibold text-pg-text">
                             Deletion Failed
                           </h3>
                           <p className="text-xs text-pg-muted mt-0.5">

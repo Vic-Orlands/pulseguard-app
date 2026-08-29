@@ -40,29 +40,21 @@ import {
 import { toast } from "sonner";
 import { fetchTraces } from "@/lib/api/otlp-api";
 import { format, subHours, subDays } from "date-fns";
-import type { Project, TimeProp } from "@/types/dashboard";
+import type { Project, TimeProp, TraceSummary } from "@/types/dashboard";
 import CustomErrorMessage from "../../shared/error-message";
 import TraceToLogsComponent from "./trace-to-logs";
-
-interface TracesSummary {
-  traceId: string;
-  startTime: string;
-  serviceName: string;
-  name: string;
-  duration: number;
-}
 
 const TracesTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
 
   const [copied, setCopied] = useState<string>("");
   const [error, setError] = useState<Error | null>(null);
-  const [traces, setTraces] = useState<TracesSummary[]>([]);
+  const [traces, setTraces] = useState<TraceSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [timeRange, setTimeRange] = useState<TimeProp>("24h");
-  const [selectedTrace, setSelectedTrace] = useState<TracesSummary | null>(
+  const [selectedTrace, setSelectedTrace] = useState<TraceSummary | null>(
     null
   );
 
@@ -100,12 +92,12 @@ const TracesTab = ({ project }: { project: Project }) => {
     };
 
     fetchData();
-  }, [timeRange]);
+  }, [project.id, timeRange, start, end]);
 
   // Filter and search traces
   const filteredTraces = useMemo(() => {
     return Array.isArray(traces)
-      ? traces.filter((trace: TracesSummary) => {
+      ? traces.filter((trace) => {
           const matchesSearch =
             trace.serviceName
               ?.toLowerCase()
@@ -199,7 +191,7 @@ const TracesTab = ({ project }: { project: Project }) => {
 
             <div className="flex items-center justify-between py-1 px-2.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-600 text-xs font-semibold h-8 w-40">
               <span>Total Traces</span>
-              <span className="font-bold">
+              <span className="font-semibold">
                 {Array.isArray(traces) && traces.length}
               </span>
             </div>
@@ -225,15 +217,15 @@ const TracesTab = ({ project }: { project: Project }) => {
                     <TableCell colSpan={6} className="text-center py-16">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                       <p className="text-muted-foreground text-xs font-semibold">
-                        No traces match your filters
+                        No traces from this project
                       </p>
                       <p className="text-muted-foreground/60 text-[10px] mt-0.5">
-                        Try adjusting your search criteria
+                        Try a wider time range, or confirm the connected app sends traces with this project ID.
                       </p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedTraces.map((trace: TracesSummary) => (
+                  paginatedTraces.map((trace) => (
                     <TableRow
                       key={trace.traceId}
                       className="cursor-pointer"
@@ -254,7 +246,7 @@ const TracesTab = ({ project }: { project: Project }) => {
                         </div>
                       </TableCell>
                       <TableCell className="text-foreground text-xs py-2 px-4 font-mono">
-                        {trace.duration.toFixed(2)} ms
+                        {(trace.duration ?? 0).toFixed(2)} ms
                       </TableCell>
                       <TableCell onClick={(event) => event.stopPropagation()}>
                         <DropdownMenu>

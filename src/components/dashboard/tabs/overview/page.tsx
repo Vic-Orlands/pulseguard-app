@@ -90,7 +90,7 @@ export default function OverviewTab({
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Total Errors
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {data.total_errors}
                 </p>
               </div>
@@ -106,7 +106,7 @@ export default function OverviewTab({
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Error Occurrence
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {getUptime(data.errors)}
                 </p>
               </div>
@@ -122,7 +122,7 @@ export default function OverviewTab({
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Total Sessions (24h)
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {data.sessions.length}
                 </p>
               </div>
@@ -138,7 +138,7 @@ export default function OverviewTab({
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Error Rate
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {data.error_rate.toFixed(2)}%
                 </p>
               </div>

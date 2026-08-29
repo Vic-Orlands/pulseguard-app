@@ -1,4 +1,4 @@
-import { DashboardData, Log, Trace } from "@/types/dashboard";
+import { DashboardData, Log, Trace, TraceSummary } from "@/types/dashboard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -77,7 +77,7 @@ export async function fetchLogs(
 export async function fetchTraces(
   projectId: string,
   timeRange?: TimeRange
-): Promise<Trace> {
+): Promise<TraceSummary[]> {
   const url = new URL(`${API_URL}/api/traces`);
   url.searchParams.set("project_id", projectId);
   if (timeRange?.start) url.searchParams.set("start", timeRange.start);
@@ -92,8 +92,8 @@ export async function fetchTraces(
       const errorText = await res.text();
       throw new Error(`Failed to fetch traces: ${errorText || res.statusText}`);
     }
-    const traces: Trace = await res.json();
-    return traces;
+    const traces = await res.json();
+    return Array.isArray(traces) ? traces : [];
   } catch (error) {
     console.error("Error fetching traces:", error);
     throw error;

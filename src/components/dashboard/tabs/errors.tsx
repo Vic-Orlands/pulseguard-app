@@ -180,7 +180,7 @@ export function ErrorDetailsSheet({
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Status</p>
-                        <p className="text-xs font-bold text-foreground capitalize mt-0.5">
+                        <p className="text-xs font-semibold text-foreground capitalize mt-0.5">
                           {selectedError.status}
                         </p>
                       </div>
@@ -196,7 +196,7 @@ export function ErrorDetailsSheet({
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Occurrences</p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {selectedError.count} occurrence
                       {selectedError.count !== 1 && "s"}
                     </p>
@@ -211,7 +211,7 @@ export function ErrorDetailsSheet({
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Last Seen</p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {format(new Date(selectedError.lastSeen), "MMM d, yyyy, ha")}
                     </p>
                   </div>

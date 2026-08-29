@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ComponentType } from "react";
+import { useState, useEffect, useCallback, type ComponentType } from "react";
 import { HugeiconsIcon } from "@/components/phosphor-icons";
 import {
   ArrowDown01Icon,
@@ -30,6 +30,7 @@ import {
   RefreshCw,
   Loader2,
   ChevronRight,
+  UserGroupIcon,
 } from "@/components/phosphor-icons";
 import type { PulseIconProps } from "@/components/phosphor-icons";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { normalizePostgresString } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { formatDistanceToNow } from "date-fns";
+import {
+  listNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  type AppNotification,
+} from "@/lib/api/notifications-api";
 import { Logo } from "@/app/(auth)/signin/page";
 import { CreateWorkspaceModal } from "@/components/dashboard/shared/create-workspace-modal";
 import {
@@ -74,6 +82,7 @@ const navItems: { id: NavItem; label: string; icon: ComponentType<PulseIconProps
   { id: "logs", label: "Logs", icon: ListViewIcon },
   { id: "traces", label: "Traces", icon: HierarchyFilesIcon },
   { id: "alerts", label: "Alerts", icon: Notification01Icon },
+  { id: "teams", label: "Teams", icon: UserGroupIcon },
   { id: "integrations", label: "Integrations", icon: PlugsIcon },
   { id: "settings", label: "Settings", icon: Settings01Icon },
 ];
@@ -91,7 +100,7 @@ export default function Header({
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const activeAlerts = alerts.filter((a) => a.status === "active").length;
+  const activeAlerts = alerts.filter((alert) => alert.enabled).length;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false);
@@ -121,10 +130,30 @@ export default function Header({
   >({});
   const [isProjectNavigationPending, setIsProjectNavigationPending] =
     useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const data = await listNotifications();
+      setNotifications(data.notifications);
+      setUnreadCount(data.unread);
+    } catch {
+      // Keep the sidebar usable even if notifications fail.
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    void loadNotifications();
+    const timer = window.setInterval(() => {
+      void loadNotifications();
+    }, 30000);
+    return () => window.clearInterval(timer);
+  }, [loadNotifications]);
 
   useEffect(() => {
     if (activeWorkspace?.id) {
@@ -414,21 +443,6 @@ export default function Header({
           Projects
         </button>
 
-        {mounted && (
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
-            id="dashboard-theme-toggle"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4 text-pg-muted" />
-            ) : (
-              <Moon className="h-4 w-4 text-pg-muted" />
-            )}
-            {theme === "dark" ? "Light mode" : "Dark mode"}
-          </button>
-        )}
-
         <button
           onClick={() => setIsCliModalOpen(true)}
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
@@ -436,6 +450,83 @@ export default function Header({
           <Key className="h-4 w-4 text-pg-muted" />
           Integration key
         </button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted transition-colors hover:bg-pg-group hover:text-pg-text bg-transparent"
+            >
+              <HugeiconsIcon icon={Notification01Icon} className="h-4 w-4" />
+              Notifications
+              {unreadCount > 0 ? (
+                <span className="ml-auto text-[10px] text-pg-subtle">{unreadCount}</span>
+              ) : null}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-80 bg-pg-modal rounded-lg p-1 z-50 text-pg-text"
+            align="start"
+            side="top"
+          >
+            <div className="flex items-center justify-between px-2 py-2">
+              <p className="text-xs font-semibold">Notifications</p>
+              {unreadCount > 0 ? (
+                <button
+                  type="button"
+                  className="bg-transparent p-0 text-[11px] text-pg-muted hover:text-pg-text"
+                  onClick={async () => {
+                    await markAllNotificationsRead();
+                    await loadNotifications();
+                  }}
+                >
+                  Mark all read
+                </button>
+              ) : null}
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <p className="px-3 py-8 text-center text-xs text-pg-muted">
+                  No notifications yet.
+                </p>
+              ) : (
+                notifications.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left hover:bg-pg-group bg-transparent"
+                    onClick={async () => {
+                      if (!item.read_at) {
+                        await markNotificationRead(item.id);
+                        await loadNotifications();
+                      }
+                      if (item.href) {
+                        router.push(item.href);
+                      }
+                    }}
+                  >
+                    <span className="flex w-full items-center justify-between gap-2">
+                      <span className="truncate text-xs font-medium text-pg-text">
+                        {item.title}
+                      </span>
+                      {!item.read_at ? (
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      ) : null}
+                    </span>
+                    <span className="line-clamp-2 text-[11px] text-pg-muted">
+                      {item.body}
+                    </span>
+                    <span className="text-[10px] text-pg-subtle">
+                      {formatDistanceToNow(new Date(item.created_at), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -494,6 +585,20 @@ export default function Header({
                 <HugeiconsIcon icon={Settings01Icon} className="w-3.5 h-3.5" />
                 <span>Settings</span>
               </button>
+              {mounted ? (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-pg-muted hover:text-pg-text hover:bg-pg-group transition-colors text-left cursor-pointer bg-transparent border-0"
+                  id="dashboard-theme-toggle"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-3.5 h-3.5 text-pg-muted" />
+                  ) : (
+                    <Moon className="w-3.5 h-3.5 text-pg-muted" />
+                  )}
+                  <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+                </button>
+              ) : null}
               <CustomAlertDialog
                 trigger={
                   <button className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-red-500 hover:bg-red-500/10 transition-colors text-left cursor-pointer bg-transparent border-0">

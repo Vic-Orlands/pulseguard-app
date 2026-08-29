@@ -312,7 +312,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   HTTP Requests
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.httpRequestsTotal}
                 </p>
               </div>
@@ -328,7 +328,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   HTTP Errors
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.httpErrorsTotal}
                 </p>
               </div>
@@ -344,7 +344,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Page Views
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.pageViewsTotal}
                 </p>
               </div>
@@ -360,7 +360,7 @@ const MetricsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Active Sessions
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.activeSessions}
                 </p>
               </div>

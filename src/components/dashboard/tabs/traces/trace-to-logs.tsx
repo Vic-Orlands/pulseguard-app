@@ -346,7 +346,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-3 ml-4 flex-shrink-0">
-                  <div className="text-primary font-bold text-xs">
+                  <div className="text-primary font-semibold text-xs">
                     {span.duration.toFixed(2)} ms
                   </div>
                   <Badge
@@ -516,7 +516,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
                   <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                     {metric.label}
                   </p>
-                  <p className="text-lg font-bold text-foreground mt-1">
+                  <p className="text-lg font-semibold text-foreground mt-1">
                     {metric.value}
                   </p>
                 </div>
@@ -627,7 +627,7 @@ const TraceToLogsComponent = ({ traceId }: { traceId: string }) => {
                 {/* Header Section */}
                 <div className="bg-card border border-border rounded-lg p-4 shadow-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h2 className="text-sm font-bold text-foreground mb-1">
+                    <h2 className="text-sm font-semibold text-foreground mb-1">
                       {selectedSpan.name}
                     </h2>
                     <p className="text-xs text-muted-foreground">{selectedSpan.serviceName}</p>

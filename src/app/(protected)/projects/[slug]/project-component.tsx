@@ -18,6 +18,7 @@ import TracesTab from "@/components/dashboard/tabs/traces/page";
 import SettingsTab from "@/components/dashboard/tabs/settings/page";
 import OverviewTab from "@/components/dashboard/tabs/overview/page";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
+import TeamsTab from "@/components/dashboard/tabs/teams";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 import { PageMotion } from "@/components/dashboard/shared/page-motion";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/components/dashboard/shared/sheet-scale";
 
 import { fetchErrors } from "@/lib/api/error-api";
+import { listAlerts } from "@/lib/api/alerts-api";
 
 import type { ErrorListResponse, Error } from "@/types/error";
 import type { Alert, NavItem, Project } from "@/types/dashboard";
@@ -38,6 +40,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
   const [total, setTotal] = useState<number>(0);
   const [errors, setErrors] = useState<Error[]>([]);
   const [activeTab, setActiveTab] = useState<NavItem>(defaultTab);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isConnectPlatformPending, setIsConnectPlatformPending] =
     useState(false);
   const [errorsConfig, setErrorsConfig] = useState({
@@ -45,6 +48,13 @@ export default function DashboardComponent({ project }: { project: Project }) {
     page: 1 as number,
     limit: 20 as number,
   });
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as NavItem | null;
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
@@ -66,6 +76,12 @@ export default function DashboardComponent({ project }: { project: Project }) {
     fetchErrorData();
   }, [errorsConfig.page, errorsConfig.limit]);
 
+  useEffect(() => {
+    listAlerts(project.id)
+      .then(setAlerts)
+      .catch(() => setAlerts([]));
+  }, [project.id, activeTab]);
+
   const handleConfig = (key: string, value: string | number) => {
     setErrorsConfig((prev) => ({ ...prev, [key]: value }));
   };
@@ -76,33 +92,6 @@ export default function DashboardComponent({ project }: { project: Project }) {
     }
   }, [activeTab]);
 
-  const alerts: Alert[] = [
-    {
-      id: "ALT-4821",
-      type: "error",
-      name: "Database Connection Failed",
-      status: "active",
-      triggeredAt: "2023-11-15T14:32:45Z",
-      condition: "Error rate > 5% for 5 minutes",
-    },
-    {
-      id: "ALT-3829",
-      type: "performance",
-      name: "API Response Slow",
-      status: "resolved",
-      triggeredAt: "2023-11-15T13:45:12Z",
-      condition: "P99 latency > 500ms",
-    },
-    {
-      id: "ALT-1923",
-      type: "custom",
-      name: "High Memory Usage",
-      status: "active",
-      triggeredAt: "2023-11-15T13:42:33Z",
-      condition: "Memory > 90% for 10 minutes",
-    },
-  ];
-
   const titles: Record<NavItem, string> = {
     overview: "Overview",
     sessions: "Sessions",
@@ -111,6 +100,7 @@ export default function DashboardComponent({ project }: { project: Project }) {
     logs: "Logs",
     traces: "Traces",
     alerts: "Alerts",
+    teams: "Teams",
     integrations: "Integrations",
     settings: "Settings",
     "connect-platform": "Connect Platform",
@@ -140,6 +130,8 @@ export default function DashboardComponent({ project }: { project: Project }) {
         return <MetricsTab project={project} />;
       case "alerts":
         return <AlertsTab project={project} />;
+      case "teams":
+        return <TeamsTab />;
       case "integrations":
         return <IntegrationsTab project={project} />;
       case "settings":
@@ -153,16 +145,16 @@ export default function DashboardComponent({ project }: { project: Project }) {
 
   return (
     <SheetScaleProvider>
-      <div className="dashboard-shell min-h-screen md:flex">
-        <Navbar
-          alerts={alerts}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          project={project}
-        />
+      <DashboardCanvas>
+        <div className="dashboard-shell min-h-screen md:flex">
+          <Navbar
+            alerts={alerts}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            project={project}
+          />
 
-        <div className="min-w-0 flex-1">
-          <DashboardCanvas>
+          <div className="min-w-0 flex-1">
             <main className="min-h-screen">
               <div className="flex items-center justify-between gap-3 px-6 py-5">
                 <h1 className="text-lg font-semibold tracking-tight text-pg-text">
@@ -211,9 +203,9 @@ export default function DashboardComponent({ project }: { project: Project }) {
                 </AnimatePresence>
               </div>
             </main>
-          </DashboardCanvas>
+          </div>
         </div>
-      </div>
+      </DashboardCanvas>
       <HelpButton />
     </SheetScaleProvider>
   );

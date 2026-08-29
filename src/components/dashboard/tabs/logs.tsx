@@ -266,7 +266,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Operating System
                     </p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {log.os ?? "N/A"}
                     </p>
                   </div>
@@ -280,7 +280,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Severity
                     </p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {log.severity ?? "N/A"}
                     </p>
                   </div>
@@ -294,7 +294,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Service
                     </p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {log.service_name ?? "N/A"}
                     </p>
                   </div>
@@ -308,7 +308,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Hostname
                     </p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {log.hostname ?? "N/A"}
                     </p>
                   </div>
@@ -324,7 +324,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
                       Process ID
                     </p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">
+                    <p className="text-xs font-semibold text-foreground mt-0.5">
                       {log.pid ?? "N/A"}
                     </p>
                   </div>
@@ -595,7 +595,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Total Logs
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {logs.length}
                 </p>
               </div>
@@ -611,7 +611,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Error Logs
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {logs.filter((log) => log.level === 50).length}
                 </p>
               </div>
@@ -627,7 +627,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Warning Logs
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {logs.filter((log) => log.level === 40).length}
                 </p>
               </div>
@@ -643,7 +643,7 @@ const LogsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Info Logs
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {logs.filter((log) => log.level === 30).length}
                 </p>
               </div>

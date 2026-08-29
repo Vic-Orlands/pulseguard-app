@@ -43,7 +43,7 @@ export async function updateErrorStatus(
 ): Promise<Error> {
   const response = await fetch(`${url}/api/errors/status`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": "pulseguard-web" },
     body: JSON.stringify({ id, status }),
     credentials: "include",
   });

@@ -12,6 +12,10 @@ interface AlertPreviewProps {
   setActiveTab: (key: string) => void;
 }
 
+function condition(alert: Alert) {
+  return `${alert.type === "new_error" ? "New errors" : "Error count"} ≥ ${alert.threshold} / ${alert.window_minutes}m`;
+}
+
 export default function AlertPreview({
   alerts,
   setActiveTab,
@@ -43,50 +47,52 @@ export default function AlertPreview({
               <p className="text-xs">No alerts in this project</p>
             </div>
           ) : (
-            alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className="flex items-start gap-3 p-3 rounded-lg bg-pg-surface"
-              >
+            alerts.map((alert) => {
+              const triggered = Boolean(alert.last_triggered_at);
+              return (
                 <div
-                  className={`p-1.5 rounded-full border flex-shrink-0 ${
-                    alert.status === "active"
-                      ? "bg-red-550/10 bg-red-500/10 border-red-500/20"
-                      : "bg-blue-500/10 border-blue-500/20"
-                  }`}
+                  key={alert.id}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-pg-surface"
                 >
-                  <HugeiconsIcon
-                    icon={Alert01Icon}
-                    className={`h-3.5 w-3.5 ${
-                      "text-pg-muted"
+                  <div
+                    className={`p-1.5 rounded-full border flex-shrink-0 ${
+                      triggered
+                        ? "bg-red-500/10 border-red-500/20"
+                        : "bg-pg-group border-transparent"
                     }`}
-                  />
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-xs font-semibold text-foreground truncate">{alert.name}</h3>
-                    <Badge
-                      className={`text-[9px] px-1.5 py-0.5 rounded font-semibold shadow-none border ${
-                        alert.status === "active"
-                          ? "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950/20 border-red-200 dark:border-red-900/30"
-                          : "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/30"
-                      }`}
-                    >
-                      {alert.status.toUpperCase()}
-                    </Badge>
+                  >
+                    <HugeiconsIcon icon={Alert01Icon} className="h-3.5 w-3.5 text-pg-muted" />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                    {alert.condition}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                    <span>
-                      {format(new Date(alert.triggeredAt), "MMM d, yyyy HH:mm")}
-                    </span>
-                    <span>Type: {alert.type}</span>
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xs font-semibold text-foreground truncate">
+                        {alert.name}
+                      </h3>
+                      <Badge
+                        className={`text-[9px] px-1.5 py-0.5 rounded font-semibold shadow-none border ${
+                          alert.enabled
+                            ? "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30"
+                            : "text-pg-muted bg-pg-group border-transparent"
+                        }`}
+                      >
+                        {alert.enabled ? "ON" : "OFF"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {condition(alert)}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                      <span>
+                        {alert.last_triggered_at
+                          ? format(new Date(alert.last_triggered_at), "MMM d, yyyy HH:mm")
+                          : "Never triggered"}
+                      </span>
+                      <span className="capitalize">{alert.severity}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>

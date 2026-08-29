@@ -480,7 +480,7 @@ export default function UserSettingsNew() {
         <div className="flex items-center gap-3.5">
           <Avatar className="h-12 w-12 border border-border">
             <AvatarImage src={userForm.avatar} />
-            <AvatarFallback className="bg-muted text-muted-foreground font-bold text-sm">
+            <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-sm">
               {userForm.name
                 .split(" ")
                 .map((n) => n[0])
@@ -776,7 +776,7 @@ export default function UserSettingsNew() {
             )}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-foreground">Light Mode</span>
+              <span className="text-xs font-semibold text-foreground">Light Mode</span>
               <Sun className="h-4 w-4 text-muted-foreground" />
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
@@ -794,7 +794,7 @@ export default function UserSettingsNew() {
             )}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-foreground">Dark Mode</span>
+              <span className="text-xs font-semibold text-foreground">Dark Mode</span>
               <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
@@ -861,7 +861,7 @@ export default function UserSettingsNew() {
     <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
       <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
         <DialogHeader className="p-4 border-b border-border/50">
-          <DialogTitle className="text-xs font-bold text-foreground">
+          <DialogTitle className="text-xs font-semibold text-foreground">
             Choose Avatar
           </DialogTitle>
           <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
@@ -901,7 +901,7 @@ export default function UserSettingsNew() {
     >
       <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
         <DialogHeader className="p-4 border-b border-border/50">
-          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+          <DialogTitle className="text-xs font-semibold text-destructive flex items-center gap-1.5">
             <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete Project
           </DialogTitle>
@@ -936,7 +936,7 @@ export default function UserSettingsNew() {
     <Dialog open={batchDeleteDialog} onOpenChange={setBatchDeleteDialog}>
       <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
         <DialogHeader className="p-4 border-b border-border/50">
-          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+          <DialogTitle className="text-xs font-semibold text-destructive flex items-center gap-1.5">
             <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete Selected Projects
           </DialogTitle>
@@ -969,7 +969,7 @@ export default function UserSettingsNew() {
     <Dialog open={deleteAllProjectsDialog} onOpenChange={setDeleteAllProjectsDialog}>
       <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
         <DialogHeader className="p-4 border-b border-border/50">
-          <DialogTitle className="text-xs font-bold text-destructive flex items-center gap-1.5">
+          <DialogTitle className="text-xs font-semibold text-destructive flex items-center gap-1.5">
             <HugeiconsIcon icon={Alert01Icon} className="h-4 w-4" />
             Delete All Projects
           </DialogTitle>
@@ -1031,7 +1031,7 @@ export default function UserSettingsNew() {
                 </DialogTrigger>
                 <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
                   <DialogHeader className="p-4 border-b border-border/50">
-                    <DialogTitle className="text-xs font-bold flex items-center gap-1.5">
+                    <DialogTitle className="text-xs font-semibold flex items-center gap-1.5">
                       Invite new member
                     </DialogTitle>
                     <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
@@ -1108,7 +1108,7 @@ export default function UserSettingsNew() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-semibold text-foreground">{member.userName}</p>
-                          <Badge className={`text-[8px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-full ${
+                          <Badge className={`text-[8px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded-full ${
                             member.role === "owner"
                               ? "bg-red-500/10 text-red-600 border border-red-500/20"
                               : member.role === "admin"
@@ -1186,7 +1186,7 @@ export default function UserSettingsNew() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-semibold text-foreground">{invite.email}</p>
-                        <Badge className="text-[8px] uppercase tracking-wide font-bold bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
+                        <Badge className="text-[8px] uppercase tracking-wide font-semibold bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
                           {invite.role}
                         </Badge>
                       </div>
@@ -1245,7 +1245,7 @@ export default function UserSettingsNew() {
                 </DialogTrigger>
                 <DialogContent className="bg-card border border-border text-foreground max-w-sm rounded-lg p-0 overflow-hidden">
                   <DialogHeader className="p-4 border-b border-border/50">
-                    <DialogTitle className="text-xs font-bold">Create new team</DialogTitle>
+                    <DialogTitle className="text-xs font-semibold">Create new team</DialogTitle>
                     <DialogDescription className="text-[10px] text-muted-foreground mt-0.5">
                       Define a sub-tenant team within your workspace.
                     </DialogDescription>
@@ -1335,7 +1335,7 @@ export default function UserSettingsNew() {
                                   <div className="flex items-center gap-2">
                                     <Avatar className="h-5 w-5 border border-border">
                                       <AvatarImage src={memberDetails.userAvatar || undefined} />
-                                      <AvatarFallback className="text-[8px] font-bold">
+                                      <AvatarFallback className="text-[8px] font-semibold">
                                         {memberDetails.userName?.substring(0, 2).toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
@@ -1423,7 +1423,7 @@ export default function UserSettingsNew() {
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
         >
           <div>
-            <h1 className="text-lg font-bold text-[#1d1d1b] mb-0.5">
+            <h1 className="text-lg font-semibold text-[#1d1d1b] mb-0.5">
               Account Settings
             </h1>
             <p className="text-[#73736e] text-xs">
@@ -1523,7 +1523,7 @@ export default function UserSettingsNew() {
                 <div className="text-center space-y-3">
                   <Avatar className="h-14 w-14 mx-auto border border-[#dfdfda]">
                     <AvatarImage src={userForm.avatar} />
-                    <AvatarFallback className="bg-white text-[#73736e] font-bold text-lg">
+                    <AvatarFallback className="bg-white text-[#73736e] font-semibold text-lg">
                       {userForm.name
                         ?.split(" ")
                         .map((n) => n[0])

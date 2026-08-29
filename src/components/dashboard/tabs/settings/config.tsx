@@ -184,7 +184,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
             <div className="p-1.5 bg-primary/10 border border-primary/20 rounded-lg">
               <HugeiconsIcon icon={Settings01Icon} className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-sm font-bold text-foreground">
+            <h2 className="text-sm font-semibold text-foreground">
               Alert Configuration
             </h2>
           </div>
@@ -249,7 +249,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                 {/* Notification Groups */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-foreground">
+                    <h3 className="text-sm font-semibold text-foreground">
                       Notification Groups
                     </h3>
                     <button
@@ -523,7 +523,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
 
                 {/* Individual Email Addresses */}
                 <div>
-                  <h3 className="text-sm font-bold text-foreground mb-3">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">
                     Individual Email Addresses
                   </h3>
                   <div className="bg-muted/30 border border-border rounded p-4">
@@ -575,7 +575,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                 {/* Log Alerts */}
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-foreground">
+                    <h3 className="text-sm font-semibold text-foreground">
                       Log Alerts
                     </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -695,7 +695,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                 {/* Error Alerts */}
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-foreground">
+                    <h3 className="text-sm font-semibold text-foreground">
                       Error Alerts
                     </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -861,7 +861,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
               <div className="space-y-6">
                 {/* Alert Frequency */}
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
-                  <h3 className="text-sm font-bold text-foreground mb-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-4">
                     Alert Frequency
                   </h3>
                   <div className="space-y-4">
@@ -987,7 +987,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">
+                      <h3 className="text-sm font-semibold text-foreground">
                         Quiet Hours
                       </h3>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -1061,7 +1061,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">
+                      <h3 className="text-sm font-semibold text-foreground">
                         Escalation Rules
                       </h3>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -1122,7 +1122,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
                                 className="bg-muted/40 border border-border p-3 rounded"
                               >
                                 <div className="flex items-center justify-between mb-2">
-                                  <h5 className="font-bold text-foreground text-xs">
+                                  <h5 className="font-semibold text-foreground text-xs">
                                     Level {level.level}
                                   </h5>
                                   <button
@@ -1282,7 +1282,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
 
                 {/* Alert Retention */}
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
-                  <h3 className="text-sm font-bold text-foreground mb-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-4">
                     Alert Retention
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1315,7 +1315,7 @@ const AlertConfiguration = ({ isOpen, onClose, onSave }: AlertConfigurationProps
 
                 {/* Alert Formatting */}
                 <div className="bg-muted/30 border border-border rounded p-4 text-xs text-foreground">
-                  <h3 className="text-sm font-bold text-foreground mb-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-4">
                     Alert Formatting
                   </h3>
                   <div className="space-y-3">

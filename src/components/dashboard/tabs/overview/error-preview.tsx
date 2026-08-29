@@ -68,10 +68,10 @@ export default function ErrorPreview({
                     </h3>
                     <Badge
                       className={`text-[9px] px-1.5 py-0.5 rounded font-semibold shadow-none border ${getErrorSeverityColor(
-                        error.status.toLowerCase()
+                        (error.status || "").toLowerCase(),
                       )}`}
                     >
-                      {error.status.toLowerCase()}
+                      {(error.status || "unknown").toLowerCase()}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5 w-full truncate text-ellipsis">

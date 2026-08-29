@@ -209,7 +209,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Total Sessions
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.totalSessions}
                 </p>
               </div>
@@ -225,7 +225,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Active Sessions
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.activeSessions}
                 </p>
               </div>
@@ -241,7 +241,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Avg. Session Duration
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {(summaryStats.avgDuration / 1000).toFixed(2)} s
                 </p>
               </div>
@@ -257,7 +257,7 @@ const SessionsTab = ({ project }: { project: Project }) => {
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                   Session Errors
                 </p>
-                <p className="text-lg font-bold text-foreground mt-1">
+                <p className="text-lg font-semibold text-foreground mt-1">
                   {summaryStats.totalErrors}
                 </p>
               </div>

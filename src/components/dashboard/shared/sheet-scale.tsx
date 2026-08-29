@@ -51,10 +51,10 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="dashboard-canvas min-h-screen origin-left will-change-transform"
+      className="dashboard-canvas min-h-screen origin-left will-change-transform overflow-hidden"
       animate={
         isOpen
-          ? { scale: 0.965, x: -18, borderRadius: 16 }
+          ? { scale: 0.965, x: -22, borderRadius: 16 }
           : { scale: 1, x: 0, borderRadius: 0 }
       }
       transition={{ type: "spring", stiffness: 260, damping: 32, mass: 0.8 }}

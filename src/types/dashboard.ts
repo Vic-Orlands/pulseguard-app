@@ -7,6 +7,7 @@ export type NavItem =
   | "logs"
   | "traces"
   | "alerts"
+  | "teams"
   | "metrics"
   | "integrations"
   | "settings"
@@ -42,7 +43,16 @@ export type Log = {
   hostname: string;
 };
 
+export interface TraceSummary {
+  traceId: string;
+  name: string;
+  serviceName: string;
+  startTime: string;
+  duration: number;
+}
+
 export interface Trace {
+  traceId?: string;
   spans: Span[];
 }
 
@@ -102,11 +112,19 @@ export interface Session {
 
 export type Alert = {
   id: string;
+  project_id: string;
   name: string;
-  condition: string;
-  triggeredAt: string;
-  status: "active" | "resolved";
-  type: "error" | "performance" | "custom";
+  message: string;
+  type: string;
+  threshold: number;
+  window_minutes: number;
+  severity: string;
+  enabled: boolean;
+  notify_in_app: boolean;
+  notify_email: boolean;
+  last_triggered_at?: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type RecentError = {

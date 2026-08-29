@@ -63,17 +63,21 @@ export class HttpError extends Error {
 // calculate uptime
 export function getUptime(errors: RecentError[] | null | undefined): string {
   const activeErrors = (errors ?? []).filter(
-    (e) => e.status.toLowerCase() === "active"
+    (e) => (e.status || "").toLowerCase() === "active"
   );
 
   if (activeErrors.length === 0) {
     return "99.9%";
   }
 
-  // Get the most recent 'lastSeen' among active errors
   const lastSeen = activeErrors
     .map((e) => new Date(e.lastSeen))
+    .filter((date) => !Number.isNaN(date.getTime()))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  if (!lastSeen) {
+    return "99.9%";
+  }
 
   const now = new Date();
   const diffMs = now.getTime() - lastSeen.getTime();
