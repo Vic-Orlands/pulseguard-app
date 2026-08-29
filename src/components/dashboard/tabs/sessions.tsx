@@ -35,14 +35,14 @@ import {
 } from "@/components/phosphor-icons";
 import { subHours, subDays } from "date-fns";
 import { SessionHeatmap } from "@/components/dashboard/shared/session-heatmap";
-import { fetchSessions } from "@/lib/api/otlp-api";
+import { fetchSessions, fetchSessionTimeline } from "@/lib/api/otlp-api";
 import CustomErrorMessage from "../shared/error-message";
 import { Badge } from "@/components/ui/badge";
 import { formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
-import type { Project, Session, TimeProp } from "@/types/dashboard";
+import type { Project, Session, SessionTimelineItem, TimeProp } from "@/types/dashboard";
 
 const SessionsTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
@@ -100,6 +100,16 @@ const SessionsTab = ({ project }: { project: Project }) => {
     ["session-heatmap", project.id, heatmapRange.start],
     () => fetchSessions(project.id, heatmapRange.start, heatmapRange.end),
     { revalidateOnFocus: false, dedupingInterval: 60000 },
+  );
+
+  const { data: timeline = [], isLoading: isTimelineLoading } = useSWR<
+    SessionTimelineItem[]
+  >(
+    selectedSession
+      ? ["session-timeline", project.id, selectedSession.session_id]
+      : null,
+    () => fetchSessionTimeline(project.id, selectedSession!.session_id),
+    { revalidateOnFocus: false },
   );
 
   // Filter and search sessions
@@ -417,6 +427,42 @@ const SessionsTab = ({ project }: { project: Project }) => {
                   <div className="text-[10px] text-pg-muted">Time</div>
                   <div className="text-xs">{formatTableTime(selectedSession.start_time)}</div>
                 </div>
+              </div>
+              <div className="mt-5">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-xs font-semibold text-pg-text">Activity timeline</h3>
+                  <span className="text-[10px] text-pg-muted">{timeline.length} items</span>
+                </div>
+                {isTimelineLoading ? (
+                  <p className="rounded-lg bg-pg-group p-3 text-xs text-pg-muted">Loading activity...</p>
+                ) : timeline.length === 0 ? (
+                  <p className="rounded-lg bg-pg-group p-3 text-xs text-pg-muted">
+                    No pageviews, clicks, custom events, or logs were recorded.
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {timeline.map((item) => (
+                      <div key={`${item.type}-${item.id}`} className="rounded-lg bg-pg-group p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <span className="mr-2 text-[10px] font-medium uppercase text-primary">
+                              {item.type}
+                            </span>
+                            <span className="text-xs text-pg-text">{item.name}</span>
+                          </div>
+                          <span className="shrink-0 text-[10px] text-pg-muted">
+                            {formatTableTime(item.timestamp)}
+                          </span>
+                        </div>
+                        {Object.keys(item.data || {}).length > 0 ? (
+                          <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words font-mono text-[10px] leading-4 text-pg-muted">
+                            {JSON.stringify(item.data, null, 2)}
+                          </pre>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           ) : null}

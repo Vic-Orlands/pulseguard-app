@@ -73,6 +73,17 @@ function ComponentStackSheet({ componentStack }: { componentStack: string }) {
   );
 }
 
+function buildCommitUrl(repositoryUrl: string, commitSha: string) {
+  if (!/^[a-f0-9]{7,64}$/i.test(commitSha)) return "";
+  try {
+    const parsed = new URL(repositoryUrl);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+    return `${parsed.toString().replace(/\/$/, "")}/commit/${encodeURIComponent(commitSha)}`;
+  } catch {
+    return "";
+  }
+}
+
 // Error Details Sheet Component
 export function ErrorDetailsSheet({
   isOpen,
@@ -86,6 +97,16 @@ export function ErrorDetailsSheet({
   onStatusChange: (errorId: string, newStatus: string) => void;
 }) {
   const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const latestMetadata = selectedError?.occurrences?.[0]?.metadata;
+  const suspectCommit =
+    typeof latestMetadata?.commitSha === "string"
+      ? latestMetadata.commitSha
+      : "";
+  const repositoryUrl =
+    typeof latestMetadata?.repositoryUrl === "string"
+      ? latestMetadata.repositoryUrl.replace(/\/$/, "")
+      : "";
+  const commitUrl = buildCommitUrl(repositoryUrl, suspectCommit);
 
   const handleStatusChange = async (status: string) => {
     if (!selectedError) return;
@@ -299,6 +320,31 @@ export function ErrorDetailsSheet({
                   label="Environment"
                   value={selectedError.environment}
                   badge
+                  isLoading={isStatusLoading}
+                />
+                <ErrorMetaRow
+                  label="Release"
+                  value={selectedError.release}
+                  monospace
+                  isLoading={isStatusLoading}
+                />
+                <ErrorMetaRow
+                  label="Suspect commit"
+                  value={
+                    commitUrl ? (
+                      <a
+                        href={commitUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-primary hover:underline"
+                      >
+                        {suspectCommit.slice(0, 12)}
+                      </a>
+                    ) : (
+                      suspectCommit
+                    )
+                  }
+                  monospace
                   isLoading={isStatusLoading}
                 />
                 <ErrorMetaRow

@@ -174,6 +174,24 @@ export async function fetchSessions(
   }
 }
 
+export async function fetchSessionTimeline(
+  projectId: string,
+  sessionId: string,
+) {
+  const url = new URL(
+    `${API_URL}/api/sessions/${encodeURIComponent(sessionId)}/timeline`,
+  );
+  url.searchParams.set("project_id", projectId);
+  const res = await fetch(url.toString(), {
+    headers: projectHeaders(projectId),
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch session timeline (${res.status})`);
+  }
+  return res.json();
+}
+
 // fetch all overview data
 export async function fetchDashboardData(
   projectId: string

@@ -33,15 +33,25 @@ export function TelemetryProvider({
   dsn,
   userId,
   release,
+  commitSha,
+  repositoryUrl,
   environment,
   issueTrackerUrl,
 }: TelemetryProviderProps) {
   useEffect(() => {
-    initPulseguard({ dsn, userId, release, environment, issueTrackerUrl });
+    initPulseguard({
+      dsn,
+      userId,
+      release,
+      commitSha,
+      repositoryUrl,
+      environment,
+      issueTrackerUrl,
+    });
     return () => {
       endSession();
     };
-  }, [dsn, userId, release, environment, issueTrackerUrl]);
+  }, [dsn, userId, release, commitSha, repositoryUrl, environment, issueTrackerUrl]);
 
   const value = useMemo(
     () => ({ reportError, reportEvent, setUserId }),
@@ -51,7 +61,7 @@ export function TelemetryProvider({
   return React.createElement(
     TelemetryContext.Provider,
     { value },
-    React.createElement(ErrorBoundary, { children }),
+    React.createElement(ErrorBoundary, null, children),
   );
 }
 

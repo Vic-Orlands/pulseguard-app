@@ -144,7 +144,7 @@ func main() {
 	logsService := service.NewLogsService(telemetryStore, lokiRepo)
 	userService := service.NewUserService(userRepo)
 	workspaceService := service.NewWorkspaceService(workspaceRepo, userRepo)
-	errorService := service.NewErrorService(errorRepo)
+	errorService := service.NewErrorService(errorRepo, sourceMapRepo)
 	integrationService := service.NewIntegrationService(integrationRepo)
 	notificationService := service.NewNotificationService(notificationRepo)
 	alertService := service.NewAlertService(alertRepo, errorRepo, notificationRepo, projectRepo, workspaceRepo, integrationService)

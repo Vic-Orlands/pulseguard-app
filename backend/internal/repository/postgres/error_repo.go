@@ -50,12 +50,12 @@ func (r *ErrorRepository) Track(ctx context.Context, errorData *models.Error, me
 
 	var existingError models.Error
 	err = tx.QueryRowContext(ctx, `
-        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
         FROM errors
         WHERE project_id = $1 AND environment = $2 AND message = $3 AND source = $4 AND type = $5 AND fingerprint = $6`,
 		errorData.ProjectID, errorData.Environment, errorData.Message, errorData.Source, errorData.Type, fingerprint).
 		Scan(&existingError.ID, &existingError.ProjectID, &existingError.Message, &existingError.StackTrace,
-			&existingError.Fingerprint, &existingError.OccurredAt, &existingError.LastSeen, &existingError.Environment,
+			&existingError.Fingerprint, &existingError.OccurredAt, &existingError.LastSeen, &existingError.Environment, &existingError.Release,
 			&existingError.Count, &existingError.Source, &existingError.Type, &existingError.URL,
 			&existingError.ComponentStack, &existingError.BrowserInfo, &existingError.UserID,
 			&existingError.SessionID, &existingError.Status)
@@ -150,7 +150,7 @@ func (r *ErrorRepository) updateError(ctx context.Context, tx *sql.Tx, errorData
 }
 
 func (r *ErrorRepository) GetErrors(ctx context.Context, filters ErrorFilters) ([]*models.Error, int, error) {
-	query := `SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+	query := `SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
               FROM errors WHERE 1=1`
 	args := []interface{}{}
 	countQuery := `SELECT COUNT(*) FROM errors WHERE 1=1`
@@ -231,7 +231,7 @@ func (r *ErrorRepository) GetErrors(ctx context.Context, filters ErrorFilters) (
 	for rows.Next() {
 		var e models.Error
 		err := rows.Scan(&e.ID, &e.ProjectID, &e.Message, &e.StackTrace, &e.Fingerprint, &e.OccurredAt,
-			&e.LastSeen, &e.Environment, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
+			&e.LastSeen, &e.Environment, &e.Release, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
 			&e.BrowserInfo, &e.UserID, &e.SessionID, &e.Status)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan error: %w", err)
@@ -262,10 +262,10 @@ func (r *ErrorRepository) GetErrors(ctx context.Context, filters ErrorFilters) (
 func (r *ErrorRepository) GetErrorByID(ctx context.Context, id string) (*models.Error, error) {
 	var e models.Error
 	err := r.db.QueryRowContext(ctx, `
-        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
         FROM errors WHERE id = $1`, id).
 		Scan(&e.ID, &e.ProjectID, &e.Message, &e.StackTrace, &e.Fingerprint, &e.OccurredAt,
-			&e.LastSeen, &e.Environment, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
+			&e.LastSeen, &e.Environment, &e.Release, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
 			&e.BrowserInfo, &e.UserID, &e.SessionID, &e.Status)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -292,10 +292,10 @@ func (r *ErrorRepository) UpdateErrorStatus(ctx context.Context, id, status stri
         UPDATE errors
         SET status = $1, last_seen = $2
         WHERE id = $3
-        RETURNING id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, component_stack, browser_info, user_id, session_id, status`,
+        RETURNING id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status`,
 		status, time.Now(), id).
 		Scan(&e.ID, &e.ProjectID, &e.Message, &e.StackTrace, &e.Fingerprint, &e.OccurredAt,
-			&e.LastSeen, &e.Environment, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
+			&e.LastSeen, &e.Environment, &e.Release, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
 			&e.BrowserInfo, &e.UserID, &e.SessionID, &e.Status)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update error status: %w", err)
@@ -314,35 +314,35 @@ func (r *ErrorRepository) UpdateErrorStatus(ctx context.Context, id, status stri
 }
 
 func (r *ErrorRepository) ListRecentByProject(ctx context.Context, projectID string, limit int) ([]*models.Error, error) {
-    query := `
+	query := `
         SELECT id, project_id, message, last_seen, count, type, session_id, status
         FROM errors
         WHERE project_id = $1
         ORDER BY occurred_at DESC
         LIMIT $2
     `
-    rows, err := r.db.QueryContext(ctx, query, projectID, limit)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := r.db.QueryContext(ctx, query, projectID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    errors := make([]*models.Error, 0)
-    for rows.Next() {
-        var e models.Error
-        if err := rows.Scan(&e.ID, &e.ProjectID, &e.Message, &e.LastSeen, &e.Count, &e.Type, &e.SessionID, &e.Status); err != nil {
-            return nil, err
-        }
-        errors = append(errors, &e)
-    }
-    return errors, rows.Err()
+	errors := make([]*models.Error, 0)
+	for rows.Next() {
+		var e models.Error
+		if err := rows.Scan(&e.ID, &e.ProjectID, &e.Message, &e.LastSeen, &e.Count, &e.Type, &e.SessionID, &e.Status); err != nil {
+			return nil, err
+		}
+		errors = append(errors, &e)
+	}
+	return errors, rows.Err()
 }
 
 func (r *ErrorRepository) CountByProject(ctx context.Context, projectID string) (int64, error) {
-    var count int64
-    query := `SELECT COUNT(*) FROM errors WHERE project_id = $1`
-    err := r.db.QueryRowContext(ctx, query, projectID).Scan(&count)
-    return count, err
+	var count int64
+	query := `SELECT COUNT(*) FROM errors WHERE project_id = $1`
+	err := r.db.QueryRowContext(ctx, query, projectID).Scan(&count)
+	return count, err
 }
 
 func (r *ErrorRepository) CountOccurrencesSince(ctx context.Context, projectID string, since time.Time) (int64, error) {

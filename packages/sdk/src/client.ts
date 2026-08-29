@@ -4,11 +4,38 @@ export type PulseGuardConfig = {
   dsn: string;
   userId?: string;
   release?: string;
+  commitSha?: string;
+  repositoryUrl?: string;
   environment?: string;
   issueTrackerUrl?: string;
+  captureClicks?: boolean;
 };
 
 type IngestPayload = Record<string, unknown>;
+
+export type PulseGuardSpan = {
+  spanId?: string;
+  parentSpanId?: string;
+  name: string;
+  serviceName?: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  httpMethod?: string;
+  httpUrl?: string;
+  httpStatus?: number;
+  attributes?: Record<string, string>;
+};
+
+export type PulseGuardTrace = {
+  traceId?: string;
+  name: string;
+  serviceName?: string;
+  startTime: string;
+  duration: number;
+  httpStatus?: number;
+  spans: PulseGuardSpan[];
+};
 
 let parsed: ParsedDSN | null = null;
 let config: PulseGuardConfig | null = null;
@@ -79,7 +106,12 @@ export function reportError(error: Error | string, extra?: Record<string, unknow
     projectId: parsed.projectId,
     environment: config?.environment || "production",
     release: config?.release,
-    metadata: extra || {},
+    metadata: {
+      release: config?.release,
+      commitSha: config?.commitSha,
+      repositoryUrl: config?.repositoryUrl,
+      ...extra,
+    },
   });
 }
 
@@ -102,6 +134,10 @@ export function reportLog(message: string, level: "debug" | "info" | "warn" | "e
     sessionId: ensureSessionId(),
     projectId: parsed.projectId,
   });
+}
+
+export function reportTrace(trace: PulseGuardTrace): void {
+  post("trace", trace);
 }
 
 export function reportPageview(page?: string): void {
@@ -134,13 +170,26 @@ function attachListeners() {
     const reason = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
     reportError(reason);
   };
+  const onClick = (event: MouseEvent) => {
+    if (config?.captureClicks === false) return;
+    const target = event.target instanceof Element ? event.target.closest("a,button,input,select,textarea,[role='button']") : null;
+    if (!target) return;
+    reportEvent("click", {
+      tag: target.tagName.toLowerCase(),
+      label: (target.getAttribute("aria-label") || target.textContent || "").trim().slice(0, 120),
+      id: target.id || undefined,
+      page: window.location.pathname,
+    });
+  };
   window.addEventListener("error", onError);
   window.addEventListener("unhandledrejection", onRejection);
+  window.addEventListener("click", onClick, { capture: true });
   reportPageview();
   return {
     cleanup: () => {
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("click", onClick, { capture: true });
     },
   };
 }

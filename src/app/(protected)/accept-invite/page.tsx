@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { Suspense, useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -21,7 +21,7 @@ import {
   CheckmarkCircle01Icon,
 } from "@/components/phosphor-icons";
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string | null>(searchParams.get("token"));
@@ -250,5 +250,19 @@ export default function AcceptInvitePage() {
 
       <PageFooter />
     </div>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-dot-pattern flex min-h-screen items-center justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
+        </div>
+      }
+    >
+      <AcceptInviteContent />
+    </Suspense>
   );
 }
