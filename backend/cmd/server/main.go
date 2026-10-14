@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"pulseguard/internal/ai/app"
 	"pulseguard/internal/api"
 	"pulseguard/internal/config"
 	"pulseguard/internal/db"
@@ -174,6 +175,16 @@ func main() {
 		metrics,
 		tokenService,
 	)
+
+	if os.Getenv("CLICKHOUSE_ADDR") != "" {
+		aiStack, err := app.Open(context.Background(), conn)
+		if err != nil {
+			appLogger.Error(context.Background(), "Failed to open AI stack", err)
+			os.Exit(1)
+		}
+		defer aiStack.Store.Close()
+		aiStack.Attach(server, appLogger, tokenService, userService, projectService, metrics)
+	}
 
 	// Prepare graceful shutdown
 	srv := &http.Server{

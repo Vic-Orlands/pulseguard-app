@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -22,6 +23,27 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
+
+type MirroredSpan struct {
+	SpanID       string
+	ParentSpanID string
+	Name         string
+	Start        time.Time
+	End          time.Time
+	DurationMs   float64
+	HTTPStatus   int
+	Attributes   map[string]string
+}
+
+type SpanMirror interface {
+	MirrorSpans(ctx context.Context, projectID, traceID, name string, spans []MirroredSpan) error
+}
+
+var spanMirror SpanMirror
+
+func SetSpanMirror(mirror SpanMirror) {
+	spanMirror = mirror
+}
 
 type TracesHandler struct {
 	tracesService  *service.TracesService
@@ -84,6 +106,21 @@ func (h *TracesHandler) Ingest(w http.ResponseWriter, r *http.Request) {
 	if len(req.Spans) == 0 {
 		util.WriteError(w, http.StatusBadRequest, "At least one span is required")
 		return
+	}
+	mirrored := make([]MirroredSpan, len(req.Spans))
+	for i, item := range req.Spans {
+		mirrored[i] = MirroredSpan{
+			SpanID: item.SpanID, ParentSpanID: item.ParentSpanID, Name: item.Name,
+			Start: item.StartTime, End: item.EndTime, DurationMs: item.DurationMs,
+			HTTPStatus: item.HTTPStatus, Attributes: item.Attributes,
+		}
+	}
+	if spanMirror != nil {
+		if err := spanMirror.MirrorSpans(ctx, projectID, strings.TrimSpace(req.TraceID), name, mirrored); err != nil {
+			h.logger.Error(ctx, "failed to mirror trace into AI observations", err)
+			util.WriteError(w, http.StatusBadGateway, "Failed to record AI observation")
+			return
+		}
 	}
 	if len(req.Spans) > 50 {
 		req.Spans = req.Spans[:50]

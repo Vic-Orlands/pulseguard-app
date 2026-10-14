@@ -41,8 +41,6 @@ services:
     ports:
       - "127.0.0.1:3200:3200" # tempo
       - "127.0.0.1:9095:9095" # tempo gRPC (for frontend communication)
-      - "127.0.0.1:4317:4317" # otlp grpc
-      - "127.0.0.1:4318:4318" # otlp HTTP
     networks:
       - monitoring
     restart: unless-stopped
@@ -127,9 +125,28 @@ services:
       OTLP_ENDPOINT: otel-collector:4318
       LOKI_URL: http://loki:3100
       PROMETHEUS_URL: http://prometheus:9090
+      CLICKHOUSE_ADDR: clickhouse:9000
+      REDIS_ADDR: redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: pulseguard
+      MINIO_SECRET_KEY: pulseguard-secret
+      MINIO_BUCKET: payloads
+      AI_UPSTREAM: http://pg-mock:8090
+      AI_PROVIDER_KEY: mock
+      INGEST_OTLP_URL: http://localhost:8083/v1/traces
+      GATEWAY_PUBLIC_URL: http://localhost:8082/v1/chat/completions
+    command: ["./pg-api"]
     depends_on:
       postgres:
         condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      pg-seed:
+        condition: service_completed_successfully
       otel-collector:
         condition: service_started
       prometheus:
@@ -138,11 +155,195 @@ services:
         condition: service_started
       tempo:
         condition: service_started
+    ports:
+      - "127.0.0.1:8081:8081"
     networks:
       - monitoring
     restart: unless-stopped
     volumes:
       - ./logs:/app/logs
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    environment:
+      CLICKHOUSE_DB: pulseguard
+      CLICKHOUSE_SKIP_USER_SETUP: "1"
+    ports:
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9000:9000"
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - monitoring
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: bitnamilegacy/minio:2025.7.23
+    environment:
+      MINIO_ROOT_USER: pulseguard
+      MINIO_ROOT_PASSWORD: pulseguard-secret
+    ports:
+      - "127.0.0.1:9100:9000"
+      - "127.0.0.1:9101:9001"
+    networks:
+      - monitoring
+    volumes:
+      - minio_data:/bitnami/minio/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pg-mock:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["./pg-mock"]
+    environment:
+      PORT: "8090"
+    networks:
+      - monitoring
+
+  pg-ingest:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["./pg-ingest"]
+    environment:
+      PORT: "8083"
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
+      CLICKHOUSE_ADDR: clickhouse:9000
+      REDIS_ADDR: redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: pulseguard
+      MINIO_SECRET_KEY: pulseguard-secret
+      MINIO_BUCKET: payloads
+    ports:
+      - "127.0.0.1:8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      pg-seed:
+        condition: service_completed_successfully
+    networks:
+      - monitoring
+
+  pg-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["./pg-worker"]
+    environment:
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
+      CLICKHOUSE_ADDR: clickhouse:9000
+      REDIS_ADDR: redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: pulseguard
+      MINIO_SECRET_KEY: pulseguard-secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      pg-seed:
+        condition: service_completed_successfully
+    networks:
+      - monitoring
+
+  pg-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["./pg-gateway"]
+    environment:
+      PORT: "8082"
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
+      CLICKHOUSE_ADDR: clickhouse:9000
+      REDIS_ADDR: redis:6379
+      AI_UPSTREAM: http://pg-mock:8090
+      AI_PROVIDER_KEY: mock
+    ports:
+      - "127.0.0.1:8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      pg-mock:
+        condition: service_started
+      pg-seed:
+        condition: service_completed_successfully
+    networks:
+      - monitoring
+
+  pg-seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["./pg-seed"]
+    environment:
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
+      CLICKHOUSE_ADDR: clickhouse:9000
+      REDIS_ADDR: redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - monitoring
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8081
+        NEXT_PUBLIC_PROJECT_ID: 33333333-3333-4333-8333-333333333333
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8081
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - go-backend
+    networks:
+      - monitoring
 
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -166,4 +367,6 @@ volumes:
   grafana_data:
   tempo_data:
   loki_data:
-  postgres_data: # remove this for production
+  postgres_data:
+  clickhouse_data:
+  minio_data:

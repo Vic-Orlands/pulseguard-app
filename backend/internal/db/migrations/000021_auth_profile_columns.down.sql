@@ -1,0 +1,5 @@
+DROP INDEX IF EXISTS users_provider_uidx;
+DROP TABLE IF EXISTS password_resets;
+ALTER TABLE users DROP COLUMN IF EXISTS image;
+ALTER TABLE users DROP COLUMN IF EXISTS provider_id;
+ALTER TABLE users DROP COLUMN IF EXISTS provider;

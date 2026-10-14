@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS eval_runs;
+DROP TABLE IF EXISTS evaluators;
+DROP TABLE IF EXISTS dataset_items;
+DROP TABLE IF EXISTS datasets;

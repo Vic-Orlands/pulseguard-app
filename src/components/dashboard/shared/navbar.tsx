@@ -477,6 +477,13 @@ export default function Header({
 
       <div className="mt-auto px-3 pb-4 space-y-1">
         <a
+          href={`/projects/${project.slug}/ai`}
+          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted no-underline transition-colors hover:bg-pg-group hover:text-pg-text"
+        >
+          <HugeiconsIcon icon={ChartLineData01Icon} className="h-4 w-4" />
+          AI console
+        </a>
+        <a
           href="/documentation"
           target="_blank"
           rel="noopener noreferrer"
