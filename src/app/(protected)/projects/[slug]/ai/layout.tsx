@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Shell } from "@/components/ai/shell";
+import { serverApiUrl } from "@/lib/server-api-url";
 
-const url = process.env.NEXT_PUBLIC_API_URL;
+const url = serverApiUrl();
 
 export default async function AILayout({
   children,

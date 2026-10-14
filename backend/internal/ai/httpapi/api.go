@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,7 +12,6 @@ import (
 	"pulseguard/internal/ai/configstore"
 	"pulseguard/internal/ai/domain"
 	"pulseguard/internal/ai/evals"
-	"pulseguard/internal/ai/gateway"
 	"pulseguard/internal/ai/keys"
 	"pulseguard/internal/ai/normalize"
 	"pulseguard/internal/ai/otlp"
@@ -40,17 +38,15 @@ type Publisher interface {
 }
 
 type API struct {
-	Store      *store.Store
-	Config     *configstore.Store
-	Publish    Publisher
-	Gateway    *gateway.Gateway
-	Projects   *service.ProjectService
-	Log        *logger.Logger
-	Tracer     trace.Tracer
-	Metrics    *otel.Metrics
-	Blobs      pipeline.Blobs
-	IngestURL  string
-	GatewayURL string
+	Store     *store.Store
+	Config    *configstore.Store
+	Publish   Publisher
+	Projects  *service.ProjectService
+	Log       *logger.Logger
+	Tracer    trace.Tracer
+	Metrics   *otel.Metrics
+	Blobs     pipeline.Blobs
+	IngestURL string
 }
 
 func Mount(mux chi.Router, token *auth.TokenService, users *service.UserService, api *API) {
@@ -73,7 +69,6 @@ func Mount(mux chi.Router, token *auth.TokenService, users *service.UserService,
 			r.Post("/query", api.Query)
 			r.Get("/prompts", api.Prompts)
 			r.Post("/prompts", api.SavePrompt)
-			r.Post("/playground", api.Playground)
 			r.Get("/datasets", api.Datasets)
 			r.Post("/datasets", api.CreateDataset)
 			r.Get("/evaluators", api.Evaluators)
@@ -292,41 +287,6 @@ func (a *API) SavePrompt(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusCreated, row)
 }
 
-func (a *API) Playground(w http.ResponseWriter, r *http.Request) {
-	projectID, ok := project(w, r)
-	if !ok {
-		return
-	}
-	var body struct {
-		Model  string `json:"model"`
-		Prompt string `json:"prompt"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Model == "" || body.Prompt == "" {
-		util.WriteError(w, http.StatusBadRequest, "Model and prompt are required")
-		return
-	}
-	payload, _ := json.Marshal(map[string]any{
-		"model": body.Model, "stream": false,
-		"messages": []map[string]string{{"role": "user", "content": body.Prompt}},
-	})
-	req, err := http.NewRequestWithContext(gateway.WithProject(r.Context(), projectID), http.MethodPost, "/v1/chat/completions", bytes.NewReader(payload))
-	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, "Unable to run playground")
-		return
-	}
-	rec := newMemoryRecorder()
-	a.Gateway.ServeChat(rec, req)
-	if rec.code >= 400 {
-		util.WriteError(w, rec.code, strings.TrimSpace(rec.body.String()))
-		return
-	}
-	util.WriteJSON(w, http.StatusOK, map[string]any{
-		"output": rec.body.String(),
-		"ttftMs": rec.header.Get("X-TTFT-MS"),
-		"model":  body.Model,
-	})
-}
-
 func (a *API) Datasets(w http.ResponseWriter, r *http.Request) {
 	projectID, ok := project(w, r)
 	if !ok {
@@ -543,9 +503,8 @@ func (a *API) Keys(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	util.WriteJSON(w, http.StatusOK, map[string]any{
-		"keys":       rows,
-		"ingestURL":  a.IngestURL,
-		"gatewayURL": a.GatewayURL,
+		"keys":      rows,
+		"ingestURL": a.IngestURL,
 	})
 }
 
@@ -820,22 +779,3 @@ func credentialKey(r *http.Request) string {
 	}
 	return keys.Hash(token)
 }
-
-type memoryRecorder struct {
-	header http.Header
-	body   bytes.Buffer
-	code   int
-}
-
-func newMemoryRecorder() *memoryRecorder {
-	return &memoryRecorder{header: make(http.Header), code: 200}
-}
-
-func (m *memoryRecorder) Header() http.Header { return m.header }
-func (m *memoryRecorder) Write(b []byte) (int, error) {
-	if m.code == 0 {
-		m.code = 200
-	}
-	return m.body.Write(b)
-}
-func (m *memoryRecorder) WriteHeader(status int) { m.code = status }

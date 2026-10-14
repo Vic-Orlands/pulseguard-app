@@ -23,6 +23,9 @@ func TestGenerateAndHash(t *testing.T) {
 	if _, err := ParseScopes("ingest,nope"); err == nil {
 		t.Fatal("expected unknown scope")
 	}
+	if _, err := ParseScopes("gateway"); err == nil {
+		t.Fatal("gateway is not a scope")
+	}
 }
 
 func stringsHas(value, prefix string) bool {

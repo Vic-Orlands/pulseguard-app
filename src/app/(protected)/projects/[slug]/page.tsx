@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import DashboardComponent from "./project-component";
 import { cookies } from "next/headers";
+import { serverApiUrl } from "@/lib/server-api-url";
 
-const url = process.env.NEXT_PUBLIC_API_URL;
+const url = serverApiUrl();
 
 export default async function ProjectDashboardPage({
   params,

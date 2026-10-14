@@ -1,7 +1,9 @@
 # PulseGuard
 
 
-PulseGuard is a full-stack observability workspace for investigating application errors alongside the logs, metrics, sessions, and distributed traces that explain them.
+PulseGuard is a passive observability platform. It records errors, logs, traces, metrics, and sessions from the running app, and it adds an AI layer when that app calls a model. Nothing in PulseGuard sits on the request path: there is no proxy, no budget block, and no rate-limit enforcement. Budgets, 429s, and provider rate-limit headers are observed and alerted on.
+
+AI telemetry arrives as OpenTelemetry. Point an existing exporter at the ingest URL, using GenAI semantic conventions (`gen_ai.operation.name`, `gen_ai.request.model`, `gen_ai.usage.*`, finish reasons, and conversation id). That covers OpenTelemetry GenAI instrumentation, OpenLLMetry, OpenLIT, the Vercel AI SDK `experimental_telemetry` flag, and LangChain's OpenTelemetry callback. The same OTLP path carries ordinary HTTP and database spans, so a request trace shows its model calls inline.
 
 - [Live interface](https://pulseguard-phi.vercel.app)
 - [Marketing site repository](https://github.com/Vic-Orlands/pulseguard-site)

@@ -21,7 +21,6 @@ const (
 	ScopeIngest  Scope = "ingest"
 	ScopeRead    Scope = "read"
 	ScopePrompts Scope = "prompts"
-	ScopeGateway Scope = "gateway"
 )
 
 func Generate(kind Kind) (token, prefix, sum string, err error) {
@@ -69,7 +68,7 @@ func ParseScopes(raw string) ([]Scope, error) {
 		return nil, fmt.Errorf("scopes required")
 	}
 	known := map[Scope]struct{}{
-		ScopeIngest: {}, ScopeRead: {}, ScopePrompts: {}, ScopeGateway: {},
+		ScopeIngest: {}, ScopeRead: {}, ScopePrompts: {},
 	}
 	parts := strings.Split(raw, ",")
 	out := make([]Scope, 0, len(parts))

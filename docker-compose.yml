@@ -131,10 +131,7 @@ services:
       MINIO_ACCESS_KEY: pulseguard
       MINIO_SECRET_KEY: pulseguard-secret
       MINIO_BUCKET: payloads
-      AI_UPSTREAM: http://pg-mock:8090
-      AI_PROVIDER_KEY: mock
       INGEST_OTLP_URL: http://localhost:8083/v1/traces
-      GATEWAY_PUBLIC_URL: http://localhost:8082/v1/chat/completions
     command: ["./pg-api"]
     depends_on:
       postgres:
@@ -215,16 +212,6 @@ services:
       timeout: 3s
       retries: 20
 
-  pg-mock:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: ["./pg-mock"]
-    environment:
-      PORT: "8090"
-    networks:
-      - monitoring
-
   pg-ingest:
     build:
       context: ./backend
@@ -281,34 +268,6 @@ services:
     networks:
       - monitoring
 
-  pg-gateway:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: ["./pg-gateway"]
-    environment:
-      PORT: "8082"
-      DB_URL: postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/pulseguard?sslmode=disable
-      CLICKHOUSE_ADDR: clickhouse:9000
-      REDIS_ADDR: redis:6379
-      AI_UPSTREAM: http://pg-mock:8090
-      AI_PROVIDER_KEY: mock
-    ports:
-      - "127.0.0.1:8082:8082"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      pg-mock:
-        condition: service_started
-      pg-seed:
-        condition: service_completed_successfully
-    networks:
-      - monitoring
-
   pg-seed:
     build:
       context: ./backend
@@ -338,6 +297,7 @@ services:
         NEXT_PUBLIC_PROJECT_ID: 33333333-3333-4333-8333-333333333333
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8081
+      API_INTERNAL_URL: http://go-backend:8081
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

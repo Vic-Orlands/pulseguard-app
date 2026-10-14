@@ -103,6 +103,21 @@ export default function Header({
   const [mounted, setMounted] = useState(false);
   const activeAlerts = alerts.filter((alert) => alert.enabled).length;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasAI, setHasAI] = useState(false);
+
+  useEffect(() => {
+    const to = new Date();
+    const from = new Date(to.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const controller = new AbortController();
+    void fetch(
+      `${url}/api/projects/${project.id}/ai/overview?from=${from.toISOString()}&to=${to.toISOString()}`,
+      { credentials: "include", signal: controller.signal },
+    )
+      .then(async (response) => (response.ok ? ((await response.json()) as { calls?: number }) : null))
+      .then((body) => setHasAI(Boolean(body && (body.calls ?? 0) > 0)))
+      .catch(() => setHasAI(false));
+    return () => controller.abort();
+  }, [project.id]);
 
   const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false);
   const [isCliModalOpen, setIsCliModalOpen] = useState(false);
@@ -451,38 +466,41 @@ export default function Header({
         {navItems.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setMobileMenuOpen(false);
-              }}
-              className={`mb-0.5 flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors duration-200 ${
-                isSelected
-                  ? "bg-pg-group text-pg-text font-medium"
-                  : "bg-transparent text-pg-muted hover:bg-pg-group/70 hover:text-pg-text"
-              }`}
-            >
-              <HugeiconsIcon icon={tab.icon} className="h-4 w-4" />
-              <span>{tab.label}</span>
-              {tab.id === "alerts" && activeAlerts > 0 ? (
-                <span className="ml-auto text-[10px] text-pg-subtle">
-                  {activeAlerts}
-                </span>
+            <div key={tab.id}>
+              <button
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setMobileMenuOpen(false);
+                }}
+                className={`mb-0.5 flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors duration-200 ${
+                  isSelected
+                    ? "bg-pg-group text-pg-text font-medium"
+                    : "bg-transparent text-pg-muted hover:bg-pg-group/70 hover:text-pg-text"
+                }`}
+              >
+                <HugeiconsIcon icon={tab.icon} className="h-4 w-4" />
+                <span>{tab.label}</span>
+                {tab.id === "alerts" && activeAlerts > 0 ? (
+                  <span className="ml-auto text-[10px] text-pg-subtle">
+                    {activeAlerts}
+                  </span>
+                ) : null}
+              </button>
+              {tab.id === "traces" && hasAI ? (
+                <a
+                  href={`/projects/${project.slug}/ai`}
+                  className="mb-0.5 flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] text-pg-muted no-underline transition-colors duration-200 hover:bg-pg-group/70 hover:text-pg-text"
+                >
+                  <HugeiconsIcon icon={ChartLineData01Icon} className="h-4 w-4" />
+                  <span>AI</span>
+                </a>
               ) : null}
-            </button>
+            </div>
           );
         })}
       </nav>
 
       <div className="mt-auto px-3 pb-4 space-y-1">
-        <a
-          href={`/projects/${project.slug}/ai`}
-          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-pg-muted no-underline transition-colors hover:bg-pg-group hover:text-pg-text"
-        >
-          <HugeiconsIcon icon={ChartLineData01Icon} className="h-4 w-4" />
-          AI console
-        </a>
         <a
           href="/documentation"
           target="_blank"

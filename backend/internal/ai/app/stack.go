@@ -4,19 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"encoding/hex"
-	"fmt"
-	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"pulseguard/internal/ai/alerts"
 	"pulseguard/internal/ai/blob"
 	"pulseguard/internal/ai/configstore"
 	"pulseguard/internal/ai/domain"
-	"pulseguard/internal/ai/gateway"
 	"pulseguard/internal/ai/httpapi"
-	"pulseguard/internal/ai/keys"
 	"pulseguard/internal/ai/normalize"
 	"pulseguard/internal/ai/pipeline"
 	"pulseguard/internal/ai/pricing"
@@ -34,12 +29,11 @@ import (
 )
 
 type Stack struct {
-	Store   *store.Store
-	Queue   *queue.Redis
-	Config  *configstore.Store
-	Blobs   *blob.Store
-	Gateway *gateway.Gateway
-	API     *httpapi.API
+	Store  *store.Store
+	Queue  *queue.Redis
+	Config *configstore.Store
+	Blobs  *blob.Store
+	API    *httpapi.API
 }
 
 func Open(ctx context.Context, db *sql.DB) (*Stack, error) {
@@ -59,24 +53,16 @@ func Open(ctx context.Context, db *sql.DB) (*Stack, error) {
 			return nil, err
 		}
 	}
-	upstreams := gateway.Upstreams{
-		OpenAI:     env("AI_UPSTREAM_OPENAI", os.Getenv("AI_UPSTREAM")),
-		Anthropic:  env("AI_UPSTREAM_ANTHROPIC", os.Getenv("AI_UPSTREAM")),
-		Gemini:     env("AI_UPSTREAM_GEMINI", os.Getenv("AI_UPSTREAM")),
-		OpenRouter: env("AI_UPSTREAM_OPENROUTER", os.Getenv("AI_UPSTREAM")),
-	}
-	return &Stack{Store: ch, Queue: redisQueue, Config: cfg, Blobs: blobs, Gateway: &gateway.Gateway{Upstreams: upstreams, APIKey: env("AI_PROVIDER_KEY", "mock")}}, nil
+	return &Stack{Store: ch, Queue: redisQueue, Config: cfg, Blobs: blobs}, nil
 }
 
 func (s *Stack) Bind(log *logger.Logger, projects *service.ProjectService, metrics *pgotel.Metrics) *httpapi.API {
 	apiHandler := &httpapi.API{
-		Store: s.Store, Config: s.Config, Publish: s.Queue, Gateway: s.wireGateway(),
+		Store: s.Store, Config: s.Config, Publish: s.Queue,
 		Projects: projects, Log: log, Tracer: otelapi.Tracer("pulseguard-ai"), Metrics: metrics, Blobs: s.Blobs,
-		IngestURL:  env("INGEST_OTLP_URL", "http://localhost:8083/v1/traces"),
-		GatewayURL: env("GATEWAY_PUBLIC_URL", "http://localhost:8082/v1/chat/completions"),
+		IngestURL: env("INGEST_OTLP_URL", "http://localhost:8083/v1/traces"),
 	}
 	s.API = apiHandler
-	s.Gateway = apiHandler.Gateway
 	return apiHandler
 }
 
@@ -84,55 +70,6 @@ func (s *Stack) Attach(srv *api.Server, log *logger.Logger, token *auth.TokenSer
 	apiHandler := s.Bind(log, projects, metrics)
 	httpapi.Mount(srv.Mux(), token, users, apiHandler)
 	handlers.SetSpanMirror(mirror{api: apiHandler})
-}
-
-func (s *Stack) wireGateway() *gateway.Gateway {
-	gw := s.Gateway
-	gw.Auth = func(r *http.Request) (string, error) {
-		if id, ok := gateway.ProjectFrom(r.Context()); ok {
-			return id, nil
-		}
-		token := bearer(r)
-		kind, ok := keys.KindOf(token)
-		if !ok || kind != keys.KindSecret {
-			return "", fmt.Errorf("unauthorized")
-		}
-		resolved, err := s.Config.Resolve(r.Context(), token)
-		if err != nil || !keys.Allows(resolved.Scopes, keys.ScopeGateway) {
-			return "", fmt.Errorf("unauthorized")
-		}
-		return resolved.ProjectID, nil
-	}
-	gw.Budget = func(ctx context.Context, projectID string) error {
-		if err := s.Config.HardStop(ctx, projectID); err != nil {
-			return gateway.ErrBudget
-		}
-		return nil
-	}
-	gw.Policy = func(ctx context.Context, projectID string) redact.Policy {
-		row, err := s.Config.Capture(ctx, projectID)
-		if err != nil {
-			return redact.DefaultPolicy()
-		}
-		return redact.Policy{CaptureInput: row.CaptureInput, CaptureOutput: row.CaptureOutput, CaptureTools: row.CaptureTools, Patterns: redact.DefaultPatterns()}
-	}
-	gw.Catalog = func(ctx context.Context, projectID string) pricing.Catalog {
-		rows, err := s.Config.Prices(ctx, projectID)
-		if err != nil {
-			return pricing.Default()
-		}
-		return pricing.Default().WithOverrides(rows)
-	}
-	gw.Publish = s.Queue
-	return gw
-}
-
-func bearer(r *http.Request) string {
-	value := strings.TrimSpace(r.Header.Get("Authorization"))
-	if strings.HasPrefix(strings.ToLower(value), "bearer ") {
-		return strings.TrimSpace(value[7:])
-	}
-	return strings.TrimSpace(r.Header.Get("X-PulseGuard-Key"))
 }
 
 type mirror struct{ api *httpapi.API }

@@ -45,17 +45,10 @@ const primary = [
   ["/costs", "Costs"],
   ["/throttling", "Throttling"],
   ["/prompts", "Prompts"],
-  ["/playground", "Playground"],
   ["/evals", "Evals"],
   ["/alerts", "Alerts"],
   ["/capture", "Capture"],
   ["/keys", "Keys"],
-] as const;
-
-const infra = [
-  ["logs", "Logs"],
-  ["metrics", "Metrics"],
-  ["errors", "Errors"],
 ] as const;
 
 export function Shell({
@@ -90,10 +83,13 @@ export function Shell({
       <div className="flex h-screen bg-[#1c1c1f] text-pg-text">
         <aside className="flex w-56 shrink-0 flex-col border-r border-pg-border bg-[#18181b]">
           <div className="px-4 py-4">
-            <p className="text-[10px] uppercase tracking-[0.16em] text-pg-subtle">PulseGuard AI</p>
+            <Link href={`/projects/${slug}`} className="text-[10px] uppercase tracking-[0.16em] text-pg-subtle no-underline hover:text-pg-text">
+              App
+            </Link>
             <p className="mt-1 truncate text-sm">{name}</p>
           </div>
           <nav className="flex-1 space-y-0.5 overflow-y-auto px-2">
+            <p className="px-2.5 pb-1 text-[10px] uppercase tracking-[0.16em] text-pg-subtle">AI</p>
             {primary.map(([href, label]) => {
               const path = `${base}${href}`;
               const active = href === "" ? pathname === base : pathname.startsWith(path);
@@ -107,21 +103,11 @@ export function Shell({
                 </Link>
               );
             })}
-            <p className="px-2.5 pb-1 pt-4 text-[10px] uppercase tracking-[0.16em] text-pg-subtle">Infrastructure</p>
-            {infra.map(([tab, label]) => (
-              <Link
-                key={tab}
-                href={`/projects/${slug}?tab=${tab}`}
-                className="block rounded-md px-2.5 py-1.5 text-[13px] text-pg-muted no-underline hover:bg-pg-group/70 hover:text-pg-text"
-              >
-                {label}
-              </Link>
-            ))}
           </nav>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 items-center justify-between border-b border-pg-border px-6">
-            <p className="text-sm text-pg-muted">LLM telemetry</p>
+            <p className="text-sm text-pg-muted">AI observability</p>
             <div className="flex rounded-lg bg-pg-group p-1">
               {ranges.map((item) => (
                 <button
@@ -141,7 +127,7 @@ export function Shell({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22 }}
-              className="mx-auto w-full max-w-6xl px-6 py-6"
+              className="mx-auto w-full max-w-[1440px] px-6 py-6"
             >
               {children}
             </motion.div>

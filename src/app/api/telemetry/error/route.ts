@@ -5,11 +5,12 @@ import {
   redactSensitiveText,
 } from "@/lib/telemetry/logger";
 import { getAuthForwardHeaders } from "@/lib/telemetry/forward-auth";
+import { serverApiUrl } from "@/lib/server-api-url";
 
 const tracer = trace.getTracer("error-api");
 const meter = metrics.getMeter("error-api");
 
-const url = process.env.NEXT_PUBLIC_API_URL;
+const url = serverApiUrl();
 
 // Create counters for errors
 const errorCounter: Counter = meter.createCounter("app.errors.total", {

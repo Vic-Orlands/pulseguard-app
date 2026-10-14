@@ -155,12 +155,12 @@ func (s *Store) SaveCapture(ctx context.Context, projectID string, row Capture) 
 }
 
 type Budget struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Spent    float64 `json:"spent"`
-	Limit    float64 `json:"limit"`
-	Pct      float64 `json:"pct"`
-	HardStop bool    `json:"hardStop"`
+	ID    string  `json:"id"`
+	Name  string  `json:"name"`
+	Spent float64 `json:"spent"`
+	Limit float64 `json:"limit"`
+	Pct   float64 `json:"pct"`
+	Alert bool    `json:"alert"`
 }
 
 func (s *Store) Budgets(ctx context.Context, projectID string) ([]Budget, error) {
@@ -181,21 +181,9 @@ func (s *Store) Budgets(ctx context.Context, projectID string) ([]Budget, error)
 		if limit > 0 {
 			pct = float64(spent) / float64(limit) * 100
 		}
-		out = append(out, Budget{ID: id, Name: name, Spent: domain.NanoUSD(spent).USD(), Limit: domain.NanoUSD(limit).USD(), Pct: pct, HardStop: hard})
+		out = append(out, Budget{ID: id, Name: name, Spent: domain.NanoUSD(spent).USD(), Limit: domain.NanoUSD(limit).USD(), Pct: pct, Alert: hard})
 	}
 	return out, rows.Err()
-}
-
-func (s *Store) HardStop(ctx context.Context, projectID string) error {
-	var blocked int
-	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM budgets WHERE project_id = $1 AND hard_stop AND spent_nano >= limit_nano`, projectID).Scan(&blocked)
-	if err != nil {
-		return err
-	}
-	if blocked > 0 {
-		return fmt.Errorf("budget exceeded")
-	}
-	return nil
 }
 
 func (s *Store) SetSpent(ctx context.Context, projectID string, usd float64) error {

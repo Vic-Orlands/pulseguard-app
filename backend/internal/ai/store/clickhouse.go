@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -408,33 +409,56 @@ func (s *Store) Traces(ctx context.Context, projectID string, w Window) ([]Trace
 	return out, rows.Err()
 }
 
+type SpanEvent struct {
+	Name string `json:"name"`
+	Body string `json:"body"`
+}
+
 type SpanRow struct {
-	SpanID       string    `json:"spanId"`
-	ParentSpanID string    `json:"parentSpanId"`
-	Name         string    `json:"name"`
-	Type         string    `json:"type"`
-	Start        time.Time `json:"start"`
-	OffsetMs     float64   `json:"offsetMs"`
-	DurationMs   float64   `json:"durationMs"`
-	Status       string    `json:"status"`
-	Provider     string    `json:"provider"`
-	Model        string    `json:"model"`
-	Input        string    `json:"input"`
-	Output       string    `json:"output"`
-	Slow         bool      `json:"slow"`
-	ErrorType    string    `json:"errorType"`
-	Cost         float64   `json:"cost"`
-	UserID       string    `json:"userId"`
-	ToolName     string    `json:"toolName"`
-	AgentName    string    `json:"agentName"`
-	HTTPStatus   uint16    `json:"httpStatus"`
+	SpanID           string            `json:"spanId"`
+	ParentSpanID     string            `json:"parentSpanId"`
+	Name             string            `json:"name"`
+	Type             string            `json:"type"`
+	Kind             string            `json:"kind"`
+	Operation        string            `json:"operation"`
+	Start            time.Time         `json:"start"`
+	OffsetMs         float64           `json:"offsetMs"`
+	DurationMs       float64           `json:"durationMs"`
+	Status           string            `json:"status"`
+	Provider         string            `json:"provider"`
+	Model            string            `json:"model"`
+	Input            string            `json:"input"`
+	Output           string            `json:"output"`
+	Slow             bool              `json:"slow"`
+	ErrorType        string            `json:"errorType"`
+	Cost             float64           `json:"cost"`
+	UserID           string            `json:"userId"`
+	ToolName         string            `json:"toolName"`
+	AgentName        string            `json:"agentName"`
+	HTTPStatus       uint16            `json:"httpStatus"`
+	InputTokens      uint32            `json:"inputTokens"`
+	OutputTokens     uint32            `json:"outputTokens"`
+	CacheReadTokens  uint32            `json:"cacheReadTokens"`
+	CacheWriteTokens uint32            `json:"cacheWriteTokens"`
+	ReasoningTokens  uint32            `json:"reasoningTokens"`
+	TTFTMS           float64           `json:"ttftMs"`
+	FinishReason     string            `json:"finishReason"`
+	Service          string            `json:"service"`
+	Environment      string            `json:"environment"`
+	Framework        string            `json:"framework"`
+	SessionID        string            `json:"sessionId"`
+	OutputType       string            `json:"outputType"`
+	Attributes       map[string]string `json:"attributes"`
+	Events           []SpanEvent       `json:"events"`
 }
 
 func (s *Store) Trace(ctx context.Context, projectID, traceID string) ([]SpanRow, error) {
 	rows, err := s.conn.Query(ctx, `
 		SELECT span_id, parent_span_id, name, type, start_time, duration_ms, status, provider,
 		       if(response_model = '', request_model, response_model), input, output, error_type,
-		       total_cost, user_id, tool_name, agent_name, http_status
+		       total_cost, user_id, tool_name, agent_name, http_status,
+		       input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, reasoning_tokens,
+		       toFloat64(ifNull(ttft_ms, 0)), finish_reason, session_id, environment, toJSONString(attributes)
 		FROM observations FINAL
 		WHERE project_id = ? AND trace_id = ?
 		ORDER BY start_time`, projectID, traceID)
@@ -445,9 +469,20 @@ func (s *Store) Trace(ctx context.Context, projectID, traceID string) ([]SpanRow
 	var spans []SpanRow
 	for rows.Next() {
 		var row SpanRow
-		if err = rows.Scan(&row.SpanID, &row.ParentSpanID, &row.Name, &row.Type, &row.Start, &row.DurationMs, &row.Status, &row.Provider, &row.Model, &row.Input, &row.Output, &row.ErrorType, &row.Cost, &row.UserID, &row.ToolName, &row.AgentName, &row.HTTPStatus); err != nil {
+		var attrsJSON string
+		if err = rows.Scan(
+			&row.SpanID, &row.ParentSpanID, &row.Name, &row.Type, &row.Start, &row.DurationMs, &row.Status, &row.Provider,
+			&row.Model, &row.Input, &row.Output, &row.ErrorType, &row.Cost, &row.UserID, &row.ToolName, &row.AgentName, &row.HTTPStatus,
+			&row.InputTokens, &row.OutputTokens, &row.CacheReadTokens, &row.CacheWriteTokens, &row.ReasoningTokens,
+			&row.TTFTMS, &row.FinishReason, &row.SessionID, &row.Environment, &attrsJSON,
+		); err != nil {
 			return nil, err
 		}
+		row.Attributes = map[string]string{}
+		if attrsJSON != "" && attrsJSON != "{}" {
+			_ = json.Unmarshal([]byte(attrsJSON), &row.Attributes)
+		}
+		decorateSpan(&row)
 		spans = append(spans, row)
 	}
 	if err = rows.Err(); err != nil {
@@ -467,6 +502,70 @@ func (s *Store) Trace(ctx context.Context, projectID, traceID string) ([]SpanRow
 		spans[i].Slow = spans[i].DurationMs > mid*2 && mid > 0
 	}
 	return spans, nil
+}
+
+func decorateSpan(row *SpanRow) {
+	attrs := row.Attributes
+	if attrs == nil {
+		attrs = map[string]string{}
+		row.Attributes = attrs
+	}
+	row.Kind = attrs["pulseguard.display"]
+	if row.Kind == "" {
+		switch row.Type {
+		case "generation":
+			if attrs["pulseguard.stream"] == "true" {
+				row.Kind = "stream"
+			} else {
+				row.Kind = "chat"
+			}
+		case "agent":
+			row.Kind = "agent"
+		case "tool":
+			row.Kind = "tool"
+		case "retrieval":
+			row.Kind = "retrieval"
+		case "embedding":
+			row.Kind = "embeddings"
+		case "mcp":
+			row.Kind = "tool"
+		default:
+			if attrs["http.route"] != "" || attrs["http.request.method"] != "" {
+				row.Kind = "http"
+			} else {
+				row.Kind = "function"
+			}
+		}
+	}
+	row.Operation = firstAttr(attrs["pulseguard.operation"], row.Model, row.ToolName, attrs["http.route"], attrs["gen_ai.operation.name"], attrs["db.statement"], row.Name)
+	row.Service = attrs["service.name"]
+	row.Framework = attrs["pulseguard.framework"]
+	row.OutputType = attrs["gen_ai.output.type"]
+	if row.OutputType == "" {
+		row.OutputType = "text"
+	}
+	row.Events = eventsOf(attrs["pulseguard.events"])
+	delete(attrs, "pulseguard.events")
+}
+
+func eventsOf(raw string) []SpanEvent {
+	if strings.TrimSpace(raw) == "" {
+		return []SpanEvent{}
+	}
+	var events []SpanEvent
+	if err := json.Unmarshal([]byte(raw), &events); err != nil || events == nil {
+		return []SpanEvent{}
+	}
+	return events
+}
+
+func firstAttr(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func median(values []float64) float64 {

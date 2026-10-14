@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -45,11 +47,12 @@ func main() {
 	}
 	defer stack.Store.Close()
 	now := time.Now().UTC()
-	rows, err := demo.Observations(now)
+	sample, err := demo.Application(now)
 	if err != nil {
 		log.Error(ctx, "demo observations", err)
 		os.Exit(1)
 	}
+	rows := sample.Observations
 	if err = stack.Store.ResetObservations(ctx); err != nil {
 		log.Error(ctx, "clickhouse reset", err)
 		os.Exit(1)
@@ -75,8 +78,11 @@ func main() {
 		log.Error(ctx, "budget", err)
 		os.Exit(1)
 	}
+	if err = seedTelemetry(ctx, conn, sample); err != nil {
+		log.Error(ctx, "telemetry", err)
+		os.Exit(1)
+	}
 	log.Info(ctx, "seeded demo@pulseguard.ai / pulseguard-demo project invoice-assistant")
-	log.Info(ctx, "gateway key "+demo.DemoKey)
 }
 
 func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
@@ -106,17 +112,23 @@ func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
 	}
 	_, err = conn.ExecContext(ctx, `
 		INSERT INTO projects (id, owner_id, workspace_id, name, slug, description, ingest_key, created_at, updated_at)
-		VALUES ($1, $2, $3, 'Invoice Assistant', 'invoice-assistant', 'LLM traces for the invoice agent', $4, $5, $5)
+		VALUES ($1, $2, $3, 'Invoice Assistant', 'invoice-assistant', 'Invoice API with HTTP, database, and LLM telemetry', $4, $5, $5)
 		ON CONFLICT (id) DO NOTHING`,
 		demo.ProjectID, demo.UserID, demo.WorkspaceID, demo.IngestKey, now)
 	if err != nil {
 		return err
 	}
+	if _, err = conn.ExecContext(ctx, `UPDATE projects SET description = $1 WHERE id = $2`, "Invoice API with HTTP, database, and LLM telemetry", demo.ProjectID); err != nil {
+		return err
+	}
 	cfg := configstore.New(conn, nil)
 	if err = cfg.InsertKey(ctx, configstore.APIKey{
-		ID: "55555555-5555-4555-8555-555555555555", ProjectID: demo.ProjectID, Name: "local gateway",
-		Prefix: demo.DemoKey[:12], Scopes: []string{"ingest", "read", "prompts", "gateway"}, Kind: "secret", CreatedAt: now,
+		ID: "55555555-5555-4555-8555-555555555555", ProjectID: demo.ProjectID, Name: "ingest",
+		Prefix: demo.DemoKey[:12], Scopes: []string{"ingest", "read", "prompts"}, Kind: "secret", CreatedAt: now,
 	}, keys.Hash(demo.DemoKey)); err != nil {
+		return err
+	}
+	if _, err = conn.ExecContext(ctx, `UPDATE api_keys SET name = 'ingest', scopes = ARRAY['ingest','read','prompts'] WHERE id = $1`, "55555555-5555-4555-8555-555555555555"); err != nil {
 		return err
 	}
 	if err = cfg.InsertKey(ctx, configstore.APIKey{
@@ -182,4 +194,90 @@ func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
 	}
 	_, err = cfg.CreateEvaluator(ctx, demo.ProjectID, "Faithful", "faithfulness")
 	return err
+}
+
+func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error {
+	tx, err := conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	statements := []string{
+		`DELETE FROM telemetry_spans WHERE trace_id IN (SELECT trace_id FROM telemetry_traces WHERE project_id = $1)`,
+		`DELETE FROM telemetry_traces WHERE project_id = $1`,
+		`DELETE FROM telemetry_logs WHERE project_id = $1`,
+		`DELETE FROM session_events WHERE project_id = $1`,
+		`DELETE FROM sessions WHERE project_id = $1`,
+		`DELETE FROM error_tags WHERE error_id IN (SELECT id FROM errors WHERE project_id = $1)`,
+		`DELETE FROM error_occurrences WHERE error_id IN (SELECT id FROM errors WHERE project_id = $1)`,
+		`DELETE FROM errors WHERE project_id = $1`,
+		`DELETE FROM alerts WHERE project_id = $1`,
+	}
+	for _, statement := range statements {
+		if _, err = tx.ExecContext(ctx, statement, demo.ProjectID); err != nil {
+			return err
+		}
+	}
+	for _, trace := range sample.Traces {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO telemetry_traces (trace_id, project_id, name, service_name, start_time, duration_ms, http_status, span_count)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+			trace.TraceID, demo.ProjectID, trace.Name, trace.Service, trace.Start, trace.Duration, trace.Status, len(trace.Spans)); err != nil {
+			return err
+		}
+		for _, span := range trace.Spans {
+			raw, _ := json.Marshal(span.Attrs)
+			var parent any
+			if span.ParentID != "" {
+				parent = span.ParentID
+			}
+			if _, err = tx.ExecContext(ctx, `
+				INSERT INTO telemetry_spans (
+					span_id, trace_id, parent_span_id, name, service_name, start_time, end_time, duration_ms, http_method, http_url, http_status, attributes
+				) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+				span.SpanID, trace.TraceID, parent, span.Name, span.Service, span.Start, span.End, span.Duration, span.Method, span.URL, span.Status, raw); err != nil {
+				return err
+			}
+		}
+	}
+	for _, item := range sample.Logs {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO telemetry_logs (id, project_id, session_id, trace_id, span_id, level, service_name, message, route, source, created_at)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+			item.ID, demo.ProjectID, item.Session, item.TraceID, item.SpanID, item.Level, item.Service, item.Message, item.Route, item.Source, item.At); err != nil {
+			return err
+		}
+	}
+	for i, item := range sample.Sessions {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO sessions (session_id, project_id, user_id, start_time, end_time, duration_ms, error_count, event_count, pageview_count)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+			item.ID, demo.ProjectID, item.UserID, item.Start, item.End, item.Duration, item.Errors, item.Events, item.Pageviews); err != nil {
+			return err
+		}
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO session_events (id, project_id, session_id, event_type, event_name, data, created_at)
+			VALUES ($1,$2,$3,'pageview','/invoices','{}',$4)`,
+			fmt.Sprintf("bbbbbbbb-bbbb-4bbb-8bbb-%012d", i+1), demo.ProjectID, item.ID, item.Start); err != nil {
+			return err
+		}
+	}
+	for _, item := range sample.Errors {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO errors (id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, user_id, session_id, status)
+			VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+			item.ID, demo.ProjectID, item.Message, item.Stack, item.Fingerprint, item.At, item.Environment, item.Count, item.Source, item.Type, item.URL, item.UserID, item.SessionID, item.Status); err != nil {
+			return err
+		}
+	}
+	now := time.Now().UTC()
+	for _, item := range sample.Alerts {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO alerts (id, project_id, name, message, severity, type, threshold, window_minutes, enabled, created_at, updated_at)
+			VALUES ($1,$2,$3,$4,$5,$6,5,15,true,$7,$7)`,
+			item.ID, demo.ProjectID, item.Name, item.Message, item.Severity, item.Type, now); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }

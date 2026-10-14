@@ -30,17 +30,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, subHours, subDays } from "date-fns";
+import { useSearchParams } from "next/navigation";
+import { subHours, subDays } from "date-fns";
 import { fetchTraces } from "@/lib/api/otlp-api";
 import type { Project, TimeProp, TraceSummary } from "@/types/dashboard";
 import CustomErrorMessage from "../../shared/error-message";
-import TraceToLogsComponent from "./trace-to-logs";
+import { TraceInspector } from "@/components/ai/trace-view";
 import { Badge } from "@/components/ui/badge";
 import { displayValue, formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
 
 const TracesTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
+  const searchParams = useSearchParams();
 
   const [error, setError] = useState<Error | null>(null);
   const [traces, setTraces] = useState<TraceSummary[]>([]);
@@ -87,6 +89,23 @@ const TracesTab = ({ project }: { project: Project }) => {
 
     fetchData();
   }, [project.id, timeRange, start, end]);
+
+  useEffect(() => {
+    const id = searchParams.get("trace");
+    if (!id || isLoading) return;
+    const found = traces.find((trace) => trace.traceId === id);
+    if (found) {
+      setSelectedTrace(found);
+      return;
+    }
+    setSelectedTrace({
+      traceId: id,
+      name: "Request",
+      serviceName: "web",
+      startTime: new Date().toISOString(),
+      duration: 0,
+    });
+  }, [searchParams, traces, isLoading]);
 
   // Filter and search traces
   const filteredTraces = useMemo(() => {
@@ -289,16 +308,16 @@ const TracesTab = ({ project }: { project: Project }) => {
       </div>
 
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
-        <SheetContent side="right" className="overflow-y-auto p-6">
-          <SheetHeader className="p-0 pb-4 mb-4">
-            <SheetTitle className="text-sm font-semibold">Trace Details</SheetTitle>
-            <SheetDescription className="text-xs text-pg-muted">
-              {selectedTrace
-                ? `Trace ID: ${selectedTrace.traceId} | Time: ${format(new Date(selectedTrace.startTime), "PP, h:mmaaa")}`
-                : ""}
+        <SheetContent side="right" className="w-[min(96vw,80rem)] overflow-y-auto p-4 sm:max-w-none">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Trace</SheetTitle>
+            <SheetDescription>
+              {selectedTrace ? selectedTrace.traceId : ""}
             </SheetDescription>
           </SheetHeader>
-          {selectedTrace ? <TraceToLogsComponent traceId={selectedTrace.traceId} projectId={project.id} /> : null}
+          {selectedTrace ? (
+            <TraceInspector projectId={project.id} slug={project.slug} traceId={selectedTrace.traceId} surface="app" />
+          ) : null}
         </SheetContent>
       </Sheet>
     </>

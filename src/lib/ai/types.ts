@@ -12,7 +12,7 @@ export type ModelRow = {
   throttlePct: number;
 };
 
-export type Budget = { id?: string; name: string; spent: number; limit: number; pct: number; hardStop?: boolean };
+export type Budget = { id?: string; name: string; spent: number; limit: number; pct: number; alert?: boolean };
 
 export type Overview = {
   spend: number;
@@ -44,11 +44,16 @@ export type TraceRow = {
   errorType: string;
 };
 
+export type SpanEvent = { name: string; body: string };
+
 export type SpanRow = {
   spanId: string;
   parentSpanId: string;
   name: string;
   type: string;
+  kind?: string;
+  operation?: string;
+  start?: string;
   offsetMs: number;
   durationMs: number;
   status: string;
@@ -62,6 +67,21 @@ export type SpanRow = {
   userId: string;
   toolName: string;
   agentName: string;
+  httpStatus?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  reasoningTokens?: number;
+  ttftMs?: number;
+  finishReason?: string;
+  service?: string;
+  environment?: string;
+  framework?: string;
+  sessionId?: string;
+  outputType?: string;
+  attributes?: Record<string, string>;
+  events?: SpanEvent[];
 };
 
 export type SessionRow = {
