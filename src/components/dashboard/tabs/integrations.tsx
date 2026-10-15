@@ -305,12 +305,22 @@ export default function IntegrationsTab({ project }: { project: Project }) {
 
   const providerMeta = providers.find((item) => item.id === active);
 
+  const connectedCount = items.filter((item) => item.enabled).length;
+
   return (
     <div className="space-y-4">
-      <p className="max-w-xl text-xs leading-relaxed text-pg-muted">
-        Connect outbound webhooks and API keys for Slack, GitHub, PagerDuty, and
-        similar tools.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <p className="max-w-xl text-xs leading-relaxed text-pg-muted">
+          Connect outbound webhooks and API keys for Slack, GitHub, PagerDuty, and
+          similar tools.
+        </p>
+        <div className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+            Connected
+          </p>
+          <p className="text-lg font-semibold text-pg-text">{connectedCount}</p>
+        </div>
+      </div>
       {loading ? (
         <PageSkeleton variant="cards" />
       ) : (

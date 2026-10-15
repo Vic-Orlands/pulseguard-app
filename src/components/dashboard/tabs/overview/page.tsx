@@ -10,11 +10,16 @@ import {
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Server } from "@/components/phosphor-icons";
+import Link from "next/link";
 import { fetchDashboardData, fetchLogs, fetchTraces } from "@/lib/api/otlp-api";
+import { SpendChart } from "@/components/ai/charts";
+import { usd } from "@/lib/ai/client";
+import type { Overview } from "@/lib/ai/types";
 import CustomErrorMessage from "../../shared/error-message";
 import { formatTableTime, getUptime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 import type { Dispatch, SetStateAction, ReactNode } from "react";
 import type {
@@ -85,6 +90,7 @@ export default function OverviewTab({
   });
   const [logs, setLogs] = useState<Log[]>([]);
   const [traces, setTraces] = useState<TraceSummary[]>([]);
+  const [ai, setAI] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,6 +104,16 @@ export default function OverviewTab({
         setData(dashboard);
         setLogs(logRows || []);
         setTraces(traceRows || []);
+        const to = new Date();
+        const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const aiResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/projects/${project.id}/ai/overview?from=${from.toISOString()}&to=${to.toISOString()}`,
+          { credentials: "include" },
+        );
+        if (aiResponse.ok) {
+          const body = (await aiResponse.json()) as Overview;
+          setAI(body.calls > 0 ? body : null);
+        }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load overview data");
@@ -167,6 +183,49 @@ export default function OverviewTab({
             icon={<HugeiconsIcon icon={HierarchyFilesIcon} className="h-4 w-4" />}
           />
         </div>
+
+        <ActivityChart
+          title="Requests"
+          series={["OK", "Errors"]}
+          colors={["#34d399", "#f87171"]}
+          events={traces.map((trace) => ({
+            at: trace.startTime,
+            series: (trace.httpStatus ?? 0) >= 400 ? "Errors" : "OK",
+          }))}
+        />
+
+        {ai ? (
+          <Link
+            href={`/projects/${project.slug}/ai`}
+            className="block rounded-lg bg-pg-group px-3 py-3 text-pg-text no-underline"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-semibold">AI</h3>
+              <span className="text-[11px] text-pg-muted">Open AI</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div>
+                <p className="text-[11px] text-pg-subtle">Spend</p>
+                <p className="text-sm">{usd(ai.spend)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-pg-subtle">Calls</p>
+                <p className="text-sm">{ai.calls.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-pg-subtle">p95</p>
+                <p className="text-sm">{Math.round(ai.p95Ms)} ms</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-pg-subtle">Throttled</p>
+                <p className="text-sm">{ai.throttledPct.toFixed(1)}%</p>
+              </div>
+            </div>
+            <div className="mt-2">
+              <SpendChart series={ai.series} />
+            </div>
+          </Link>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <PreviewCard

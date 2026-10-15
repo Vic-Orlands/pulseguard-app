@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthForwardHeaders } from "@/lib/telemetry/forward-auth";
+import { serverApiUrl } from "@/lib/server-api-url";
 
-const url = process.env.NEXT_PUBLIC_API_URL;
+const url = serverApiUrl();
 
 export async function POST(request: NextRequest) {
   const projectId = request.headers.get("x-project-id") || "";

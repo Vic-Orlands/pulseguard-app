@@ -1,0 +1,9 @@
+time	principle	decision	reason
+2026-10-14T20:20:00Z	model-the-domain	Observation is the only stored AI event, with types generation agent tool retrieval embedding mcp span event	The product records LLM work, not a general event log
+2026-10-14T20:20:00Z	boundary-discipline	ClickHouse holds observations; Postgres holds users, keys, prompts, budgets, and policies	OLTP identity stays where the existing app already enforces it
+2026-10-14T20:20:00Z	subtract-before-you-add	Axiom is a light reference for time range, waterfall focus, and a traces query bar	User correction: Axiom is a general log platform; PulseGuard stays AI-first
+2026-10-14T20:20:00Z	type-system-discipline	PQL is a closed verb and column set compiled to bound ClickHouse parameters	A free-text query still cannot leave the observations table
+2026-10-14T20:20:00Z	foundational-thinking	Ingest is OTLP plus an OpenAI-compatible gateway; SDKs are deferred	Apps already emit GenAI spans or speak chat completions
+2026-10-14T22:50:00Z	boundary-discipline	Remove the gateway, playground, and budget hard-stop	PulseGuard must not sit in the request path or add latency as a base URL
+2026-10-14T22:50:00Z	model-the-domain	AI is one section of app observability, hidden when a project has no model spans	The product observes the whole app; model calls are a layer inside request traces
+2026-10-14T20:20:00Z	prove-it-works	Seed writes through the same price, classify, and redact pipeline the API reads	Demo numbers are computed, not painted onto the mockups

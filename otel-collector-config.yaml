@@ -7,8 +7,8 @@ receivers:
         endpoint: 0.0.0.0:4318
         cors:
           allowed_origins:
-            - "http://*"
-            - "https://*"
+            - "http://localhost:3000"
+            - "http://127.0.0.1:3000"
 
   filelog:
     include: ["/app/logs/*.log"]
@@ -105,20 +105,17 @@ exporters:
       max_interval: 30s
       max_elapsed_time: 5m
 
-  debug:
-    verbosity: detailed
-
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [otlp/tempo, debug]
+      exporters: [otlp/tempo]
 
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, attributes, batch, resourcedetection]
-      exporters: [prometheus, debug]
+      exporters: [prometheus]
 
     logs:
       receivers: [otlp, filelog]
@@ -130,7 +127,7 @@ service:
           batch,
           resourcedetection,
         ]
-      exporters: [otlphttp/loki, debug]
+      exporters: [otlphttp/loki]
 
   telemetry:
     logs:

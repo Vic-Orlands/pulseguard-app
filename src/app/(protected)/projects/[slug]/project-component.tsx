@@ -2,7 +2,8 @@
 
 import { HugeiconsIcon } from "@/components/phosphor-icons";
 import { Add01Icon } from "@/components/phosphor-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Lenis from "lenis";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import HelpButton from "@/components/dashboard/shared/help-button";
@@ -18,6 +19,7 @@ import TracesTab from "@/components/dashboard/tabs/traces/page";
 import SettingsTab from "@/components/dashboard/tabs/settings/page";
 import OverviewTab from "@/components/dashboard/tabs/overview/page";
 import IntegrationsTab from "@/components/dashboard/tabs/integrations";
+import TeamsTab from "@/components/dashboard/tabs/teams";
 import ConnectPlatformPage from "@/components/dashboard/tabs/connect-platform";
 import { PageMotion } from "@/components/dashboard/shared/page-motion";
 import {
@@ -34,6 +36,7 @@ import type { Alert, NavItem, Project } from "@/types/dashboard";
 
 export default function DashboardComponent({ project }: { project: Project }) {
   const searchParams = useSearchParams();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const defaultTab = (searchParams.get("tab") as NavItem) || "overview";
 
   const [total, setTotal] = useState<number>(0);
@@ -52,6 +55,16 @@ export default function DashboardComponent({ project }: { project: Project }) {
   useEffect(() => {
     setLastProjectSlug(project.slug);
   }, [project.slug]);
+
+  useEffect(() => {
+    const wrapper = scrollRef.current;
+    const content = wrapper?.firstElementChild;
+    if (!wrapper || !(content instanceof HTMLElement)) {
+      return;
+    }
+    const lenis = new Lenis({ wrapper, content, autoRaf: true });
+    return () => lenis.destroy();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -134,6 +147,8 @@ export default function DashboardComponent({ project }: { project: Project }) {
         return <AlertsTab project={project} />;
       case "integrations":
         return <IntegrationsTab project={project} />;
+      case "teams":
+        return <TeamsTab />;
       case "settings":
         return <SettingsTab project={project} setActiveTab={setActiveTab} />;
       case "connect-platform":
@@ -154,7 +169,10 @@ export default function DashboardComponent({ project }: { project: Project }) {
             project={project}
           />
 
-          <div className="min-w-0 flex-1 overflow-y-auto bg-[var(--background)]">
+          <div
+            ref={scrollRef}
+            className="min-w-0 flex-1 overflow-y-auto bg-[var(--background)]"
+          >
             <main className="mx-auto min-h-full w-[90%] max-w-[90%]">
               <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <h1 className="text-lg font-semibold tracking-tight text-pg-text">

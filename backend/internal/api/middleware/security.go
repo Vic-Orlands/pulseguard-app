@@ -76,17 +76,28 @@ type rateLimiter struct {
 	entries map[string]rateEntry
 	limit   int
 	window  time.Duration
+	key     func(*http.Request) string
 }
 
 func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler {
-	limiter := &rateLimiter{entries: make(map[string]rateEntry), limit: limit, window: window}
+	return newRateLimiter(limit, window, func(r *http.Request) string {
+		return util.GetIPAddress(r) + "|" + r.URL.Path
+	})
+}
+
+func RateLimitBy(limit int, window time.Duration, keyFn func(*http.Request) string) func(http.Handler) http.Handler {
+	return newRateLimiter(limit, window, keyFn)
+}
+
+func newRateLimiter(limit int, window time.Duration, keyFn func(*http.Request) string) func(http.Handler) http.Handler {
+	limiter := &rateLimiter{entries: make(map[string]rateEntry), limit: limit, window: window, key: keyFn}
 	return limiter.middleware
 }
 
 func (l *rateLimiter) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		now := time.Now()
-		key := util.GetIPAddress(r) + "|" + r.URL.Path
+		key := l.key(r)
 
 		l.mu.Lock()
 		entry := l.entries[key]

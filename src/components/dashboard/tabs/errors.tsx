@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { displayValue, formatTableTime, tagValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 import type { Error, ErrorMetaRowProps, ErrorsTabProps } from "@/types/error";
 
@@ -168,7 +169,7 @@ export function ErrorDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={isStatusLoading ? () => {} : onClose}>
-      <SheetContent className="gap-0 overflow-hidden p-0">
+      <SheetContent className="w-[min(96vw,56rem)] gap-0 overflow-hidden p-0 sm:max-w-none">
         {selectedError ? (
           <div className="flex h-full min-h-0 flex-col text-foreground">
             <SheetHeader className="shrink-0 border-b border-border/50 px-5 py-4 pr-12">
@@ -413,7 +414,7 @@ export function ErrorDetailsSheet({
             </Card>
 
             {/* Tags */}
-            {selectedError.tags.length > 0 && (
+            {(selectedError.tags ?? []).length > 0 && (
               <Card className="bg-card border border-border shadow-none rounded-lg">
                 <CardHeader className="py-3 px-4 border-b border-border/50">
                   <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
@@ -433,7 +434,7 @@ export function ErrorDetailsSheet({
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {selectedError.tags.map((tag) => (
+                      {(selectedError.tags ?? []).map((tag) => (
                         <Badge
                           key={tag.id}
                           variant="outline"
@@ -615,7 +616,16 @@ export default function ErrorsTab({
   }
 
   return (
-    <div>
+    <div className="space-y-3">
+      <ActivityChart
+        title="Error groups"
+        series={["Active", "Resolved"]}
+        colors={["#f87171", "#34d399"]}
+        events={(localErrors ?? []).map((item) => ({
+          at: item.occurredAt || item.lastSeen,
+          series: item.status?.toUpperCase() === "RESOLVED" ? "Resolved" : "Active",
+        }))}
+      />
       <Card className="bg-card border border-border shadow-none rounded-lg">
         <CardHeader>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

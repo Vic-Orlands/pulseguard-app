@@ -83,3 +83,7 @@ func NewServer(
 func (s *Server) Router() http.Handler {
 	return s.router
 }
+
+func (s *Server) Mux() *chi.Mux {
+	return s.router
+}

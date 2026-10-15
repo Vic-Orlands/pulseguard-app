@@ -32,6 +32,7 @@ yarn-error.log*
 /logs/
 /dist_linux/
 /backend/server
+/backend/main
 /backend/slim.report.json
 /backend/internal/db/pg_backup/
 
