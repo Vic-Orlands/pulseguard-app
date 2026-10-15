@@ -50,7 +50,7 @@ func (r *ErrorRepository) Track(ctx context.Context, errorData *models.Error, me
 
 	var existingError models.Error
 	err = tx.QueryRowContext(ctx, `
-        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+        SELECT id, project_id, message, COALESCE(stack_trace, ''), fingerprint, occurred_at, last_seen, environment, COALESCE(release, ''), count, COALESCE(source, ''), COALESCE(type, ''), COALESCE(url, ''), COALESCE(component_stack, ''), COALESCE(browser_info, ''), COALESCE(user_id, ''), COALESCE(session_id, ''), COALESCE(status, '')
         FROM errors
         WHERE project_id = $1 AND environment = $2 AND message = $3 AND source = $4 AND type = $5 AND fingerprint = $6`,
 		errorData.ProjectID, errorData.Environment, errorData.Message, errorData.Source, errorData.Type, fingerprint).
@@ -150,7 +150,7 @@ func (r *ErrorRepository) updateError(ctx context.Context, tx *sql.Tx, errorData
 }
 
 func (r *ErrorRepository) GetErrors(ctx context.Context, filters ErrorFilters) ([]*models.Error, int, error) {
-	query := `SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+	query := `SELECT id, project_id, message, COALESCE(stack_trace, ''), fingerprint, occurred_at, last_seen, environment, COALESCE(release, ''), count, COALESCE(source, ''), COALESCE(type, ''), COALESCE(url, ''), COALESCE(component_stack, ''), COALESCE(browser_info, ''), COALESCE(user_id, ''), COALESCE(session_id, ''), COALESCE(status, '')
               FROM errors WHERE 1=1`
 	args := []interface{}{}
 	countQuery := `SELECT COUNT(*) FROM errors WHERE 1=1`
@@ -262,7 +262,7 @@ func (r *ErrorRepository) GetErrors(ctx context.Context, filters ErrorFilters) (
 func (r *ErrorRepository) GetErrorByID(ctx context.Context, id string) (*models.Error, error) {
 	var e models.Error
 	err := r.db.QueryRowContext(ctx, `
-        SELECT id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status
+        SELECT id, project_id, message, COALESCE(stack_trace, ''), fingerprint, occurred_at, last_seen, environment, COALESCE(release, ''), count, COALESCE(source, ''), COALESCE(type, ''), COALESCE(url, ''), COALESCE(component_stack, ''), COALESCE(browser_info, ''), COALESCE(user_id, ''), COALESCE(session_id, ''), COALESCE(status, '')
         FROM errors WHERE id = $1`, id).
 		Scan(&e.ID, &e.ProjectID, &e.Message, &e.StackTrace, &e.Fingerprint, &e.OccurredAt,
 			&e.LastSeen, &e.Environment, &e.Release, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,
@@ -292,7 +292,7 @@ func (r *ErrorRepository) UpdateErrorStatus(ctx context.Context, id, status stri
         UPDATE errors
         SET status = $1, last_seen = $2
         WHERE id = $3
-        RETURNING id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, release, count, source, type, url, component_stack, browser_info, user_id, session_id, status`,
+        RETURNING id, project_id, message, COALESCE(stack_trace, ''), fingerprint, occurred_at, last_seen, environment, COALESCE(release, ''), count, COALESCE(source, ''), COALESCE(type, ''), COALESCE(url, ''), COALESCE(component_stack, ''), COALESCE(browser_info, ''), COALESCE(user_id, ''), COALESCE(session_id, ''), COALESCE(status, '')`,
 		status, time.Now(), id).
 		Scan(&e.ID, &e.ProjectID, &e.Message, &e.StackTrace, &e.Fingerprint, &e.OccurredAt,
 			&e.LastSeen, &e.Environment, &e.Release, &e.Count, &e.Source, &e.Type, &e.URL, &e.ComponentStack,

@@ -184,6 +184,19 @@ export default function AlertsTab({ project }: { project: Project }) {
     () => alerts.filter((alert) => alert.enabled).length,
     [alerts],
   );
+  const severityCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      info: 0,
+      warning: 0,
+      error: 0,
+      critical: 0,
+    };
+    for (const alert of alerts) {
+      const key = alert.severity || "info";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [alerts]);
 
   return (
     <div className="space-y-5">
@@ -200,6 +213,22 @@ export default function AlertsTab({ project }: { project: Project }) {
           <HugeiconsIcon icon={Add01Icon} className="mr-1.5 h-3.5 w-3.5" />
           New alert
         </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {severities.map((name) => (
+          <div
+            key={name}
+            className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2"
+          >
+            <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+              {name}
+            </p>
+            <p className="text-lg font-semibold text-pg-text">
+              {severityCounts[name] ?? 0}
+            </p>
+          </div>
+        ))}
       </div>
 
       {loading ? (

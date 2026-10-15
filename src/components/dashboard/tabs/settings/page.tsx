@@ -61,14 +61,6 @@ import { availableAvatars } from "@/components/avatars";
 import { normalizePostgresString, wrapAsPostgresString, HttpError } from "@/lib/utils";
 import { UserFormSchema, type UserFormType } from "@/types/settings";
 import type { NavItem, Project } from "@/types/dashboard";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import TeamsTab from "@/components/dashboard/tabs/teams";
 
 type DialogId = "account" | "project" | "notifications" | null;
 
@@ -116,7 +108,6 @@ export default function SettingsTab({
     email_invites: true,
   });
   const [savingPrefs, setSavingPrefs] = useState(false);
-  const [teamsOpen, setTeamsOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -246,6 +237,33 @@ export default function SettingsTab({
         <p className="text-xs text-pg-muted">{user?.email}</p>
       </div>
 
+      <div className="mb-6 grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+            Project
+          </p>
+          <p className="truncate text-xs font-medium text-pg-text">{projectName}</p>
+        </div>
+        <div className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+            Workspace
+          </p>
+          <p className="truncate text-xs font-medium text-pg-text">
+            {activeWorkspace?.name || "—"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab("teams")}
+          className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2 text-left"
+        >
+          <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+            Teams
+          </p>
+          <p className="truncate text-xs font-medium text-pg-text">Members</p>
+        </button>
+      </div>
+
       <div className="space-y-4">
         <SettingsGroup>
           <SettingsRow
@@ -296,7 +314,7 @@ export default function SettingsTab({
             icon={UserGroupIcon}
             label="Workspace members"
             value={activeWorkspace?.name}
-            onClick={() => setTeamsOpen(true)}
+            onClick={() => setActiveTab("teams")}
           />
         </SettingsGroup>
 
@@ -584,18 +602,6 @@ export default function SettingsTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Sheet open={teamsOpen} onOpenChange={setTeamsOpen}>
-        <SheetContent className="overflow-y-auto p-6">
-          <SheetHeader className="mb-4 p-0">
-            <SheetTitle className="text-base">Workspace members</SheetTitle>
-            <SheetDescription className="text-xs">
-              Invite people, assign admin or member, and choose which projects they can open.
-            </SheetDescription>
-          </SheetHeader>
-          <TeamsTab />
-        </SheetContent>
-      </Sheet>
 
       <DeleteProjectDialog
         isOpen={deleteDialogOpen}

@@ -41,6 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 import type { Project, Session, SessionTimelineItem, TimeProp } from "@/types/dashboard";
 
@@ -235,6 +236,16 @@ const SessionsTab = ({ project }: { project: Project }) => {
 
         <SessionHeatmap
           timestamps={heatmapSessions.map((session: Session) => session.start_time)}
+        />
+
+        <ActivityChart
+          title="Sessions"
+          series={["Sessions"]}
+          colors={["#60a5fa"]}
+          events={filteredSessions.map((session: Session) => ({
+            at: session.start_time,
+            series: "Sessions",
+          }))}
         />
 
         {/* Table */}

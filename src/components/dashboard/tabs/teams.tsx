@@ -231,6 +231,23 @@ export default function WorkspaceMembersTab() {
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          ["Members", members.length],
+          ["Invites", invites.length],
+          ["Projects", projects.length],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded-xl border border-pg-border bg-pg-group/40 px-3 py-2"
+          >
+            <p className="text-[10px] uppercase tracking-wide text-pg-subtle">
+              {label}
+            </p>
+            <p className="text-lg font-semibold text-pg-text">{value}</p>
+          </div>
+        ))}
+      </div>
       {canAdmin ? (
         <div className="rounded-lg bg-pg-group p-4">
           <p className="mb-2 text-xs font-medium text-pg-text">Workspace</p>

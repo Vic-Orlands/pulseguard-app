@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -211,6 +212,100 @@ func (r *TelemetryRepository) GetTrace(ctx context.Context, traceID, projectID s
 	}
 
 	return &models.Trace{TraceID: traceID, Spans: spans}, rows.Err()
+}
+
+func (r *TelemetryRepository) RequestSeries(ctx context.Context, projectID string) ([]*models.Metric, error) {
+	if _, err := uuid.Parse(projectID); err != nil {
+		return nil, fmt.Errorf("invalid project id")
+	}
+	since := time.Now().Add(-24 * time.Hour)
+	out := make([]*models.Metric, 0)
+	add := func(name string, bucket time.Time, value float64) {
+		out = append(out, &models.Metric{
+			ID:        fmt.Sprintf("%s-%s", name, bucket.UTC().Format("2006010215")),
+			ProjectID: projectID,
+			Name:      name,
+			Value:     strconv.FormatFloat(value, 'f', 2, 64),
+			Timestamp: bucket,
+		})
+	}
+
+	traceRows, err := r.db.QueryContext(ctx, `
+		SELECT date_trunc('hour', start_time) AS bucket,
+			COUNT(*)::float8,
+			COUNT(*) FILTER (WHERE http_status >= 400)::float8,
+			COALESCE(AVG(duration_ms), 0)::float8
+		FROM telemetry_traces
+		WHERE project_id = $1 AND start_time >= $2
+		GROUP BY 1
+		ORDER BY 1`, projectID, since)
+	if err != nil {
+		return nil, fmt.Errorf("request series: %w", err)
+	}
+	defer traceRows.Close()
+	for traceRows.Next() {
+		var bucket time.Time
+		var requests, failures, duration float64
+		if err = traceRows.Scan(&bucket, &requests, &failures, &duration); err != nil {
+			return nil, err
+		}
+		add("http_requests_total", bucket, requests)
+		add("http_errors_total", bucket, failures)
+		add("http_request_duration_ms", bucket, duration)
+	}
+	if err = traceRows.Err(); err != nil {
+		return nil, err
+	}
+
+	sessionRows, err := r.db.QueryContext(ctx, `
+		SELECT date_trunc('hour', start_time) AS bucket,
+			COUNT(*)::float8,
+			COALESCE(SUM(pageview_count), 0)::float8
+		FROM sessions
+		WHERE project_id = $1 AND start_time >= $2
+		GROUP BY 1
+		ORDER BY 1`, projectID, since)
+	if err != nil {
+		return nil, fmt.Errorf("session series: %w", err)
+	}
+	defer sessionRows.Close()
+	for sessionRows.Next() {
+		var bucket time.Time
+		var sessions, views float64
+		if err = sessionRows.Scan(&bucket, &sessions, &views); err != nil {
+			return nil, err
+		}
+		add("user_activity_total", bucket, sessions)
+		add("page_views_total", bucket, views)
+		add("user_sessions_active", bucket, sessions)
+	}
+	if err = sessionRows.Err(); err != nil {
+		return nil, err
+	}
+
+	errorRows, err := r.db.QueryContext(ctx, `
+		SELECT date_trunc('hour', occurred_at) AS bucket,
+			COALESCE(SUM(count), 0)::float8
+		FROM errors
+		WHERE project_id = $1 AND occurred_at >= $2
+		GROUP BY 1
+		ORDER BY 1`, projectID, since)
+	if err != nil {
+		return nil, fmt.Errorf("error series: %w", err)
+	}
+	defer errorRows.Close()
+	for errorRows.Next() {
+		var bucket time.Time
+		var total float64
+		if err = errorRows.Scan(&bucket, &total); err != nil {
+			return nil, err
+		}
+		add("app_errors_total", bucket, total)
+	}
+	if err = errorRows.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func decodeStringMap(raw []byte) map[string]string {

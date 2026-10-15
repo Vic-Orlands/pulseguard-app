@@ -85,6 +85,7 @@ const navItems: { id: NavItem; label: string; icon: ComponentType<PulseIconProps
   { id: "logs", label: "Logs", icon: ListViewIcon },
   { id: "traces", label: "Traces", icon: HierarchyFilesIcon },
   { id: "alerts", label: "Alerts", icon: Notification01Icon },
+  { id: "teams", label: "Teams", icon: Building },
   { id: "integrations", label: "Integrations", icon: PlugsIcon },
 ];
 

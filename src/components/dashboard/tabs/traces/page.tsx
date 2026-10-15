@@ -39,6 +39,7 @@ import { TraceInspector } from "@/components/ai/trace-view";
 import { Badge } from "@/components/ui/badge";
 import { displayValue, formatDurationMs, formatTableTime, shortId } from "@/lib/utils";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 const TracesTab = ({ project }: { project: Project }) => {
   const itemsPerPage = 20;
@@ -184,6 +185,16 @@ const TracesTab = ({ project }: { project: Project }) => {
             </div>
           </div>
         </div>
+
+        <ActivityChart
+          title="Requests"
+          series={["OK", "Errors"]}
+          colors={["#34d399", "#f87171"]}
+          events={filteredTraces.map((trace) => ({
+            at: trace.startTime,
+            series: (trace.httpStatus ?? 0) >= 400 ? "Errors" : "OK",
+          }))}
+        />
 
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardContent className="overflow-x-auto p-0">

@@ -57,6 +57,7 @@ import {
 } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 function logTimestamp(log: Log): string {
   return log.timestamp || log.time || "";
@@ -268,6 +269,19 @@ const LogsTab = ({ project }: { project: Project }) => {
             />
           ))}
         </div>
+
+        <ActivityChart
+          title="Log volume"
+          series={["Info", "Warn", "Error"]}
+          colors={["#60a5fa", "#fbbf24", "#f87171"]}
+          events={logs.map((log) => {
+            const level = normalizeLogLevel(log.level);
+            return {
+              at: logTimestamp(log),
+              series: level === "error" ? "Error" : level === "warn" ? "Warn" : "Info",
+            };
+          })}
+        />
 
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardContent className="overflow-x-auto p-0">

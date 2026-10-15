@@ -16,12 +16,14 @@ import (
 )
 
 const (
-	UserID      = "11111111-1111-4111-8111-111111111111"
-	WorkspaceID = "22222222-2222-4222-8222-222222222222"
-	ProjectID   = "33333333-3333-4333-8333-333333333333"
-	DemoKey     = "sk-pg-0123456789abcdef0123456789abcdef0123456789abcdef"
-	PublicKey   = "pk-pg-abcdef0123456789abcdef0123456789abcdef0123456789"
-	IngestKey   = "pg_demo0123456789abcdef0123456789abcdef0123456789abcd"
+	UserID         = "11111111-1111-4111-8111-111111111111"
+	WorkspaceID    = "22222222-2222-4222-8222-222222222222"
+	ProjectID      = "33333333-3333-4333-8333-333333333333"
+	QuietProjectID = "77777777-7777-4777-8777-777777777777"
+	QuietIngestKey = "pg_bill0123456789abcdef0123456789abcdef0123456789abcd"
+	DemoKey        = "sk-pg-0123456789abcdef0123456789abcdef0123456789abcdef"
+	PublicKey      = "pk-pg-abcdef0123456789abcdef0123456789abcdef0123456789"
+	IngestKey      = "pg_demo0123456789abcdef0123456789abcdef0123456789abcd"
 )
 
 type model struct {

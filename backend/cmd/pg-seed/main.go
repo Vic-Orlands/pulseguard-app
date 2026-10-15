@@ -78,11 +78,16 @@ func main() {
 		log.Error(ctx, "budget", err)
 		os.Exit(1)
 	}
-	if err = seedTelemetry(ctx, conn, sample); err != nil {
+	if err = seedTelemetry(ctx, conn, demo.ProjectID, sample, "/invoices", "bbbbbbbb-bbbb-4bbb-8bbb"); err != nil {
 		log.Error(ctx, "telemetry", err)
 		os.Exit(1)
 	}
-	log.Info(ctx, "seeded demo@pulseguard.ai / pulseguard-demo project invoice-assistant")
+	quiet := demo.Quiet(now)
+	if err = seedTelemetry(ctx, conn, demo.QuietProjectID, quiet, "/billing", "13131313-1313-4131-8131"); err != nil {
+		log.Error(ctx, "quiet telemetry", err)
+		os.Exit(1)
+	}
+	log.Info(ctx, "seeded demo@pulseguard.ai / pulseguard-demo projects invoice-assistant and billing-api")
 }
 
 func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
@@ -119,6 +124,17 @@ func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
 		return err
 	}
 	if _, err = conn.ExecContext(ctx, `UPDATE projects SET description = $1 WHERE id = $2`, "Invoice API with HTTP, database, and LLM telemetry", demo.ProjectID); err != nil {
+		return err
+	}
+	_, err = conn.ExecContext(ctx, `
+		INSERT INTO projects (id, owner_id, workspace_id, name, slug, description, ingest_key, created_at, updated_at)
+		VALUES ($1, $2, $3, 'Billing API', 'billing-api', 'HTTP and database telemetry with no model calls', $4, $5, $5)
+		ON CONFLICT (id) DO NOTHING`,
+		demo.QuietProjectID, demo.UserID, demo.WorkspaceID, demo.QuietIngestKey, now)
+	if err != nil {
+		return err
+	}
+	if _, err = conn.ExecContext(ctx, `UPDATE projects SET name = 'Billing API', slug = 'billing-api', description = $1, ingest_key = $2 WHERE id = $3`, "HTTP and database telemetry with no model calls", demo.QuietIngestKey, demo.QuietProjectID); err != nil {
 		return err
 	}
 	cfg := configstore.New(conn, nil)
@@ -196,7 +212,7 @@ func seedPostgres(ctx context.Context, conn *sql.DB, password string) error {
 	return err
 }
 
-func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error {
+func seedTelemetry(ctx context.Context, conn *sql.DB, projectID string, sample demo.Sample, page string, eventPrefix string) error {
 	tx, err := conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -214,7 +230,7 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		`DELETE FROM alerts WHERE project_id = $1`,
 	}
 	for _, statement := range statements {
-		if _, err = tx.ExecContext(ctx, statement, demo.ProjectID); err != nil {
+		if _, err = tx.ExecContext(ctx, statement, projectID); err != nil {
 			return err
 		}
 	}
@@ -222,7 +238,7 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO telemetry_traces (trace_id, project_id, name, service_name, start_time, duration_ms, http_status, span_count)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-			trace.TraceID, demo.ProjectID, trace.Name, trace.Service, trace.Start, trace.Duration, trace.Status, len(trace.Spans)); err != nil {
+			trace.TraceID, projectID, trace.Name, trace.Service, trace.Start, trace.Duration, trace.Status, len(trace.Spans)); err != nil {
 			return err
 		}
 		for _, span := range trace.Spans {
@@ -244,7 +260,7 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO telemetry_logs (id, project_id, session_id, trace_id, span_id, level, service_name, message, route, source, created_at)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-			item.ID, demo.ProjectID, item.Session, item.TraceID, item.SpanID, item.Level, item.Service, item.Message, item.Route, item.Source, item.At); err != nil {
+			item.ID, projectID, item.Session, item.TraceID, item.SpanID, item.Level, item.Service, item.Message, item.Route, item.Source, item.At); err != nil {
 			return err
 		}
 	}
@@ -252,13 +268,13 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO sessions (session_id, project_id, user_id, start_time, end_time, duration_ms, error_count, event_count, pageview_count)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-			item.ID, demo.ProjectID, item.UserID, item.Start, item.End, item.Duration, item.Errors, item.Events, item.Pageviews); err != nil {
+			item.ID, projectID, item.UserID, item.Start, item.End, item.Duration, item.Errors, item.Events, item.Pageviews); err != nil {
 			return err
 		}
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO session_events (id, project_id, session_id, event_type, event_name, data, created_at)
-			VALUES ($1,$2,$3,'pageview','/invoices','{}',$4)`,
-			fmt.Sprintf("bbbbbbbb-bbbb-4bbb-8bbb-%012d", i+1), demo.ProjectID, item.ID, item.Start); err != nil {
+			VALUES ($1,$2,$3,'pageview',$4,'{}',$5)`,
+			fmt.Sprintf("%s-%012d", eventPrefix, i+1), projectID, item.ID, page, item.Start); err != nil {
 			return err
 		}
 	}
@@ -266,7 +282,7 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO errors (id, project_id, message, stack_trace, fingerprint, occurred_at, last_seen, environment, count, source, type, url, user_id, session_id, status)
 			VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-			item.ID, demo.ProjectID, item.Message, item.Stack, item.Fingerprint, item.At, item.Environment, item.Count, item.Source, item.Type, item.URL, item.UserID, item.SessionID, item.Status); err != nil {
+			item.ID, projectID, item.Message, item.Stack, item.Fingerprint, item.At, item.Environment, item.Count, item.Source, item.Type, item.URL, item.UserID, item.SessionID, item.Status); err != nil {
 			return err
 		}
 	}
@@ -275,7 +291,7 @@ func seedTelemetry(ctx context.Context, conn *sql.DB, sample demo.Sample) error 
 		if _, err = tx.ExecContext(ctx, `
 			INSERT INTO alerts (id, project_id, name, message, severity, type, threshold, window_minutes, enabled, created_at, updated_at)
 			VALUES ($1,$2,$3,$4,$5,$6,5,15,true,$7,$7)`,
-			item.ID, demo.ProjectID, item.Name, item.Message, item.Severity, item.Type, now); err != nil {
+			item.ID, projectID, item.Name, item.Message, item.Severity, item.Type, now); err != nil {
 			return err
 		}
 	}

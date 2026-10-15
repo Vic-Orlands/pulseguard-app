@@ -152,7 +152,7 @@ func main() {
 	tracesService := service.NewTracesService(telemetryStore, tempoRepo)
 	projectService := service.NewProjectService(projectRepo, workspaceRepo)
 	sessionService := service.NewSessionService(sessionRepo)
-	metricsService := service.NewMetricsService(prometheusRepo)
+	metricsService := service.NewMetricsService(prometheusRepo, telemetryStore)
 	dashboardService := service.NewDashboardService(alertService, metricsService, errorService, sessionService)
 
 	// Start HTTP server

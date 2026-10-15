@@ -19,6 +19,7 @@ import CustomErrorMessage from "../../shared/error-message";
 import { formatTableTime, getUptime, shortId } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { PageSkeleton } from "@/components/dashboard/shared/page-skeleton";
+import { ActivityChart } from "@/components/dashboard/shared/activity-chart";
 
 import type { Dispatch, SetStateAction, ReactNode } from "react";
 import type {
@@ -182,6 +183,16 @@ export default function OverviewTab({
             icon={<HugeiconsIcon icon={HierarchyFilesIcon} className="h-4 w-4" />}
           />
         </div>
+
+        <ActivityChart
+          title="Requests"
+          series={["OK", "Errors"]}
+          colors={["#34d399", "#f87171"]}
+          events={traces.map((trace) => ({
+            at: trace.startTime,
+            series: (trace.httpStatus ?? 0) >= 400 ? "Errors" : "OK",
+          }))}
+        />
 
         {ai ? (
           <Link
